@@ -622,6 +622,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
         <label class="field"><span>Old threads fade</span>
           <div class="range"><input type="range" id="cfgFade" min="0" max="120" step="10"><output id="oFade"></output></div></label>
         <label class="chk"><input type="checkbox" id="cfgDew"> Dew drops on the silk (they glow on dark themes)</label>
+        <label class="chk"><input type="checkbox" id="cfgKnots"> Knots where the silk attaches to each word</label>
         <label class="chk"><input type="checkbox" id="cfgBreeze"> A breeze sways the threads</label>
         <p class="hintline">Layout and color changes apply to new threads. Use Restart crawl to rebuild the whole web.</p>
       </section>
@@ -685,9 +686,29 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
           <div class="range"><input type="range" id="cfgStop" min="0" max="200" step="5"><output id="oStop"></output></div>
           <small>The crawl ends once it has this many keywords. Pair it with a focus topic to collect only what you need.</small></label>
         <label class="chk"><input type="checkbox" id="cfgPrey"> Show the best matches for your focus as prey, and hunt them first</label>
-        <div class="field" id="keyField" hidden><span>Claude summaries and answers</span>
-          <div class="rowi"><input class="inp" type="password" id="apiKey" placeholder="Your Anthropic API key (sk-ant-…)" autocomplete="off"><button class="btn" type="button" id="apiKeySave">Save key</button><button class="btn" type="button" id="apiKeyClear">Remove</button></div>
-          <small id="apiKeyNote">Optional. Outside claude.ai, cited summaries and answers need your own key from console.anthropic.com. It's stored only on this device, requests go straight from here to Anthropic, and usage is billed to your key. Without a key you still get the matching passages as sources.</small></div>
+        <fieldset id="keyField" hidden>
+          <legend>AI for summaries and answers</legend>
+          <p class="hintline" style="margin:0">Pick any AI to write the cited summaries and answers. Without one, you still get the matching passages as sources.</p>
+          <label class="field"><span>Provider</span>
+            <select id="aiProvider">
+              <option value="none">None: show passages only</option>
+              <option value="anthropic">Claude (Anthropic API)</option>
+              <option value="openai">OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, LM Studio…)</option>
+            </select></label>
+          <div class="rowi" id="aiQuick"><span class="meta">Quick fill:</span>
+            <button class="btn" type="button" data-ai="ollama">Ollama (local)</button>
+            <button class="btn" type="button" data-ai="lmstudio">LM Studio (local)</button>
+            <button class="btn" type="button" data-ai="openrouter">OpenRouter</button>
+            <button class="btn" type="button" data-ai="openai">OpenAI</button>
+            <button class="btn" type="button" data-ai="groq">Groq</button></div>
+          <div class="row2">
+            <label class="field"><span>Model</span><input type="text" id="aiModel" autocomplete="off"></label>
+            <label class="field"><span>Server address (optional)</span><input type="text" id="aiBase" autocomplete="off"></label>
+          </div>
+          <label class="field"><span>API key</span><input type="password" id="aiKey" placeholder="Leave empty for local AI or your own proxy" autocomplete="off"></label>
+          <div class="rowi"><button class="btn primary" type="button" id="aiSave">Save</button><button class="btn" type="button" id="aiTest">Test it</button><button class="btn" type="button" id="aiClear">Forget</button></div>
+          <small id="aiNote">Saved only on this device. Requests go straight from this device to the server you choose, and any usage is billed to your key.</small>
+        </fieldset>
       </section>
     </div>
     <div class="actions"><button class="btn" type="button" id="bRestart">Restart crawl</button><button class="btn primary" type="submit">Done</button></div>
@@ -750,12 +771,14 @@ const store = {
   set(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 };
 
-const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: true, sacs: true, sort: "mixed", topics: "",
+const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: false, knots: false, sacs: true, sort: "mixed", topics: "",
   cap: 12, hatch: 12, workers: true, stop: 0, k: 40, prey: true,
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none" }, store.get("silk-cfg") || {});
 const saveCfg = () => store.set("silk-cfg", cfg);
+// settings saved before knots existed had dew on by default; start those clean
+{ const old = store.get("silk-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
 
 const STOP = new Set(("a about above across after again against all almost alone along already also although always am among an and another any anybody anyone anything anyway anywhere are around as ask asked at away back be became because become becomes been before began behind being below beside besides best better between beyond both but by came can cannot cant come comes could did do does doing done down during each either else enough even ever every everything few find first for found four from further gave get gets getting give given go goes going gone got great had has have having he her here hers herself him himself his how however i if in indeed into is it its itself just keep kept know known last later least less let like likely little long look looked made make makes many may maybe me might mine more most mostly much must my myself near nearly need never new next no none nor not nothing now of off often oh on once one ones only onto or other others otherwise our ours ourselves out over own part per perhaps put quite rather really right said same saw say says second see seem seemed seems seen several shall she should show side since so some something sometimes soon still such sure take taken than that the their theirs them themselves then there therefore these they thing things think this those though thought three through thus till time to together too took toward towards two under unless until up upon us use used uses using very via want was way ways we well went were what whatever when where whether which while who whole whom whose why will with within without would yes yet you your yours yourself yourselves mr mrs ms dr st chapter page don didn doesn isn wasn aren weren won can't i'm it's that's there's he's she's i've i'll i'd you're we're they're let's").split(/\s+/));
 const QSTOP = new Set("what which who whom whose why how when where does did do is are was were text book say says said tell about mean means happen happens author story describe explain".split(" "));
@@ -771,43 +794,102 @@ let SAMPLE = null, DBX = null, UID = null, DL = null;
   } catch (e) { /* page works without them */ }
   capsReady();
 })();
-// Outside claude.ai (web and Android builds) the official Anthropic SDK is bundled as window.AnthropicSDK,
-// and the viewer can supply their own API key to get the same cited summaries and answers.
-function makeApiSampler(apiKey) {
-  const client = new window.AnthropicSDK({ apiKey, dangerouslyAllowBrowser: true });
+// ---- bring-your-own AI (web and Android builds). Inside claude.ai the viewer's Claude account is used instead.
+// Settings come from this device (Settings → Research), or from a deployment's config.js (window.CRAWLER_CONFIG.ai).
+const DEFAULT_CLAUDE = "claude-opus-5-5";
+const aiName = () => window.claude ? "Claude" : "AI";
+const AI_QUICK = {
+  ollama: { provider: "openai", base: "http://localhost:11434/v1", model: "llama3.1" },
+  lmstudio: { provider: "openai", base: "http://localhost:1234/v1", model: "" },
+  openrouter: { provider: "openai", base: "https://openrouter.ai/api/v1", model: "anthropic/claude-opus-5.5" },
+  openai: { provider: "openai", base: "https://api.openai.com/v1", model: "" },
+  groq: { provider: "openai", base: "https://api.groq.com/openai/v1", model: "" }
+};
+function aiSettings() {
+  let s = null; try { s = JSON.parse(localStorage.getItem("silk-ai")); } catch (e) { /* storage blocked */ }
+  if (!s) { try { const k = localStorage.getItem("silk-key"); if (k) s = { provider: "anthropic", key: k }; } catch (e) { /* none */ } }
+  const d = (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.ai) || {};
+  return Object.assign({ provider: d.provider || "none", base: d.baseUrl || "", model: d.model || "", key: "" }, s || {});
+}
+const aiErr = (st, signal, text) => ({ code: signal && signal.aborted ? "cancelled" : st === 401 || st === 403 ? "bad_key" : st === 429 ? "rate_limited" : "upstream_error", text: text || undefined });
+// Claude through the official Anthropic SDK (bundled as window.AnthropicSDK in the web and Android builds)
+function claudeSampler(s) {
+  const client = new window.AnthropicSDK({ apiKey: s.key || "via-proxy", baseURL: s.base || undefined, dangerouslyAllowBrowser: true });
+  const model = s.model || DEFAULT_CLAUDE;
+  const current = /^claude-(opus-5-5|opus-5|fable-5-1|sonnet-5-5)$/.test(model);
   return async (prompt, opts = {}) => {
-    const stream = client.beta.messages.stream({
-      model: "claude-opus-5-5",
-      max_tokens: 16000,
-      output_config: { effort: "medium" },
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      messages: [{ role: "user", content: prompt }]
-    }, { signal: opts.signal });
+    const req = { model, max_tokens: 16000, messages: [{ role: "user", content: prompt }] };
+    if (current) { req.betas = ["server-side-fallback-2026-07-01"]; req.fallbacks = "default"; }
+    if (model === DEFAULT_CLAUDE) req.output_config = { effort: "medium" };
+    const stream = current ? client.beta.messages.stream(req, { signal: opts.signal }) : client.messages.stream(req, { signal: opts.signal });
     let text = "";
     stream.on("text", delta => { text += delta; if (opts.onText) opts.onText({ text, delta }); });
     let msg;
-    try { msg = await stream.finalMessage(); }
-    catch (e) {
-      const st = e && e.status;
-      throw { code: opts.signal && opts.signal.aborted ? "cancelled" : st === 401 || st === 403 ? "bad_key" : st === 429 ? "rate_limited" : "upstream_error", text: text || undefined };
-    }
+    try { msg = await stream.finalMessage(); } catch (e) { throw aiErr(e && e.status, opts.signal, text); }
     if (msg.stop_reason === "refusal") throw { code: "refused" };
     const out = msg.content.filter(b => b.type === "text").map(b => b.text).join("");
     if (!out.trim()) throw { code: "empty_completion" };
     return { text: out, truncated: msg.stop_reason === "max_tokens" };
   };
 }
-function useApiKey() {
-  let key = ""; try { key = localStorage.getItem("silk-key") || ""; } catch (e) { /* storage blocked */ }
-  if (!window.claude && window.AnthropicSDK && key) { SAMPLE = makeApiSampler(key); return true; }
-  return false;
+// any server that speaks the OpenAI chat completions format (OpenAI, OpenRouter, Groq, Together, Ollama, LM Studio, vLLM…)
+function openAiSampler(s) {
+  const base = (s.base || "https://api.openai.com/v1").replace(/\/+$/, "");
+  return async (prompt, opts = {}) => {
+    let res;
+    try {
+      res = await fetch(base + "/chat/completions", {
+        method: "POST", signal: opts.signal,
+        headers: Object.assign({ "Content-Type": "application/json" }, s.key ? { Authorization: "Bearer " + s.key } : {}),
+        body: JSON.stringify({ model: s.model, stream: true, messages: [{ role: "user", content: prompt }] })
+      });
+    } catch (e) { throw aiErr(0, opts.signal); }
+    if (!res.ok) throw aiErr(res.status, opts.signal);
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = "", text = "", finish = "";
+    try {
+      for (;;) {
+        const { value, done } = await reader.read(); if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n"); buf = lines.pop();
+        for (const line of lines) {
+          const m = /^data:\s*(.*)$/.exec(line.trim()); if (!m || m[1] === "[DONE]") continue;
+          let j; try { j = JSON.parse(m[1]); } catch (e) { continue; }
+          const ch = j.choices && j.choices[0]; if (!ch) continue;
+          const delta = (ch.delta && ch.delta.content) || "";
+          if (ch.finish_reason) finish = ch.finish_reason;
+          if (delta) { text += delta; if (opts.onText) opts.onText({ text, delta }); }
+        }
+      }
+    } catch (e) { throw aiErr(0, opts.signal, text); }
+    if (!text.trim()) throw { code: "empty_completion" };
+    return { text, truncated: finish === "length" };
+  };
+}
+function useOwnAi() {
+  if (window.claude) return false;
+  const s = aiSettings();
+  if (s.provider === "anthropic" && window.AnthropicSDK && (s.key || s.base)) { SAMPLE = claudeSampler(s); return true; }
+  if (s.provider === "openai" && s.model) { SAMPLE = openAiSampler(s); return true; }
+  SAMPLE = null; return false;
+}
+function fillAiForm() {
+  const s = aiSettings();
+  $("aiProvider").value = s.provider; $("aiModel").value = s.model; $("aiBase").value = s.base; $("aiKey").value = s.key;
+  syncAiForm();
+}
+function syncAiForm() {
+  const p = $("aiProvider").value;
+  $("aiQuick").hidden = p !== "openai";
+  $("aiModel").placeholder = p === "anthropic" ? DEFAULT_CLAUDE : "e.g. llama3.1 or gpt-4o-mini";
+  $("aiBase").placeholder = p === "anthropic" ? "Only for your own proxy" : "https://…/v1";
+  for (const id of ["aiModel", "aiBase", "aiKey"]) $(id).disabled = p === "none";
 }
 function capsReady() {
-  if (!window.claude) { $("keyField").hidden = !window.AnthropicSDK; if (!SAMPLE) useApiKey(); }
+  if (!window.claude) { $("keyField").hidden = false; if (!SAMPLE) useOwnAi(); }
   $("sacSumBtn").hidden = !SAMPLE;
   $("askLede").textContent = SAMPLE
-    ? "Ask a question. The spider hunts down the passages that answer it, and Claude writes an answer that cites them."
+    ? "Ask a question. The spider hunts down the passages that answer it, and " + (window.claude ? "Claude" : "your AI") + " writes an answer that cites them."
     : "Ask a question. The spider hunts down the passages that answer it.";
   $("libNote").textContent = DBX
     ? "Saved crawls are private to you and kept with your account, so you can open them on any device."
@@ -816,13 +898,13 @@ function capsReady() {
 function sampleErr(e) {
   const c = e && e.code;
   if (c === "not_granted" || c === "sampling_disabled" || c === "not_declared" || c === "capability_disabled" || c === "capability_removed") { SAMPLE = null; capsReady(); return "Claude isn't available on this page, so you're seeing the passages instead."; }
-  if (c === "bad_key") return "Anthropic rejected that API key. Check it in Settings → Research.";
+  if (c === "bad_key") return "The AI service rejected the key. Check it in Settings → Research.";
   if (c === "rate_limited") return "Too many requests right now. Wait a minute and try again.";
   if (c === "refused") return "Claude couldn't answer that one. Try rewording it.";
   if (c === "prompt_too_large") return "That was too much text to send at once. Try a narrower question.";
   if (c === "session_expired") return "Your session expired. Sign in again to use Claude here.";
   if (c === "cancelled") return "";
-  return "Something went wrong reaching Claude. Try again.";
+  return "Something went wrong reaching " + aiName() + ". Try again.";
 }
 
 // ---------------- model ----------------
@@ -2032,7 +2114,7 @@ function draw(now) {
   else if (S.mode !== "gone" && S.mode !== "balloonIn" && S.mode !== "exitBalloon" && S.mode !== "appear") { const tp = tiePos(); if (tp && Math.hypot(tp.x - sp.x, tp.y - sp.y) < 1500) silkPath(tp.x, tp.y, sp.x, sp.y - S.hopZ, 1, false, 0); }
 
   ctx.globalAlpha = 1;
-  for (const list of webs.values()) for (const a of list) {
+  if (cfg.knots) for (const list of webs.values()) for (const a of list) {
     const p = anchorPos(a); if (p.y < top || p.y > bot) continue;
     ctx.fillStyle = cfg.threadColor === "topic" ? catColor(kwOf(a.node).cat) : cfg.threadColor === "bucket" && a.bucket !== "all" ? bucketColor(a.bucket) : C.silk;
     ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 7); ctx.fill();
@@ -2344,16 +2426,16 @@ function renderSac() {
   $("sacMergeSel").innerHTML = others.map(s => `<option value="${sacs.indexOf(s)}">#${s.n} ${esc(trunc(s.label, 28))}</option>`).join("");
   $("sacMergeSel").parentElement.hidden = !others.length;
   $("sacSumBtn").hidden = !SAMPLE;
-  $("sacSumBtn").textContent = sac.summary ? "Summarize again" : "Summarize with Claude";
+  $("sacSumBtn").textContent = sac.summary ? "Summarize again" : "Summarize with " + aiName();
   const sum = $("sacSum");
   if (sac.summary) {
-    $("sacSumH").textContent = "Summary by Claude"; sum.className = "sum";
+    $("sacSumH").textContent = "Summary by " + aiName(); sum.className = "sum";
     sum.innerHTML = citedHTML(sac.summary, sac.summarySi || []);
     $("sacSrc").innerHTML = sourcesHTML(sac.summarySi || []);
   } else {
     $("sacSumH").textContent = "Key passages";
     sum.className = "sum extract";
-    sum.innerHTML = `<p class="meta">The sources below are the sentences that mention the most keywords in this sac.${SAMPLE ? " Choose “Summarize with Claude” for a written summary that cites them." : ""}</p>`;
+    sum.innerHTML = `<p class="meta">The sources below are the sentences that mention the most keywords in this sac.${SAMPLE ? " Choose “Summarize with ${aiName()}” for a written summary that cites them." : ""}</p>`;
     $("sacSrc").innerHTML = sourcesHTML(keyPassages(sac.keys, 4));
   }
 }
@@ -2364,7 +2446,7 @@ async function summarizeSac() {
   const si = keyPassages(sac.keys, 24);
   const passages = si.map((i, n) => `[${n + 1}] ${trunc(DOC.sents[i], 420)}`).join("\n");
   const prompt = `You are helping someone research a text titled "${DOC.title}". A web crawler grouped these keywords into one bundle called "${sac.label}" (major keyword: related keywords):\n${tree}\n\nNumbered passages from the text where they appear:\n${passages}\n\nWrite a short summary (3 to 5 sentences) of what the text says about this group of keywords, using only the passages. Then add a line "Key points:" followed by 3 short bullet points starting with "- ". After every sentence and bullet, cite the passage numbers it relies on in square brackets, like [3] or [2][5]. Do not state anything the passages don't support. Plain text only, no headings or bold.`;
-  const out = $("sacSum"); $("sacSumH").textContent = "Summary by Claude"; out.className = "sum"; out.textContent = "Thinking…";
+  const out = $("sacSum"); $("sacSumH").textContent = "Summary by " + aiName(); out.className = "sum"; out.textContent = "Thinking…";
   $("sacSrc").innerHTML = sourcesHTML(si);
   $("sacSumBtn").disabled = true; $("sacStop").hidden = false;
   sacCtl = new AbortController();
@@ -2375,7 +2457,7 @@ async function summarizeSac() {
   } catch (e) {
     const msg = sampleErr(e);
     if (curSac === sac) { if (e && e.text) out.textContent = e.text + (msg ? "\n\n" + msg : ""); else if (msg) out.textContent = msg; else renderSac(); }
-  } finally { $("sacSumBtn").disabled = false; $("sacStop").hidden = true; if (curSac === sac) $("sacSumBtn").textContent = sac.summary ? "Summarize again" : "Summarize with Claude"; }
+  } finally { $("sacSumBtn").disabled = false; $("sacStop").hidden = true; if (curSac === sac) $("sacSumBtn").textContent = sac.summary ? "Summarize again" : "Summarize with " + aiName(); }
 }
 $("sacSumBtn").onclick = summarizeSac;
 $("sacStop").onclick = () => sacCtl && sacCtl.abort();
@@ -3139,7 +3221,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgWorkers", "workers", Boolean], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
   ["cfgLook", "look", String], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String],
   ["cfgLayout", "layout", String], ["cfgLinks", "links", Number, "oLinks"], ["cfgThreadColor", "threadColor", String], ["cfgWordColor", "wordColor", String],
-  ["cfgBreeze", "breeze", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
+  ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String]];
 function syncSettings() {
@@ -3182,7 +3264,7 @@ for (const [id, key, parse, out] of BIND) {
 }
 const PRESETS = {
   classic: { look: "classic", type: "cobweb", tint: "auto", skin: "auto", ambient: "none", layout: "auto", threadColor: "bucket", wordColor: "underline", catchFx: "ripple",
-    babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", hatchFx: "burst", entrance: "left", exit: "stay", dew: true, breeze: false, fade: 0, footprints: false },
+    babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", hatchFx: "burst", entrance: "left", exit: "stay", dew: false, knots: false, breeze: false, fade: 0, footprints: false },
   spooky: { look: "ghost", type: "orb", tint: "auto", skin: "spooky", ambient: "dust", layout: "orb", threadColor: "silk", catchFx: "sparkle", babyLook: "fireflies",
     babyColor: "parent", hatchFx: "gentle", entrance: "drop", exit: "up", dew: true, breeze: true, fade: 0 },
   cyber: { look: "robot", type: "wolf", tint: "c0", skin: "neon", ambient: "rain", layout: "meaning", threadColor: "topic", catchFx: "label", babyLook: "fireflies",
@@ -3224,19 +3306,41 @@ $("setTabs").addEventListener("click", e => {
 });
 $("replay").onclick = () => { $("dSettings").close(); enter(); };
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
-$("bSettings").onclick = () => { syncSettings(); $("dSettings").showModal(); };
+$("bSettings").onclick = () => { syncSettings(); if (!window.claude) fillAiForm(); $("dSettings").showModal(); };
 $("bTheme").onclick = cycleTheme;
-$("apiKeySave").onclick = () => {
-  const k = $("apiKey").value.trim();
-  if (!/^sk-ant-/.test(k)) { $("apiKeyNote").textContent = "That doesn't look like an Anthropic API key. Keys start with sk-ant-."; return; }
-  try { localStorage.setItem("silk-key", k); } catch (e) { $("apiKeyNote").textContent = "This device blocked saving the key."; return; }
-  $("apiKey").value = ""; useApiKey(); capsReady();
-  $("apiKeyNote").textContent = "Key saved on this device. Summaries and answers now come from Claude, with citations.";
+$("aiProvider").addEventListener("change", syncAiForm);
+$("aiQuick").addEventListener("click", e => {
+  const b = e.target.closest("[data-ai]"); if (!b) return;
+  const q = AI_QUICK[b.dataset.ai];
+  $("aiProvider").value = q.provider; $("aiBase").value = q.base; $("aiModel").value = q.model; syncAiForm();
+  $("aiNote").textContent = q.model ? "Filled in. Add your API key if the service needs one, then Save." : "Filled in. Type the model name your service uses, add a key if it needs one, then Save.";
+});
+function readAiForm() { return { provider: $("aiProvider").value, model: $("aiModel").value.trim(), base: $("aiBase").value.trim(), key: $("aiKey").value.trim() }; }
+$("aiSave").onclick = () => {
+  const s = readAiForm(), note = $("aiNote");
+  if (s.provider === "openai" && !s.model) { note.textContent = "Type the model name your service uses (for example llama3.1)."; return; }
+  if (s.provider === "anthropic" && !s.key && !s.base) { note.textContent = "Add your Anthropic API key, or the address of your own proxy."; return; }
+  if (s.provider === "anthropic" && !window.AnthropicSDK) { note.textContent = "This copy of the app doesn't include the Claude library. Use the web or Android release."; return; }
+  try { localStorage.setItem("silk-ai", JSON.stringify(s)); localStorage.removeItem("silk-key"); } catch (e) { note.textContent = "This device blocked saving the settings."; return; }
+  useOwnAi(); capsReady();
+  note.textContent = s.provider === "none" ? "Saved. Summaries and answers show passages only." : "Saved on this device. Use Test it to check the connection.";
 };
-$("apiKeyClear").onclick = () => {
-  try { localStorage.removeItem("silk-key"); } catch (e) { /* nothing stored */ }
-  if (!window.claude) SAMPLE = null; capsReady();
-  $("apiKeyNote").textContent = "Key removed from this device.";
+$("aiTest").onclick = async () => {
+  const s = readAiForm(), note = $("aiNote");
+  if (s.provider === "none") { note.textContent = "Pick a provider first."; return; }
+  const fn = s.provider === "anthropic" ? (window.AnthropicSDK ? claudeSampler(s) : null) : openAiSampler(s);
+  if (!fn) { note.textContent = "This copy of the app doesn't include the Claude library."; return; }
+  note.textContent = "Testing…";
+  try { const { text } = await fn("Reply with exactly: Connected."); note.textContent = "It works. The AI replied: " + trunc(text.trim(), 80); }
+  catch (e) {
+    note.textContent = e.code === "bad_key" ? "The server rejected the key." : e.code === "rate_limited" ? "The server says too many requests. Try again shortly."
+      : "Couldn't reach the AI. Check the address and model. Local servers like Ollama must allow requests from this app (for Ollama, set OLLAMA_ORIGINS=*).";
+  }
+};
+$("aiClear").onclick = () => {
+  try { localStorage.removeItem("silk-ai"); localStorage.removeItem("silk-key"); } catch (e) { /* nothing stored */ }
+  useOwnAi(); fillAiForm(); capsReady();
+  $("aiNote").textContent = "Forgotten on this device.";
 };
 
 // source

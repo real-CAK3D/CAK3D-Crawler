@@ -26,6 +26,10 @@ jobs:
       - run: npm ci
       - run: npm run icons
       - run: npm run build
+        env:
+          CRAWLER_AI_PROVIDER: ${{ vars.CRAWLER_AI_PROVIDER }}
+          CRAWLER_AI_BASE_URL: ${{ vars.CRAWLER_AI_BASE_URL }}
+          CRAWLER_AI_MODEL: ${{ vars.CRAWLER_AI_MODEL }}
       - run: npx cap add android
       - name: Generate app icon and splash screen
         run: >

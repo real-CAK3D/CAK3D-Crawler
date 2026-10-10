@@ -25,11 +25,22 @@ const head = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script src="config.js"></script>
 <script src="anthropic.js"></script>
 </head><body>`;
 const tail = `<script>if ("serviceWorker" in navigator && !window.Capacitor && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js"));</script>
 </body></html>`;
 writeFileSync(`${OUT}/index.html`, head + page + tail);
+
+// Default AI for this deployment, from environment variables (GitHub repository variables in CI).
+// Never put an API key here: everything in config.js is public. Point CRAWLER_AI_BASE_URL at a proxy
+// that holds the key instead (see proxy/ and the wiki).
+const ai = {
+  provider: process.env.CRAWLER_AI_PROVIDER || "",
+  baseUrl: process.env.CRAWLER_AI_BASE_URL || "",
+  model: process.env.CRAWLER_AI_MODEL || ""
+};
+writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai }, null, 2)};\n`);
 
 copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
 writeFileSync(`${OUT}/sw.js`, readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`));

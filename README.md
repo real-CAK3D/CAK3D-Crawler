@@ -16,9 +16,20 @@ A web crawler that actually crawls a web. A spider walks across any text you giv
 - **Library** to save crawls and come back to them. **Export** notes as Markdown, keywords as CSV, or flashcards as CSV (works with Anki).
 - **Lots of style:** 8 spider looks, 4 kinds of movement, 8 entrances and exits, 7 web layouts, 5 thread color modes, catch effects, spiderling options, 9 themes, weather, and presets.
 
-## Claude features outside claude.ai
+## Use your own AI
 
-Inside claude.ai the app uses your Claude account for summaries and answers. In the web and Android versions you can add your own Anthropic API key in **Settings → Research**. The key is stored only on your device, requests go straight from your device to Anthropic, and usage is billed to that key. Without a key you still get the matching passages as sources.
+Crawling, topics, the graph and citations run entirely on your device. An AI is only used to write the cited summaries and answers, and you choose which one in **Settings → Research**:
+
+- **Claude** with your Anthropic API key (through the official Anthropic SDK)
+- **Any OpenAI-compatible service:** OpenAI, OpenRouter, Groq, Together, vLLM…
+- **A model on your own computer:** Ollama or LM Studio, free and private
+- **Nothing:** you still get the matching passages as sources
+
+Settings and keys stay on your device, and requests go straight to the provider you pick. Inside claude.ai the app uses your Claude account instead.
+
+Hosting a copy for others? Set the `CRAWLER_AI_*` repository variables and deploy the key-holding proxy in [`proxy/`](proxy/) so visitors get an AI without a key ever reaching the page. Details: [Use Your Own AI](https://github.com/real-CAK3D/CAK3D-Crawler/wiki/Use-Your-Own-AI).
+
+Full guide: **[the wiki](https://github.com/real-CAK3D/CAK3D-Crawler/wiki)**.
 
 ## Build it yourself
 
@@ -52,6 +63,7 @@ The Android signing key lives in the repository secrets `ANDROID_KEYSTORE_B64` a
 | `scripts/make-icons.mjs` | Draws the app icon and splash screen (no image tools needed) |
 | `scripts/android-config.mjs` | Sets the Android version and signing during CI |
 | `web/` | Web app manifest and offline service worker |
+| `proxy/` | Optional Cloudflare Worker that holds an AI key for a public deployment |
 
 ## License
 

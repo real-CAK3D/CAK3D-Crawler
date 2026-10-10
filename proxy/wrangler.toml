@@ -1,0 +1,14 @@
+name = "crawler-ai-proxy"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Claude: https://api.anthropic.com with KIND "anthropic"
+# OpenAI-compatible: e.g. https://api.openai.com/v1 or https://openrouter.ai/api/v1 with KIND "openai"
+UPSTREAM = "https://api.anthropic.com"
+KIND = "anthropic"
+# The sites allowed to use this proxy (your GitHub Pages address, plus localhost for testing)
+ALLOWED_ORIGIN = "https://your-name.github.io,http://localhost:8080"
+
+# Then add your key as a secret (never put it in this file):
+#   npx wrangler secret put API_KEY

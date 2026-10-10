@@ -29,6 +29,10 @@ jobs:
       - run: npm ci
       - run: npm run icons
       - run: npm run build
+        env:
+          CRAWLER_AI_PROVIDER: ${{ vars.CRAWLER_AI_PROVIDER }}
+          CRAWLER_AI_BASE_URL: ${{ vars.CRAWLER_AI_BASE_URL }}
+          CRAWLER_AI_MODEL: ${{ vars.CRAWLER_AI_MODEL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
