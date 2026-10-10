@@ -10,6 +10,12 @@ if (!existsSync("web/icons/icon-192.png")) { console.error("Run `npm run icons` 
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(`${OUT}/icons`, { recursive: true });
+mkdirSync(`${OUT}/vendor`, { recursive: true });
+
+// the PDF and EPUB readers ship with the app so they work offline (the claude.ai version loads them from cdnjs)
+copyFileSync("node_modules/pdfjs-dist/build/pdf.min.js", `${OUT}/vendor/pdf.min.js`);
+copyFileSync("node_modules/pdfjs-dist/build/pdf.worker.min.js", `${OUT}/vendor/pdf.worker.min.js`);
+copyFileSync("node_modules/jszip/dist/jszip.min.js", `${OUT}/vendor/jszip.min.js`);
 
 await build({
   stdin: { contents: 'import Anthropic from "@anthropic-ai/sdk"; window.AnthropicSDK = Anthropic;', resolveDir: ".", loader: "js" },
@@ -43,7 +49,7 @@ const ai = {
   baseUrl: process.env.CRAWLER_AI_BASE_URL || "",
   model: process.env.CRAWLER_AI_MODEL || ""
 };
-writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai }, null, 2)};\n`);
+writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/" }, null, 2)};\n`);
 
 copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
 writeFileSync(`${OUT}/sw.js`, readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`));

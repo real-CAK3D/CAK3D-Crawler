@@ -1,7 +1,8 @@
 // Offline support for the web app: the app itself is fetched fresh when online and served
 // from cache when offline. Fonts are cached after first use.
 const CACHE = "crawler-__VERSION__";
-const SHELL = ["./", "index.html", "config.js", "anthropic.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
+const SHELL = ["./", "index.html", "config.js", "anthropic.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
+  "vendor/pdf.min.js", "vendor/pdf.worker.min.js", "vendor/jszip.min.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

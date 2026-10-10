@@ -6,15 +6,17 @@ A web crawler that actually crawls a web. A spider walks across any text you giv
 
 ## What it does
 
-- **Crawls any text.** Paste a chapter or a whole book, open a `.txt` file, or give it a web page link. Wikipedia articles load directly; other sites are read through the free [r.jina.ai](https://jina.ai/reader) reader service.
-- **Finds the main keywords** (words and two-word phrases) and groups them into topics by which ones appear in the same sentences.
-- **Research focus.** Type a topic and the spider only hunts keywords near it. The best matches show up as prey.
+- **Crawls anything you read.** Paste text, open a **PDF** (page numbers kept for citations), **EPUB**, `.txt` or `.md` file, give it a web page link, or **search the web** and pick results. Crawl **several sources at once** and see where they agree.
+- **A real web crawler, too.** Load a page and let the spider **follow its links**, crawling the most relevant linked pages as extra sources. Wikipedia loads directly; other sites are read through the free [r.jina.ai](https://jina.ai/reader) reader service.
+- **Finds the main keywords** (words and two-word phrases) in English, Spanish, French, German, Italian, Portuguese or Dutch, and groups them into topics by which ones appear in the same sentences.
+- **Research focus.** Type a topic and the spider only hunts keywords near it. The best matches show up as prey. It also **learns your interests** and crawls those first next time.
 - **Egg sacs.** When a web fills up, the spider wraps it into a sac. Click a sac to see its keyword tree, key passages, and a summary. Merge, split, rename, or hand-pick keywords into your own sacs.
-- **Citations everywhere.** Summaries and answers cite numbered sources. Each source shows where it is in the text (section and paragraph), has a "Show in text" button, and links to the original page, jumping straight to the passage when the text came from a link.
-- **Ask the text** a question and get the passages that answer it, plus a cited answer from Claude when it's available.
+- **Citations everywhere.** Summaries and answers cite numbered sources showing the source, chapter and page, with "Show in text", a link that jumps to the passage in the original, and **APA, MLA or Chicago** citations and a bibliography.
+- **Notes, search and listening.** Write notes on keywords and passages, search the text, jump by chapter or page, and have answers and passages **read aloud**.
+- **Ask the text** a question and get the passages that answer it, plus a cited answer from the AI you choose.
 - **Web view** with a zoomable graph, a timeline of where topics appear, a comparison with a second text, and flashcards.
-- **Library** to save crawls and come back to them. **Export** notes as Markdown, keywords as CSV, or flashcards as CSV (works with Anki).
-- **Lots of style:** 8 spider looks, 4 kinds of movement, 8 entrances and exits, 7 web layouts, 5 thread color modes, catch effects, spiderling options, 9 themes, weather, and presets.
+- **Library** to save crawls. **Export** notes as Markdown or CSV, flashcards for Anki, or **share a crawl as one web page** anyone can open.
+- **Lots of style:** 8 spider looks, 4 kinds of movement, extra spiders for each topic, 8 entrances and exits, 7 web layouts, 5 thread color modes, catch effects, spiderling options, 9 themes, 10 kinds of weather, seasonal looks, and presets.
 
 ## Use your own AI
 

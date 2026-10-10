@@ -268,6 +268,16 @@ span.chip { cursor: default; }
 .branch button:hover { text-decoration: underline; }
 .answer { font-size: 1.02rem; line-height: 1.6; white-space: pre-wrap; border-left: 3px solid var(--link); padding: 4px 0 4px 14px; }
 .cite { background: none; border: 0; padding: 0 1px; color: var(--link); cursor: pointer; font-family: var(--mono); font-size: .85em; }
+.note { margin: 6px 0 2px; padding: 4px 10px; border-radius: 4px; background: color-mix(in srgb, var(--c6) 10%, transparent); color: var(--ink); font-size: .92rem; }
+.pgmark { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; border-top: 1px dashed var(--rule); margin: 18px 0 8px; padding-top: 4px; text-align: right; }
+.srcmark { border-top: 3px double var(--rule); margin: 42px 0 0; }
+::highlight(find) { background-color: var(--grip); color: var(--ink); }
+.findp { position: fixed; right: 0; bottom: 0; z-index: 12; width: min(25rem, 100vw); background: var(--paper); border-left: 1px solid var(--rule); box-shadow: -8px 0 24px rgb(0 0 0 / .12); display: flex; flex-direction: column; font-size: .97rem; }
+.findp-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--rule); background: var(--panel); flex-wrap: wrap; }
+.findp-head .btn { margin-left: auto; }
+.findp-body { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+.toc { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.toc-item { font-family: var(--serif); font-size: 1rem; text-align: left; }
 .sources { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: .93rem; line-height: 1.5; }
 .sources .loc { display: block; font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
 .src-acts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 3px; }
@@ -316,6 +326,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <button class="btn" id="bFollow" type="button" aria-pressed="true">Follow</button>
     <button class="btn primary" id="bWeb" type="button">Web view</button>
     <button class="btn" id="bAsk" type="button">Ask</button>
+    <button class="btn" id="bFind" type="button">Find</button>
     <button class="btn" id="bLib" type="button">Library</button>
     <button class="btn" id="bSource" type="button">Source</button>
     <button class="btn" id="bTheme" type="button" title="Switch between light, dark and your device's setting">Light</button>
@@ -413,6 +424,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <button class="btn" id="exMd" type="button">Outline .md</button>
       <button class="btn" id="exCsv" type="button">Keywords .csv</button>
       <button class="btn" id="exCards" type="button">Flashcards .csv</button>
+      <button class="btn" id="exShare" type="button">Share as web page</button>
       <button class="btn" id="wvCopy" type="button">Copy notes</button>
     </div>
   </div>
@@ -444,6 +456,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <div class="sac-actions">
       <button class="btn primary" type="button" id="sacSumBtn" hidden>Summarize with Claude</button>
       <button class="btn" type="button" id="sacStop" hidden>Stop</button>
+      <button class="btn" type="button" id="sacRead">Read aloud</button>
       <button class="btn" type="button" id="sacExport">Export .md</button>
       <span class="merge"><select id="sacMergeSel" aria-label="Sac to merge with"></select><button class="btn" type="button" id="sacMerge">Merge</button></span>
     </div>
@@ -461,6 +474,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <div class="rowi"><input class="inp" id="askQ" type="text" placeholder="e.g. Why do spiders eat their webs?" autocomplete="off"><button class="btn primary" type="submit" id="askGo">Ask</button><button class="btn" type="button" id="askStop" hidden>Stop</button></div>
     <p class="err" id="askErr" hidden></p>
     <div id="askAnswer" class="answer" hidden></div>
+    <div class="rowi" id="askTools" hidden><button class="btn" type="button" id="askRead">Read aloud</button><button class="btn" type="button" id="askCopy">Copy answer with sources</button></div>
     <div id="askPWrap" hidden><h3 class="sub">Sources</h3><div id="askPassages"></div></div>
     <details id="askHistory" hidden><summary>Earlier questions</summary><ul id="askList" class="lib"></ul></details>
     <div class="actions"><button class="btn" type="button" id="askClose">Close</button></div>
@@ -488,22 +502,40 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <label><input type="radio" name="src" value="sample" id="srcSample"> Sample: Spider article</label>
       <label><input type="radio" name="src" value="text" id="srcTextR" checked> My own text</label>
       <label><input type="radio" name="src" value="url" id="srcUrlR"> A web page</label>
+      <label><input type="radio" name="src" value="search" id="srcSearchR"> Search the web</label>
     </div>
+    <div class="field" id="searchField" hidden><span>Search the web</span>
+      <div class="rowi"><input class="inp" type="search" id="webQ" placeholder="e.g. how do spiders make silk" autocomplete="off"><button class="btn" type="button" id="webGo">Search</button></div>
+      <ul class="lib" id="webResults"></ul>
+      <small id="webHint">Results come from Wikipedia and DuckDuckGo. Tick the ones to crawl; each becomes a source.</small></div>
     <label class="field" id="urlField"><span>Web page link</span><input type="url" id="srcUrl" placeholder="https://en.wikipedia.org/wiki/Spider" autocomplete="off">
       <small id="urlHint">Wikipedia articles load directly. Other sites are read through the free r.jina.ai reader service. Citations link back to the exact passage on the page.</small></label>
+    <label class="field" id="followField"><span>Also crawl the pages it links to</span>
+      <div class="range"><input type="range" id="cfgFollow" min="0" max="8" step="1"><output id="oFollow"></output></div>
+      <small>Like a real web crawler: the spider follows the page's most relevant links and crawls those pages too, each as its own source.</small></label>
     <label class="field"><span>Title</span><input type="text" id="srcTitle" placeholder="e.g. Moby-Dick, chapter 1"></label>
     <label class="field"><span>Where it's from (optional)</span><input type="text" id="srcCite" placeholder="A link, or a citation like: Melville, Moby-Dick (1851)">
       <small>Shown with every source in summaries, answers and exports. A link becomes clickable.</small></label>
+    <div class="row2">
+      <label class="field"><span>Author (optional)</span><input type="text" id="srcAuthor" placeholder="e.g. Herman Melville" autocomplete="off"></label>
+      <label class="field"><span>Year (optional)</span><input type="text" id="srcYear" placeholder="e.g. 1851" inputmode="numeric" autocomplete="off"></label>
+    </div>
     <label class="field"><span>Text</span><textarea id="srcText" placeholder="Paste text here…"></textarea>
       <small id="srcInfo">Plain text works best. Up to about 600,000 characters (a long novel).</small></label>
-    <label class="field"><span>Or open a file</span><input type="file" id="srcFile" accept=".txt,.md,.text,text/plain,text/markdown"></label>
+    <label class="field"><span>Or open a file: PDF, EPUB, TXT or MD</span><input type="file" id="srcFile" accept=".txt,.md,.text,.pdf,.epub,text/plain,text/markdown,application/pdf,application/epub+zip"></label>
+    <label class="field"><span>Language</span>
+      <select id="srcLang"><option value="auto">Detect automatically</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option>
+        <option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option><option value="nl">Nederlands</option></select></label>
+    <div class="field" id="srcListWrap" hidden><span>Sources in this crawl</span><ul class="lib" id="srcList"></ul>
+      <small>They're crawled together. Citations say which source each passage came from, and the web view shows where sources agree.</small></div>
     <label class="field"><span>Keywords to pick out</span>
       <div class="range"><input type="range" id="cfgK" min="15" max="120" step="5"><output id="oK"></output></div>
       <small>More keywords means a bigger web and finer topics, and a longer crawl.</small></label>
     <p class="err" id="srcErr" hidden></p>
     <div class="actions">
+      <button class="btn" type="button" id="srcAdd" style="margin-right:auto">Add as another source</button>
       <button class="btn" type="button" id="srcCancel">Cancel</button>
-      <button class="btn primary" type="submit">Load and crawl</button>
+      <button class="btn primary" type="submit" id="srcGo">Load and crawl</button>
     </div>
   </form>
 </dialog>
@@ -567,6 +599,15 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
         </div>
         <label class="field"><span>Size</span>
           <div class="range"><input type="range" id="cfgSize" min="0.6" max="1.8" step="0.1"><output id="oSize"></output></div></label>
+        <div class="row2">
+          <label class="field"><span>How many spiders</span>
+            <select id="cfgSpiders"><option value="one">Just one</option><option value="topics">One more for each topic (up to 6)</option></select></label>
+          <label class="field"><span>Seasonal look</span>
+            <select id="cfgSeason"><option value="off">None</option><option value="auto">Match today's date</option><option value="spring">Spring flower crown</option>
+              <option value="summer">Summer sunglasses</option><option value="autumn">Autumn leaf</option><option value="halloween">Halloween witch hat</option>
+              <option value="winter">Winter hat</option></select></label>
+        </div>
+        <p class="hintline">Extra spiders each hunt one topic and spin it in that topic's color.</p>
       </section>
       <section data-g="moves" hidden>
         <div class="row2">
@@ -676,8 +717,9 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
           </select></label>
         <label class="field"><span>Weather</span>
           <select id="cfgAmbient">
-            <option value="none">Clear</option><option value="dust">Floating dust</option><option value="fireflies">Fireflies</option>
-            <option value="rain">Rain</option><option value="snow">Snow</option><option value="leaves">Falling leaves</option>
+            <option value="none">Clear</option><option value="season">Match the season</option><option value="dust">Floating dust</option><option value="fireflies">Fireflies</option>
+            <option value="rain">Rain</option><option value="storm">Thunderstorm</option><option value="snow">Snow</option><option value="leaves">Falling leaves</option>
+            <option value="blossoms">Cherry blossoms</option><option value="fog">Fog</option><option value="stars">Starry night</option>
           </select></label>
         <p class="hintline">Weather is turned off when your device asks for reduced motion.</p>
       </section>
@@ -686,6 +728,15 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
           <div class="range"><input type="range" id="cfgStop" min="0" max="200" step="5"><output id="oStop"></output></div>
           <small>The crawl ends once it has this many keywords. Pair it with a focus topic to collect only what you need.</small></label>
         <label class="chk"><input type="checkbox" id="cfgPrey"> Show the best matches for your focus as prey, and hunt them first</label>
+        <div class="row2">
+          <label class="field"><span>Citation style</span>
+            <select id="cfgCiteStyle"><option value="apa">APA (7th)</option><option value="mla">MLA (9th)</option><option value="chicago">Chicago (author-date)</option></select></label>
+          <label class="field"><span>Reading voice</span><select id="ttsVoice"><option value="">Device default</option></select></label>
+        </div>
+        <label class="field"><span>Reading speed</span>
+          <div class="range"><input type="range" id="cfgTtsRate" min="0.6" max="1.6" step="0.1"><output id="oTtsRate"></output></div></label>
+        <label class="chk"><input type="checkbox" id="cfgLearn"> Learn what I'm interested in, and crawl those keywords first</label>
+        <div class="rowi"><button class="btn" type="button" id="forgetInt">Forget what it learned</button><span class="meta" id="intNote"></span></div>
         <fieldset id="keyField" hidden>
           <legend>AI for summaries and answers</legend>
           <p class="hintline" style="margin:0">Pick any AI to write the cited summaries and answers. Without one, you still get the matching passages as sources.</p>
@@ -731,12 +782,49 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <dt>L</dt><dd>Open the research library.</dd>
       <dt>R</dt><dd>Restart the crawl.</dd>
       <dt>T</dt><dd>Switch light, dark or automatic theme.</dd>
+      <dt>/</dt><dd>Search inside the text.</dd>
+      <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
       <dt>Web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
       <dt>Esc</dt><dd>Close whatever is open.</dd>
     </dl>
     <div class="actions"><button class="btn primary" type="submit">Got it</button></div>
   </form>
 </dialog>
+
+<!-- Note dialog -->
+<dialog id="dNote" aria-labelledby="noteH">
+  <form id="fNote" method="dialog">
+    <h2 id="noteH">Note</h2>
+    <p class="quote" id="noteQuote" hidden></p>
+    <label class="field"><span>Your note</span><textarea id="noteText" rows="5" placeholder="What does this mean for your research?"></textarea></label>
+    <div class="actions"><button class="btn" type="button" id="noteDel" style="margin-right:auto">Delete note</button><button class="btn" type="button" id="noteCancel">Cancel</button><button class="btn primary" type="submit">Save note</button></div>
+  </form>
+</dialog>
+
+<!-- Find + contents panel -->
+<aside id="findPanel" class="findp" hidden aria-label="Find and contents">
+  <div class="findp-head">
+    <div class="tabs" id="findTabs" role="tablist">
+      <button type="button" role="tab" data-ft="search" aria-selected="true">Search</button>
+      <button type="button" role="tab" data-ft="contents" aria-selected="false">Contents</button>
+      <button type="button" role="tab" data-ft="sources" aria-selected="false">Sources</button>
+    </div>
+    <button class="btn" type="button" id="findClose">Close</button>
+  </div>
+  <div data-fp="search" class="findp-body">
+    <input class="inp" id="findQ" type="search" placeholder="Search the text" autocomplete="off" aria-label="Search the text">
+    <p class="meta" id="findCount"></p>
+    <ol id="findResults" class="sources"></ol>
+  </div>
+  <div data-fp="contents" class="findp-body" hidden>
+    <div class="rowi" id="pageJump" hidden><input class="inp" id="pageNo" type="number" min="1" placeholder="Page number" aria-label="Page number"><button class="btn" type="button" id="pageGo">Go to page</button></div>
+    <ol id="tocList" class="toc"></ol>
+  </div>
+  <div data-fp="sources" class="findp-body" hidden>
+    <div id="srcInfoList"></div>
+    <div class="rowi"><button class="btn" type="button" id="copyBib">Copy bibliography</button></div>
+  </div>
+</aside>
 
 <!-- Copy fallback dialog -->
 <dialog id="dCopy" aria-labelledby="copyH">
@@ -775,7 +863,8 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   cap: 12, hatch: 12, workers: true, stop: 0, k: 40, prey: true,
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
-  babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none" }, store.get("silk-cfg") || {});
+  babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0 }, store.get("silk-cfg") || {});
 const saveCfg = () => store.set("silk-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("silk-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -945,40 +1034,66 @@ function buildSample() {
     cats: SAMPLE_CATS.map((name, i) => ({ name, color: i })), words: page.textContent.trim().split(/\s+/).length };
 }
 
-const isHeading = t => t.length <= 80 && !/[.,;:!?"”’)]$/.test(t) && t.split(/\s+/).length <= 10 && /[A-Za-z]/.test(t);
+// ---- languages: common-word lists, detected automatically or chosen in Source
+const STOPS = {
+  en: STOP,
+  es: new Set("de la que el en y a los del se las por un para con no una su al lo como más pero sus le ya o este sí porque esta entre cuando muy sin sobre también me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto mí antes algunos qué unos yo otro otras otra él tanto esa estos mucho quienes nada muchos cual poco ella estar estas algunas algo nosotros mi mis tú te ti tu tus ellas nosotras vosotros os esos esas estoy estás está estamos están era eras eran fue fueron ser es son sea han ha he has hemos había habían tiene tienen tenía hace hacer puede pueden dijo cada así aquí allí entonces".split(" ")),
+  fr: new Set("le la les de des du un une et en à au aux ce ces cet cette il ils elle elles on nous vous je tu me te se lui leur leurs son sa ses mon ma mes ton ta tes notre nos votre vos qui que quoi dont où ne pas plus moins très tout tous toute toutes mais ou donc or ni car avec sans pour par sur sous dans entre vers chez comme si est sont était étaient été être avoir a ont avait avaient fait faire peut peu aussi bien encore même autre autres quand alors ainsi après avant depuis puis c'est qu'il cela ça ici là".split(" ")),
+  de: new Set("der die das den dem des ein eine einer eines einem einen und oder aber in im an am auf aus bei mit nach von vor zu zum zur über unter durch für gegen ohne um ist sind war waren sein bin bist hat haben hatte hatten wird werden wurde wurden kann können konnte nicht kein keine auch noch schon nur so wie als wenn dass da dort hier er sie es ich du wir ihr man sich mich mir dich dir ihm ihn ihnen seine ihre unser euer was wer wo warum dieser diese dieses jener alle alles viel mehr sehr dann doch denn ja nein".split(" ")),
+  it: new Set("il lo la i gli le un uno una di a da in con su per tra fra e o ma se che chi cui non più come anche quando dove del dello della dei degli delle al allo alla ai agli alle dal dalla dai nel nello nella nei negli nelle sul sulla sui è sono era erano essere ha hanno aveva avevano fare fatto questo questa questi queste quello quella quelli quelle io tu lui lei noi voi loro mi ti si ci vi suo sua suoi sue mio mia tuo tua nostro vostro molto tutto tutti già ancora così poi".split(" ")),
+  pt: new Set("o a os as um uma uns umas de do da dos das em no na nos nas por pelo pela pelos pelas para com sem sob sobre entre e ou mas que se não mais como também quando onde quem qual cujo é são era eram ser foi foram ter tem têm tinha fazer feito este esta estes estas esse essa esses essas aquele aquela isso isto eu tu ele ela nós vós eles elas me te lhe vos seu sua seus suas meu minha muito já ainda assim então ao aos à às pode".split(" ")),
+  nl: new Set("de het een en of maar in op aan bij met van voor naar uit over onder door om tot tegen zonder is zijn was waren ben bent heeft hebben had hadden wordt worden werd kan kunnen kon niet geen ook nog al alleen zo als dan dat die dit deze wat wie waar waarom hij zij ze ik jij je wij we jullie u hem haar hun ons mijn onze er hier daar veel meer zeer".split(" "))
+};
+const LANG_NAMES = { en: "English", es: "Español", fr: "Français", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands" };
+function detectLang(raw) {
+  const words = (raw.slice(0, 40000).toLowerCase().match(/\p{L}+/gu) || []).slice(0, 5000);
+  let best = "en", bs = -1;
+  for (const [code, set] of Object.entries(STOPS)) { let n = 0; for (const w of words) if (set.has(w)) n++; if (n > bs) { bs = n; best = code; } }
+  return best;
+}
+// word boundaries that work for accented letters too (JavaScript's \b only knows A-Z)
+const WB = "(?<![\\p{L}\\p{N}])", WE = "(?![\\p{L}\\p{N}])";
+
+const MARK_RE = /^⟦(page|source) (\d+)⟧$/;
+const isHeading = t => t.length <= 80 && !/[.,;:!?"”’)]$/.test(t) && t.split(/\s+/).length <= 10 && /\p{L}/u.test(t) && !MARK_RE.test(t);
 function splitBlocks(raw) {
   const text = raw.replace(/\r\n?/g, "\n").trim();
   let blocks = text.split(/\n[ \t]*\n+/);
   if (blocks.length < 3 && text.split("\n").length > 8) blocks = text.split("\n");
-  return blocks.map(b => b.replace(/\s+/g, " ").trim()).filter(Boolean).map(t => ({ text: t, type: isHeading(t) ? "h" : "p" }));
+  return blocks.map(b => b.replace(/\s+/g, " ").trim()).filter(Boolean).map(t => {
+    const m = MARK_RE.exec(t);
+    return m ? { text: t, type: "mark", kind: m[1], n: +m[2] } : { text: t, type: isHeading(t) ? "h" : "p" };
+  });
 }
 function tokens(chunk) {
   const out = [];
-  for (const m of chunk.matchAll(/[A-Za-z][A-Za-z'’-]*/g)) {
+  for (const m of chunk.matchAll(/\p{L}[\p{L}\p{M}'’-]*/gu)) {
     const w = m[0].replace(/['’]s$/i, "").replace(/['’-]+$/, "");
     if (w) out.push(w);
   }
   return out;
 }
 
-function extract(raw, K) {
-  const blocks = splitBlocks(raw), sents = [], toks = [], marks = [], sentPara = [];
+function extract(raw, K, lang) {
+  const STOPW = STOPS[lang] || STOP;
+  const blocks = splitBlocks(raw), sents = [], toks = [], marks = [], sentPara = [], sentPage = [], sentSrc = [];
   const uni = new Map(), bi = new Map(), caps = new Map();
   const inc = (m, k, n = 1) => m.set(k, (m.get(k) || 0) + n);
-  let words = 0, para = 0;
+  let words = 0, para = 0, page = 0, src = 0;
   for (const b of blocks) {
+    if (b.type === "mark") { if (b.kind === "page") page = b.n; else { src = b.n - 1; page = 0; para = 0; } continue; }
     if (b.type === "h") marks.push({ i: sents.length, label: b.text }); else para++;
     const parts = b.type === "h" ? [b.text] : b.text.split(/(?<=[.!?…]["”’)]?)\s+/);
     for (const s of parts) {
-      sentPara.push(b.type === "h" ? 0 : para);
+      sentPara.push(b.type === "h" ? 0 : para); sentPage.push(page); sentSrc.push(src);
       const u = new Set(), g = new Set();
       let first = true;
-      for (const chunk of s.split(/[,;:()"“”\[\]!?.…—–]+|\s-\s/)) {
+      for (const chunk of s.split(/[,;:()"“”«»\[\]!?¡¿.…—–]+|\s-\s/)) {
         let prev = null;
         for (const w0 of tokens(chunk)) {
           const w = w0.toLowerCase(); words++;
-          const stop = w.length < 3 || STOP.has(w);
-          if (!stop) { inc(uni, w); u.add(w); if (!first && /^[A-Z]/.test(w0)) inc(caps, w); }
+          const stop = w.length < 3 || STOPW.has(w) || STOP.has(w);
+          if (!stop) { inc(uni, w); u.add(w); if (!first && /^\p{Lu}/u.test(w0)) inc(caps, w); }
           if (prev && !stop) { const k = prev + " " + w; inc(bi, k); g.add(k); }
           prev = stop ? null : w; first = false;
         }
@@ -1020,7 +1135,7 @@ function extract(raw, K) {
     for (const k of keys) { const o = kw.get(k); o.count++; o.si.push(i); }
     addCooc(kw, [...keys]);
   });
-  return { blocks, sents, kw, fold, words, marks, sentPara };
+  return { blocks, sents, kw, fold, words, marks, sentPara, sentPage, sentSrc };
 }
 
 // group keywords into topics by which ones share sentences (label propagation)
@@ -1068,12 +1183,13 @@ function cluster(kw) {
 
 function keyPattern(k) { return k.split(" ").map(w => reEsc(w) + "(?:e?s)?").join("\\s+"); }
 
-function buildText(raw, title, K) {
-  const ex = extract(raw, K);
+function buildText(raw, title, K, lang) {
+  if (!lang || lang === "auto") lang = detectLang(raw);
+  const ex = extract(raw, K, lang);
   if (!ex.kw.size) return null;
   const cats = cluster(ex.kw);
   const keys = [...ex.kw.keys()].sort((a, b) => b.length - a.length);
-  const re = new RegExp(`\\b(?:${keys.map(keyPattern).join("|")})(?:['’]s)?\\b`, "gi");
+  const re = new RegExp(`${WB}(?:${keys.map(keyPattern).join("|")})(?:['’]s)?${WE}`, "giu");
   const opts = w => [w, ex.fold.get(w) || w, w.replace(/es$/, ""), w.replace(/s$/, "")];
   const keyOf = m => {
     const parts = m.toLowerCase().replace(/['’]s$/, "").split(/\s+/);
@@ -1094,20 +1210,28 @@ function buildText(raw, title, K) {
     });
     return out + esc(t.slice(last));
   };
-  page.innerHTML = `<h1>${esc(title)}</h1><p class="from">${ex.words.toLocaleString()} words · ${ex.kw.size} keywords · ${cats.length} topics</p>` +
-    ex.blocks.map(b => b.type === "h" ? `<h2>${mark(b.text)}</h2>` : `<p>${mark(b.text)}</p>`).join("");
-  return { title, mode: "text", raw, kw: ex.kw, sents: ex.sents, marks: ex.marks, sentPara: ex.sentPara, cats, words: ex.words };
+  const nSrc = ex.sentSrc.reduce((m, v) => Math.max(m, v), 0) + 1;
+  page.innerHTML = `<h1>${esc(title)}</h1><p class="from">${ex.words.toLocaleString()} words · ${ex.kw.size} keywords · ${cats.length} topics${nSrc > 1 ? ` · ${nSrc} sources` : ""}${lang !== "en" ? " · " + LANG_NAMES[lang] : ""}</p>` +
+    ex.blocks.map(b => b.type === "mark"
+      ? (b.kind === "page" ? `<div class="pgmark" data-page="${b.n}" aria-hidden="true">p. ${b.n}</div>` : `<div class="srcmark" data-src="${b.n}"></div>`)
+      : b.type === "h" ? `<h2>${mark(b.text)}</h2>` : `<p>${mark(b.text)}</p>`).join("");
+  return { title, mode: "text", raw, lang, kw: ex.kw, sents: ex.sents, marks: ex.marks, sentPara: ex.sentPara, sentPage: ex.sentPage, sentSrc: ex.sentSrc,
+    hasPages: ex.sentPage.some(p => p > 0), cats, words: ex.words };
 }
 function buildCompare(raw, title) {
-  const ex = extract(raw, cfg.k);
+  const lang = detectLang(raw), ex = extract(raw, cfg.k, lang);
   if (!ex.kw.size) return null;
   cluster(ex.kw);
   return { title: title || "Second text", raw, kw: ex.kw, words: ex.words };
 }
 function indexSentences() {
   DOC.sentKeys = new Map();
-  for (const k of DOC.kw.values()) for (const i of k.si) { if (!DOC.sentKeys.has(i)) DOC.sentKeys.set(i, new Set()); DOC.sentKeys.get(i).add(k.key); }
+  for (const k of DOC.kw.values()) {
+    for (const i of k.si) { if (!DOC.sentKeys.has(i)) DOC.sentKeys.set(i, new Set()); DOC.sentKeys.get(i).add(k.key); }
+    k.srcs = new Set(k.si.map(i => DOC.sentSrc ? DOC.sentSrc[i] || 0 : 0));
+  }
 }
+const multiSource = () => DOC && DOC.sources && DOC.sources.length > 1;
 
 // ---------------- page geometry (relative to the article's corner) ----------------
 let W = 0, H = 0, dpr = 1;
@@ -1209,9 +1333,14 @@ function nextTarget() {
   while (S.manual.length && S.manual[0].caught) S.manual.shift();
   if (S.manual.length) return S.manual[0];
   if (limitReached()) return null;
-  const ok = n => !n.caught && relevant(n);
+  const ok = n => !n.caught && relevant(n) && !(n.claim && n.claim !== S);
   const near = list => { let b = null, bd = Infinity; for (const n of list) { const d = Math.hypot(n.cx - S.x, n.cy - S.y); if (d < bd) { bd = d; b = n; } } return b; };
   if (cfg.prey) { const p = near(nodes.filter(n => n.prey && ok(n))); if (p) return p; }
+  if (cfg.learn) {
+    let b = null, bs = 1.5;
+    for (const n of nodes) { if (!ok(n)) continue; const sc = interest(n); if (sc > bs) { bs = sc; b = n; } }
+    if (b) { if (!b.liked) { b.liked = true; log("LIKE", `“${kwOf(b).label}” first: you've looked at it before`); } return b; }
+  }
   const s = near(nodes.filter(n => n.seeded && ok(n))); if (s) return s;
   return nodes.find(ok) || null;
 }
@@ -1219,7 +1348,7 @@ function nextTarget() {
 // ---------------- buckets (which web a keyword goes in) ----------------
 const sacTopics = () => cfg.topics.split(",").map(s => s.trim()).filter(Boolean).slice(0, 7);
 function applyTopics() {
-  const ts = sacTopics().map(t => new RegExp(`\\b(?:${t.toLowerCase().split(/\s+/).map(reEsc).join("|")})`, "i"));
+  const ts = sacTopics().map(t => new RegExp(`${WB}(?:${t.toLowerCase().split(/\s+/).map(reEsc).join("|")})`, "iu"));
   for (const k of DOC.kw.values()) {
     let best = -1, bs = 0;
     ts.forEach((re, i) => { const s = (re.test(k.label) ? 5 : 0) + k.si.reduce((a, j) => a + (re.test(DOC.sents[j]) ? 1 : 0), 0); if (s > bs) { bs = s; best = i; } });
@@ -1227,7 +1356,7 @@ function applyTopics() {
   }
 }
 function bucketOf(k) {
-  if (cfg.sort === "category") return "c" + k.cat;
+  if (cfg.sort === "category" || (cfg.spiders === "topics" && cfg.sort === "mixed")) return "c" + k.cat;
   if (cfg.sort === "topics" && sacTopics().length) return k.topic >= 0 ? "t" + k.topic : "tx";
   return "all";
 }
@@ -1261,7 +1390,7 @@ function updateStats() {
   $("sGrips").textContent = grips;
 }
 const focusTerms = () => $("focus").value.toLowerCase().split(/[,\s]+/).filter(t => t.length >= 2);
-const focusRe = () => { const t = focusTerms(); return t.length ? new RegExp(`\\b(?:${t.map(reEsc).join("|")})`, "i") : null; };
+const focusRe = () => { const t = focusTerms(); return t.length ? new RegExp(`${WB}(?:${t.map(reEsc).join("|")})`, "iu") : null; };
 let holdUntil = 0;
 function flash(msg) { $("status").textContent = msg; holdUntil = performance.now() + 3500; }
 function updateStatus() {
@@ -1351,7 +1480,7 @@ function sfx(kind) {
 }
 
 // ---------------- crawl actions ----------------
-function catchNode(n, silent) {
+function catchNode(n, silent, by) {
   n.caught = true; n.el.classList.add("caught"); n.el.classList.remove("seed");
   const k = kwOf(n); k.crawled = true; crawled++;
   const now = performance.now() - (silent ? 3000 : 0);
@@ -1361,7 +1490,7 @@ function catchNode(n, silent) {
   const a = { node: n, sac: null, bucket: b };
   const prev = list[list.length - 1];
   linkTargets(list, n, k, b).forEach((o, i) => { threads.push({ a: o, b: a, born: now + 110 * i, bucket: b }); spun++; });
-  list.push(a); tie = n;
+  list.push(a); if (!by) tie = n;
   if (!silent) {
     catchFx(n, k);
     log(n.prey ? "PREY" : "GET", DOC.mode === "sample" && n.el.dataset.w ? "/wiki/" + decodeURIComponent(n.el.dataset.w) : `“${k.label}” · ${DOC.cats[k.cat].name}`);
@@ -1535,6 +1664,62 @@ function startExit() {
 }
 const hasWork = () => S.goto || S.sacQueue.length || nextTarget();
 
+// ---- extra spiders: one per topic, each hunting its own topic and spinning it in that topic's color
+let helpers = [];
+function spawnHelpers() {
+  for (const n of nodes) if (n.claim && n.claim !== S) n.claim = null;
+  helpers = [];
+  if (cfg.spiders !== "topics" || !DOC) return;
+  const pr = pageBox(), vw = document.documentElement.clientWidth;
+  const cats = [...new Set(nodes.filter(n => relevant(n) && !n.caught).map(n => kwOf(n).cat))].slice(0, 6);
+  cats.forEach((cat, i) => {
+    const first = nodes.find(n => kwOf(n).cat === cat && relevant(n) && !n.caught);
+    const right = i % 2 === 1;
+    helpers.push({ cat, x: right ? vw - pr.left + 60 : -pr.left - 60, y: (first ? first.cy : S.y) + (i - 2) * 24, a: right ? Math.PI : 0,
+      v: 0, target: null, wait: 0.6 + i * 0.5, ph: Math.random() * 6, last: null });
+  });
+}
+function updateHelpers(dt) {
+  const sp = speedNow() * 0.85;
+  for (const h of helpers) {
+    h.ph += dt * (2 + h.v * 0.12);
+    if (h.wait > 0) { h.wait -= dt; h.v = 0; continue; }
+    if (h.target && (h.target.caught || !relevant(h.target))) { h.target.claim = null; h.target = null; }
+    if (!h.target) {
+      if (limitReached()) { h.v = 0; continue; }
+      let best = null, bd = Infinity;
+      for (const n of nodes) {
+        if (n.caught || n.claim || kwOf(n).cat !== h.cat || !relevant(n)) continue;
+        const d = Math.hypot(n.cx - h.x, n.cy - h.y); if (d < bd) { bd = d; best = n; }
+      }
+      if (!best) { h.v = 0; continue; }
+      best.claim = h; h.target = best;
+    }
+    const T = h.target, dx = T.cx - h.x, dy = T.cy - h.y, d = Math.hypot(dx, dy);
+    const diff = wrapA(Math.atan2(dy, dx) - h.a);
+    h.a += clamp(diff, -5 * sp * dt, 5 * sp * dt);
+    const v = (d > 900 ? Math.min(2600, d * 2) : 100 * sp * Math.min(1, (d + 25) / 70)) * Math.max(0.2, Math.cos(diff));
+    h.x += Math.cos(h.a) * v * dt; h.y += Math.sin(h.a) * v * dt; h.v = v;
+    if (d < 9) { T.claim = null; h.target = null; catchNode(T, false, h); h.last = T; h.wait = 0.3 / sp; }
+  }
+}
+function drawHelper(h) {
+  const col = catColor(h.cat), moving = h.v > 5;
+  if (h.last) { ctx.strokeStyle = col; ctx.globalAlpha = 0.5; ctx.lineWidth = 1; const bx = h.x - Math.cos(h.a) * 12, by = h.y - Math.sin(h.a) * 12; if (Math.hypot(h.last.cx - bx, h.last.cy - by) < 1200) silkPath(h.last.cx, h.last.cy, bx, by, 1, false, 0); ctx.globalAlpha = 1; }
+  ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.a); ctx.scale(0.8, 0.8);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const swing = moving ? Math.sin(h.ph + i * 1.7 + (side > 0 ? Math.PI : 0)) * 0.28 : 0;
+    const base = side * (0.55 + i * 0.52) + swing, hx = 3 - i * 2, hy = side * 4;
+    const kx = hx + Math.cos(base - side * 0.5) * 14, ky = hy + Math.sin(base - side * 0.5) * 14;
+    const fx = kx + Math.cos(base + side * 0.35) * 13, fy = ky + Math.sin(base + side * 0.35) * 13;
+    ctx.lineWidth = 2.2; seg(hx, hy, kx, ky); ctx.lineWidth = 1.4; seg(kx, ky, fx, fy);
+  }
+  ell(-11, 0, 10, 7.5); ctx.fill(); ell(3, 0, 6.5, 5.5); ctx.fill();
+  ctx.fillStyle = C.paper; ell(7, -1.6, 1, 1); ctx.fill(); ell(7, 1.6, 1, 1); ctx.fill();
+  ctx.restore();
+}
+
 function restart() {
   measure();
   for (const n of nodes) { n.caught = false; n.seeded = false; n.el.classList.remove("caught", "packed", "grip", "seed"); }
@@ -1544,11 +1729,14 @@ function restart() {
   crawled = 0; spun = 0; grips = 0; tie = null; sacCount = 0;
   Object.assign(S, { target: null, wait: 0.4, v: 0, sac: null, goto: null, manual: [], sacQueue: [], finishing: false });
   logEl.innerHTML = '<li class="empty">Waiting for the first keyword…</li>';
-  applyFocus(); enter(); updateStats(); updateStatus();
+  for (const n of nodes) n.claim = null;
+  applyFocus(); enter(); spawnHelpers(); updateStats(); updateStatus();
 }
 
 function loadDoc(d) {
   DOC = d; DOC.highlights = DOC.highlights || []; DOC.asks = DOC.asks || []; DOC.libId = DOC.libId || null;
+  DOC.sources = DOC.sources && DOC.sources.length ? DOC.sources : [{ title: d.title, cite: d.cite || "", author: "", year: "" }];
+  loadNotes();
   $("docTitle").textContent = d.title;
   indexSentences(); applyTopics(); initNodes();
   WV.sel = null; WV.filter.clear(); WV.pos.clear(); WV.picks.clear(); FC.order = [];
@@ -1607,6 +1795,7 @@ function walk(dt) {
     if (S.finishing) { finish(); return; }
     if (cfg.sacs) for (const [b, list] of webs) if (list.length >= cfg.cap) { startSac(b); return; }
     S.target = nextTarget();
+    if (!S.target && helpers.some(h => h.target)) { S.v = 0; return; }
     if (!S.target) { if (crawled > 0) beginFinish(); else S.v = 0; return; }
   }
   const T = S.target;
@@ -1704,6 +1893,8 @@ function update(dt, now) {
   }
   if (sacs.some(s => s.dead)) { sacs = sacs.filter(s => !s.dead); updateStats(); }
   updateBabies(dt);
+  updateHelpers(dt);
+  if (S.mode === "done" && cfg.sacs) for (const list of webs.values()) if (list.length >= cfg.cap) { S.mode = "walk"; break; }
 
   if (follow && !["gone", "exitUp", "exitBalloon", "exit"].includes(S.mode)) {
     const cur = scrollY, want = Math.max(0, cur + pageBox().top + S.y - H * 0.45);
@@ -1940,6 +2131,7 @@ function drawSpider(now) {
     for (let gy = -2; gy <= 2; gy++) for (let gx = 0; gx <= 3; gx++) if ((gx - 1.5) * (gx - 1.5) / 4.5 + gy * gy / 5 <= 1) ctx.fillRect(gx * 3, gy * 3 - 1.5, 3, 3);
     ctx.fillStyle = C.paper; ctx.fillRect(7.5, -6, 3, 3); ctx.fillRect(7.5, 3, 3, 3);
   } else drawClassicBody(type, col);
+  drawAccessory();
   ctx.restore();
   // the "!" when it spots its next keyword, and z's while it sleeps
   const top = S.y - S.hopZ - 34 * cfg.size;
@@ -2154,6 +2346,7 @@ function draw(now) {
   rings = rings.filter(r => now - r.born < 700);
   for (const r of rings) { const p = (now - r.born) / 700; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(r.x, r.y, 4 + p * 22, 0, 7); ctx.stroke(); }
   ctx.globalAlpha = 1;
+  for (const h of helpers) if (vis(h.y, h.y)) drawHelper(h);
   drawSpider(now);
 }
 function threadStyle(t, i, A, B) {
@@ -2172,41 +2365,90 @@ function threadWeight(t) {
   return 0.7 + Math.min(3, w * 0.6);
 }
 
+// ---------------- seasons ----------------
+function dateSeason() {
+  const m = new Date().getMonth();
+  return m === 9 ? "halloween" : m === 11 || m <= 1 ? "winter" : m <= 4 ? "spring" : m <= 7 ? "summer" : "autumn";
+}
+const seasonNow = () => cfg.season === "auto" ? dateSeason() : cfg.season;
+// a little seasonal accessory, drawn in the spider's own coordinates (head near x = 3)
+function drawAccessory() {
+  const s = seasonNow(); if (!s || s === "off") return;
+  const A0 = ctx.globalAlpha;
+  if (s === "winter") {
+    ctx.fillStyle = "#c8323c"; ell(1, 0, 7, 6.6); ctx.fill();
+    ctx.fillStyle = "#f2f2f2"; ell(6, 0, 2.2, 7); ctx.fill(); ell(-6.5, 2.5, 2.6, 2.6); ctx.fill();
+  } else if (s === "halloween") {
+    ctx.fillStyle = "#2a1838"; ell(3, 0, 10.5, 10.5); ctx.fill();
+    ctx.strokeStyle = "#ff9a3c"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(3, 0, 6.2, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#3b2352"; ell(1.5, 0, 5.4, 5.4); ctx.fill(); ell(-2, -1.5, 2.6, 2.6); ctx.fill();
+  } else if (s === "spring") {
+    const cols = [C.cats[6], C.cats[4], "#ffffff", C.cats[3], C.cats[1], C.cats[6]];
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3, x = 3 + Math.cos(a) * 7.5, y = Math.sin(a) * 7.5; ctx.fillStyle = cols[i]; ell(x, y, 2.4, 2.4); ctx.fill(); ctx.fillStyle = C.cats[4]; ell(x, y, 0.9, 0.9); ctx.fill(); }
+  } else if (s === "summer") {
+    ctx.fillStyle = "#121212"; ctx.globalAlpha = A0 * 0.95;
+    ctx.beginPath(); ctx.roundRect(5.4, -5.4, 5.6, 4.4, 1.8); ctx.fill(); ctx.beginPath(); ctx.roundRect(5.4, 1, 5.6, 4.4, 1.8); ctx.fill();
+    ctx.strokeStyle = "#121212"; ctx.lineWidth = 1.1; seg(8, -1, 8, 1);
+    ctx.fillStyle = "#ffffff"; ctx.globalAlpha = A0 * 0.6; ell(9.2, -4, 0.9, 0.6); ctx.fill(); ell(9.2, 2.4, 0.9, 0.6); ctx.fill();
+  } else if (s === "autumn") {
+    ctx.save(); ctx.translate(1, -1); ctx.rotate(-0.6);
+    ctx.fillStyle = C.cats[1]; ell(0, 0, 6, 3.2); ctx.fill();
+    ctx.strokeStyle = C.cats[4]; ctx.lineWidth = 0.8; seg(-6, 0, 6, 0); seg(6, 0, 8.5, 0.6);
+    ctx.restore();
+  }
+  ctx.globalAlpha = A0;
+}
+
 // ---------------- weather (drawn in screen space) ----------------
-let amb = [], ambKind = null;
+let amb = [], ambKind = null, flashAt = 0;
+const SEASON_WEATHER = { winter: "snow", spring: "blossoms", summer: "fireflies", autumn: "leaves", halloween: "fog" };
+const ambWanted = () => cfg.ambient === "season" ? SEASON_WEATHER[cfg.season === "off" ? dateSeason() : seasonNow()] || "leaves" : cfg.ambient;
 function newAmb(anywhere) {
   const k = ambKind, x = Math.random() * W, y = anywhere ? Math.random() * H : -20;
-  if (k === "rain") return { x, y, v: 520 + Math.random() * 300, l: 9 + Math.random() * 10 };
+  if (k === "rain" || k === "storm") return { x, y, v: 520 + Math.random() * 300, l: 9 + Math.random() * 10 };
   if (k === "snow") return { x, y, v: 18 + Math.random() * 30, r: 1 + Math.random() * 2.2, ph: Math.random() * 7 };
   if (k === "leaves") return { x, y, v: 22 + Math.random() * 26, r: 3 + Math.random() * 3, ph: Math.random() * 7, rot: Math.random() * 7, c: [1, 4, 2][Math.floor(Math.random() * 3)] };
+  if (k === "blossoms") return { x, y, v: 16 + Math.random() * 20, r: 2 + Math.random() * 1.8, ph: Math.random() * 7, rot: Math.random() * 7, c: 6 };
   if (k === "fireflies") return { x, y: Math.random() * H, a: Math.random() * 7, ph: Math.random() * 7 };
+  if (k === "fog") return { x: anywhere ? x : -200, y: Math.random() * H, r: 90 + Math.random() * 150, vx: 5 + Math.random() * 10, a: 0.05 + Math.random() * 0.05 };
+  if (k === "stars") return { x, y: Math.random() * H, r: 0.5 + Math.random() * 1.3, ph: Math.random() * 7 };
   return { x, y: Math.random() * H, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, r: 0.8 + Math.random() * 1.4 };
 }
 function resetAmbient() {
-  ambKind = cfg.ambient; amb = [];
+  ambKind = ambWanted(); amb = [];
   if (reduce) return;
-  const n = { dust: 30, fireflies: 18, rain: 90, snow: 60, leaves: 14 }[ambKind] || 0;
+  const n = { dust: 30, fireflies: 18, rain: 90, storm: 110, snow: 60, leaves: 14, blossoms: 22, fog: 9, stars: 70 }[ambKind] || 0;
   for (let i = 0; i < n; i++) amb.push(newAmb(true));
 }
 function updAmbient(dt, now) {
-  if (ambKind !== cfg.ambient) resetAmbient();
+  if (ambKind !== ambWanted()) resetAmbient();
   for (let i = 0; i < amb.length; i++) {
     const p = amb[i];
-    if (ambKind === "rain") { p.y += p.v * dt; p.x -= p.v * 0.18 * dt; }
+    if (ambKind === "rain" || ambKind === "storm") { p.y += p.v * dt; p.x -= p.v * 0.18 * dt; }
     else if (ambKind === "snow") { p.y += p.v * dt; p.x += Math.sin(now * 0.001 + p.ph) * 12 * dt; }
-    else if (ambKind === "leaves") { p.y += p.v * dt; p.x += Math.sin(now * 0.0012 + p.ph) * 30 * dt; p.rot += dt * 1.5; }
+    else if (ambKind === "leaves" || ambKind === "blossoms") { p.y += p.v * dt; p.x += Math.sin(now * 0.0012 + p.ph) * 30 * dt; p.rot += dt * 1.5; }
     else if (ambKind === "fireflies") { p.a += (Math.random() - 0.5) * 2 * dt; p.x += Math.cos(p.a) * 14 * dt; p.y += Math.sin(p.a) * 14 * dt; }
+    else if (ambKind === "fog") { p.x += p.vx * dt; }
+    else if (ambKind === "stars") { /* stars stay put and twinkle */ }
     else { p.x += p.vx * dt; p.y += p.vy * dt; }
-    if (p.y > H + 30 || p.x < -40 || p.x > W + 40 || p.y < -40) amb[i] = newAmb(ambKind === "dust" || ambKind === "fireflies");
+    const off = ambKind === "fog" ? p.x - p.r > W : p.y > H + 30 || p.x < -40 || p.x > W + 40 || p.y < -40;
+    if (off) amb[i] = newAmb(ambKind === "dust" || ambKind === "fireflies" || ambKind === "stars");
   }
+  if (ambKind === "storm" && now > flashAt + 5000 && Math.random() < dt * 0.25) flashAt = now;
 }
 function drawAmbient(now) {
   if (!amb.length) return;
   ctx.save();
-  if (ambKind === "rain") { ctx.strokeStyle = C.silk; ctx.lineWidth = 1; ctx.globalAlpha = 0.28; for (const p of amb) seg(p.x, p.y, p.x - p.l * 0.18, p.y + p.l); }
+  if (ambKind === "rain" || ambKind === "storm") {
+    ctx.strokeStyle = C.silk; ctx.lineWidth = 1; ctx.globalAlpha = 0.28; for (const p of amb) seg(p.x, p.y, p.x - p.l * 0.18, p.y + p.l);
+    const f = (now - flashAt) / 380;
+    if (ambKind === "storm" && f >= 0 && f < 1) { ctx.globalAlpha = 0.22 * (1 - f) * (f < 0.15 || f > 0.3 ? 1 : 0.4); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); }
+  }
   else if (ambKind === "snow") { ctx.fillStyle = C.silk; ctx.globalAlpha = 0.55; for (const p of amb) { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); } }
-  else if (ambKind === "leaves") { ctx.globalAlpha = 0.6; for (const p of amb) { ctx.fillStyle = C.cats[p.c]; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ell(0, 0, p.r * 1.6, p.r * 0.8); ctx.fill(); ctx.restore(); } }
+  else if (ambKind === "leaves" || ambKind === "blossoms") { ctx.globalAlpha = ambKind === "blossoms" ? 0.5 : 0.6; for (const p of amb) { ctx.fillStyle = C.cats[p.c]; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ell(0, 0, p.r * 1.6, p.r * (ambKind === "blossoms" ? 1.1 : 0.8)); ctx.fill(); ctx.restore(); } }
   else if (ambKind === "fireflies") { ctx.fillStyle = C.cats[4]; ctx.shadowColor = C.cats[4]; ctx.shadowBlur = 9; for (const p of amb) { ctx.globalAlpha = 0.25 + 0.6 * Math.max(0, Math.sin(now * 0.002 + p.ph)); ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, 7); ctx.fill(); } }
+  else if (ambKind === "fog") { for (const p of amb) { const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); g.addColorStop(0, C.muted); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.globalAlpha = p.a; ctx.fillStyle = g; ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); } }
+  else if (ambKind === "stars") { ctx.fillStyle = C.silk; for (const p of amb) { ctx.globalAlpha = 0.2 + 0.6 * (0.5 + 0.5 * Math.sin(now * 0.0015 + p.ph)); ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); } }
   else { ctx.fillStyle = C.muted; ctx.globalAlpha = 0.25; for (const p of amb) { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); } }
   ctx.restore();
 }
@@ -2242,11 +2484,13 @@ function showPop(el) {
   const pop = $("pop"), picked = WV.picks.has(key);
   pop.innerHTML = `<div class="pop-h" style="--dot:${catColorVar(k.cat)}"><i></i><b>${esc(k.label)}</b></div>
     <p class="meta">${esc(DOC.cats[k.cat].name)} · in ${plural(k.count, "sentence")} · ${k.crawled ? "crawled" : n.seeded ? "marked by a spiderling" : "not crawled yet"}</p>
+    ${noteHTML("k", key)}
     <div class="pop-btns"><button class="btn primary" type="button" data-pop="crawl">${k.crawled ? "Send the spider here" : "Crawl it now"}</button>
     <button class="btn" type="button" data-pop="web">Open in web view</button>
     <button class="btn" type="button" data-pop="pick" aria-pressed="${picked}">${picked ? "Picked for a sac" : "Pick for a sac"}</button></div>
+    <div class="pop-btns">${noteBtn("k", key)}</div>
     ${el.tagName === "A" ? `<a href="${esc(el.href)}" target="_blank" rel="noopener">Read the article ↗</a>` : ""}`;
-  pop.hidden = false;
+  pop.hidden = false; bump(k.label, 1);
   const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
   pop.style.left = clamp(r.left, 8, innerWidth - pw - 8) + "px";
   pop.style.top = (r.bottom + ph + 12 > innerHeight ? Math.max(8, r.top - ph - 8) : r.bottom + 8) + "px";
@@ -2261,7 +2505,7 @@ $("pop").addEventListener("click", e => {
   else if (act === "web") { hidePop(); openWeb(key); }
   else if (act === "pick") { togglePick(key); hidePop(); flash(`${plural(WV.picks.size, "keyword")} picked. Open the web view and choose Wrap into sac.`); }
 });
-function togglePick(key) { if (WV.picks.has(key)) WV.picks.delete(key); else WV.picks.add(key); updatePickBar(); }
+function togglePick(key) { if (WV.picks.has(key)) WV.picks.delete(key); else { WV.picks.add(key); bump((DOC.kw.get(key) || {}).label, 2); } updatePickBar(); }
 
 page.addEventListener("click", e => {
   const kwEl = e.target.closest(".kw");
@@ -2324,7 +2568,7 @@ function addHighlight(text, range, silent) {
   let ci = DOC.cats.findIndex(c => c.user);
   if (ci < 0) { ci = DOC.cats.length; DOC.cats.push({ name: "My highlights", color: 6, user: true }); }
   const k = mkKw(key, label, ci); k.user = true;
-  const re = new RegExp(`\\b${reEsc(key).replace(/\s+/g, "\\s+")}`, "i");
+  const re = new RegExp(`${WB}${reEsc(key).replace(/\s+/g, "\\s+")}`, "iu");
   DOC.sents.forEach((s, i) => { if (re.test(s)) { k.si.push(i); k.count++; } });
   if (!k.count) k.count = 1;
   for (const i of k.si) {
@@ -2360,16 +2604,25 @@ function sacTree(sac) {
 }
 function keyPassages(keys, n) {
   const set = new Set(keys), score = new Map();
-  for (const key of set) { const k = DOC.kw.get(key); if (!k) continue; for (const i of k.si) score.set(i, (score.get(i) || 0) + 1); }
+  for (const key of set) { const k = DOC.kw.get(key); if (!k) continue; for (const i of k.si) if (!isHeadingSent(i)) score.set(i, (score.get(i) || 0) + 1); }
   return [...score].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, n).map(([i]) => i);
 }
+// headings (chapter and source titles) aren't quotable passages
+const isHeadingSent = i => DOC.mode === "text" && DOC.sentPara && DOC.sentPara[i] === 0;
 // ---------------- citations ----------------
 const isUrl = s => /^https?:\/\/\S+$/i.test((s || "").trim());
+const srcIdx = i => DOC.sentSrc ? DOC.sentSrc[i] || 0 : 0;
+const srcOf = i => (DOC.sources || [])[srcIdx(i)] || { title: DOC.title, cite: DOC.cite || "" };
+const pageOf = i => DOC.sentPage ? DOC.sentPage[i] || 0 : 0;
 function sentLoc(i) {
+  const bits = [];
+  if (multiSource()) bits.push(trunc(srcOf(i).title || "", 32));
   let sec = "";
   for (const m of DOC.marks || []) { if (m.i <= i) sec = m.label; else break; }
-  const p = DOC.sentPara ? DOC.sentPara[i] : 0;
-  return [trunc(sec, 40), p ? `paragraph ${p}` : ""].filter(Boolean).join(" · ") || "In the text";
+  if (sec && sec !== srcOf(i).title) bits.push(trunc(sec, 40));
+  const pg = pageOf(i), p = DOC.sentPara ? DOC.sentPara[i] : 0;
+  bits.push(pg ? `p. ${pg}` : p ? `paragraph ${p}` : "");
+  return bits.filter(Boolean).join(" · ") || "In the text";
 }
 function sentLinks(i) {
   const out = [];
@@ -2378,26 +2631,128 @@ function sentLinks(i) {
       const n = nodes.find(x => x.key === key && x.el.href);
       if (n && out.length < 3 && !out.some(o => o.href === n.el.href)) out.push({ label: kwOf(n).label + " on Wikipedia", href: n.el.href });
     }
-  } else if (isUrl(DOC.cite)) {
-    // a text fragment link scrolls the original page straight to this passage (supported in Chrome, Edge and Safari)
-    const words = (DOC.sents[i] || "").replace(/[“”"]/g, "").split(/\s+/).slice(0, 7).join(" ");
-    out.push({ label: "Open this passage at the source", href: DOC.cite.trim().replace(/#.*$/, "") + (words ? "#:~:text=" + encodeURIComponent(words) : "") });
+    return out;
+  }
+  const cite = (srcOf(i).cite || "").trim();
+  if (isUrl(cite)) {
+    const base = cite.replace(/#.*$/, ""), pg = pageOf(i);
+    if (/\.pdf($|\?)/i.test(base)) out.push({ label: pg ? `Open the PDF at page ${pg}` : "Open the PDF", href: base + (pg ? "#page=" + pg : "") });
+    else {
+      // a text fragment link scrolls the original page straight to this passage (supported in Chrome, Edge and Safari)
+      const words = (DOC.sents[i] || "").replace(/[“”"]/g, "").split(/\s+/).slice(0, 7).join(" ");
+      out.push({ label: "Open this passage at the source", href: base + (words ? "#:~:text=" + encodeURIComponent(words) : "") });
+    }
   }
   return out;
 }
+
+// ---- citation styles (APA 7, MLA 9, Chicago author-date)
+const lastName = a => { a = (a || "").split(/;|&| and /)[0].trim(); if (!a) return ""; if (a.includes(",")) return a.split(",")[0].trim(); const p = a.split(/\s+/); return p[p.length - 1]; };
+const invName = a => { a = (a || "").split(/;|&| and /)[0].trim(); if (!a || a.includes(",")) return a; const p = a.split(/\s+/); return p.length < 2 ? a : `${p[p.length - 1]}, ${p.slice(0, -1).join(" ")}`; };
+const apaName = a => { const inv = invName(a); if (!inv.includes(",")) return inv; const [last, first] = inv.split(","); return `${last.trim()}, ${first.trim().split(/\s+/).map(w => w[0] + ".").join(" ")}`; };
+function formatRef(s, style) {
+  // a citation typed by hand is kept as written
+  if (s.cite && !isUrl(s.cite) && !s.author && !s.year && !/\.(pdf|epub|txt|md)$/i.test(s.cite)) return s.cite;
+  const url = isUrl(s.cite) ? s.cite : "", site = s.site || "", y = s.year || "", title = s.title || "Untitled";
+  const acc = s.accessed ? new Date(s.accessed + "T12:00:00") : null;
+  const dot = t => /[.!?]$/.test(t) ? t : t + ".", yy = y || "n.d.";
+  if (style === "mla") {
+    const container = [site, y, url].filter(Boolean).join(", ");
+    return `${s.author ? dot(invName(s.author)) + " " : ""}${dot(title)}${container ? " " + dot(container) : ""}${url && acc ? " Accessed " + acc.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) + "." : ""}`;
+  }
+  // with no author, the title moves to the front in both APA and Chicago
+  if (style === "chicago") return `${s.author ? `${dot(invName(s.author))} ${dot(yy)} ${dot(title)}` : `${dot(title)} ${dot(yy)}`}${site ? " " + dot(site) : ""}${url ? " " + dot(url) : ""}`;
+  return `${s.author ? `${apaName(s.author)} (${yy}). ${dot(title)}` : `${dot(title)} (${yy}).`}${site ? " " + dot(site) : ""}${url ? " " + url : ""}`;
+}
+function inText(s, style, page) {
+  const who = lastName(s.author) || s.title;
+  if (style === "mla") return `(${who}${page ? " " + page : ""})`;
+  if (style === "chicago") return `(${who} ${s.year || "n.d."}${page ? ", " + page : ""})`;
+  return `(${who}, ${s.year || "n.d."}${page ? ", p. " + page : ""})`;
+}
+const STYLE_NAMES = { apa: "APA", mla: "MLA", chicago: "Chicago" };
+const bibliography = () => [...new Set((DOC.sources || []).map(s => formatRef(s, cfg.citeStyle)))].sort((a, b) => a.localeCompare(b));
+async function copyText(t, okMsg) {
+  try { await navigator.clipboard.writeText(t); flash(okMsg || "Copied."); }
+  catch (e) { $("copyText").value = t; $("copyNote").textContent = "Select all and copy."; $("dCopy").showModal(); $("copyText").select(); }
+}
+function copyCitation(i) {
+  const s = srcOf(i), q = trunc(DOC.sents[i] || "", 400);
+  copyText(`“${q}” ${inText(s, cfg.citeStyle, pageOf(i))}\n\n${formatRef(s, cfg.citeStyle)}`, `Copied the quote with a ${STYLE_NAMES[cfg.citeStyle]} citation.`);
+}
+
+// ---- your notes on keywords and passages (kept with the crawl and in the library)
+const noteKey = () => "silk-notes:" + (DOC.title + "|" + DOC.words).slice(0, 180);
+function loadNotes() { DOC.notes = DOC.notes || store.get(noteKey()) || { k: {}, s: {} }; }
+function saveNotes() { store.set(noteKey(), DOC.notes); }
+let noteTarget = null;
+function openNote(kind, id) {
+  noteTarget = { kind, id };
+  const label = kind === "k" ? `Note on “${(DOC.kw.get(id) || {}).label || id}”` : `Note on ${sentLoc(+id)}`;
+  $("noteH").textContent = label;
+  $("noteQuote").textContent = kind === "s" ? trunc(DOC.sents[+id] || "", 300) : "";
+  $("noteQuote").hidden = kind !== "s";
+  $("noteText").value = (DOC.notes[kind] || {})[id] || "";
+  $("dNote").showModal(); $("noteText").focus();
+}
+function noteBtn(kind, id) { const has = (DOC.notes[kind] || {})[id]; return `<button type="button" class="linkish" data-note-${kind}="${esc(String(id))}">${has ? "Edit note" : "Add note"}</button>`; }
+const noteHTML = (kind, id) => { const t = (DOC.notes[kind] || {})[id]; return t ? `<p class="note">✎ ${esc(t)}</p>` : ""; };
+
 function sourcesHTML(si) {
   if (!si || !si.length) return '<p class="meta">No passages recorded.</p>';
-  return `<ol class="sources">${si.map((i, n) => `<li><span class="loc">[${n + 1}] ${esc(sentLoc(i))}</span>${esc(trunc(DOC.sents[i] || "", 260))}
-    <span class="src-acts"><button type="button" class="linkish" data-si="${i}">Show in text</button>${sentLinks(i).map(l => `<a href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("")}</span></li>`).join("")}</ol>` +
-    (DOC.cite && !isUrl(DOC.cite) ? `<p class="meta" style="margin-top:10px">From: ${esc(DOC.cite)}</p>` : "");
+  return `<ol class="sources">${si.map((i, n) => `<li><span class="loc">[${n + 1}] ${esc(sentLoc(i))}</span>${esc(trunc(DOC.sents[i] || "", 260))}${noteHTML("s", i)}
+    <span class="src-acts"><button type="button" class="linkish" data-si="${i}">Show in text</button><button type="button" class="linkish" data-read-si="${i}">Listen</button><button type="button" class="linkish" data-cite="${i}">Copy citation</button>${noteBtn("s", i)}${sentLinks(i).map(l => `<a href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("")}</span></li>`).join("")}</ol>` +
+    (DOC.cite && !isUrl(DOC.cite) && !multiSource() ? `<p class="meta" style="margin-top:10px">From: ${esc(DOC.cite)}</p>` : "");
 }
 const citedHTML = (text, si) => esc(text).replace(/\[(\d+)\]/g, (m, n) => si[n - 1] != null ? `<button type="button" class="cite" data-si="${si[n - 1]}" title="${esc(sentLoc(si[n - 1]))}">[${n}]</button>` : m);
 function sourcesMd(si) {
   return (si || []).map((i, n) => {
-    const links = sentLinks(i).map(l => l.href);
-    return `${n + 1}. ${sentLoc(i)}: “${trunc(DOC.sents[i] || "", 240)}”${links.length ? " " + links.join(" ") : ""}`;
-  }).join("\n") + (DOC.cite ? `\n\nFrom: ${DOC.cite}` : "");
+    const links = sentLinks(i).map(l => l.href), note = DOC.notes.s[i];
+    return `${n + 1}. ${sentLoc(i)}: “${trunc(DOC.sents[i] || "", 240)}” ${inText(srcOf(i), cfg.citeStyle, pageOf(i))}${links.length ? " " + links.join(" ") : ""}${note ? `\n   - Note: ${note}` : ""}`;
+  }).join("\n");
 }
+
+// ---- read aloud (the device's voice; the Android app uses its native text-to-speech)
+const TTS = { on: false, btn: null };
+const LANG_TAG = { en: "en-US", es: "es-ES", fr: "fr-FR", de: "de-DE", it: "it-IT", pt: "pt-PT", nl: "nl-NL" };
+function stopSpeaking() {
+  const P = window.Capacitor && window.Capacitor.Plugins;
+  try { if (P && P.TextToSpeech) P.TextToSpeech.stop(); } catch (e) { /* not native */ }
+  try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch (e) { /* unsupported */ }
+  if (TTS.btn) TTS.btn.textContent = TTS.btn.dataset.label || "Read aloud";
+  TTS.on = false; TTS.btn = null;
+}
+function speak(text, btn) {
+  const same = TTS.on && TTS.btn === btn;
+  stopSpeaking(); if (same) return;
+  text = (text || "").replace(/\[\d+\]/g, "").replace(/\s+/g, " ").trim(); if (!text) return;
+  const lang = LANG_TAG[(DOC && DOC.lang) || "en"] || "en-US";
+  TTS.on = true; TTS.btn = btn || null;
+  if (btn) { btn.dataset.label = btn.dataset.label || btn.textContent; btn.textContent = "Stop reading"; }
+  const done = () => { if (TTS.btn === (btn || null)) stopSpeaking(); };
+  const cap = window.Capacitor, P = cap && cap.Plugins;
+  if (cap && cap.isNativePlatform && cap.isNativePlatform() && P && P.TextToSpeech) { P.TextToSpeech.speak({ text, lang, rate: cfg.ttsRate }).then(done, done); return; }
+  if (!("speechSynthesis" in window)) { flash("Reading aloud isn't supported on this device."); stopSpeaking(); return; }
+  // speak sentence by sentence: some browsers cut off a single long utterance
+  const parts = text.match(/[^.!?]+[.!?]*["”’)]?\s*/g) || [text];
+  const voice = speechSynthesis.getVoices().find(v => v.name === cfg.ttsVoice);
+  parts.forEach((p, k) => {
+    const u = new SpeechSynthesisUtterance(p.trim()); u.rate = cfg.ttsRate; u.lang = voice ? voice.lang : lang; if (voice) u.voice = voice;
+    if (k === parts.length - 1) { u.onend = done; u.onerror = done; }
+    speechSynthesis.speak(u);
+  });
+}
+
+// ---- learning what you're interested in: keywords you open, pick, note or ask about get crawled first next time
+const INT = store.get("silk-interest") || {};
+let intTimer = 0;
+function bump(label, w = 1) {
+  if (!cfg.learn || !label) return;
+  const k = String(label).toLowerCase(); INT[k] = (INT[k] || 0) + w;
+  clearTimeout(intTimer);
+  intTimer = setTimeout(() => store.set("silk-interest", Object.fromEntries(Object.entries(INT).sort((a, b) => b[1] - a[1]).slice(0, 600))), 800);
+}
+const interest = n => { if (!cfg.learn) return 0; const k = kwOf(n); return Math.max(INT[k.label.toLowerCase()] || 0, INT[k.key] || 0); };
 
 let curSac = null, sacCtl = null;
 function openSac(sac) { curSac = sac; renderSac(); if (!$("dSac").open) $("dSac").showModal(); }
@@ -2554,15 +2909,16 @@ function closeWeb() { WV.open = false; $("wv").hidden = true; document.body.styl
 
 function hiKey(sentence, k, re2) {
   let s = sentence;
-  const m = new RegExp(`\\b(?:${keyPattern(k.key)})`, "i").exec(s);
+  const m = new RegExp(`${WB}(?:${keyPattern(k.key)})`, "iu").exec(s);
   if (s.length > 380) { const i = m ? m.index : 0, a = Math.max(0, i - 170); s = (a > 0 ? "…" : "") + s.slice(a, a + 360) + (a + 360 < sentence.length ? "…" : ""); }
-  let h = esc(s).replace(new RegExp(`\\b(?:${keyPattern(k.key)})(?:['’]s)?\\b`, "gi"), x => `<mark>${x}</mark>`);
-  if (re2) h = h.replace(new RegExp(re2.source + "[a-z]*(?![^<]*>)", "gi"), x => `<mark>${x}</mark>`);
+  let h = esc(s).replace(new RegExp(`${WB}(?:${keyPattern(k.key)})(?:['’]s)?${WE}`, "giu"), x => `<mark>${x}</mark>`);
+  if (re2) h = h.replace(new RegExp(re2.source + "\\p{L}*(?![^<]*>)", "giu"), x => `<mark>${x}</mark>`);
   return h;
 }
 function kwChip(kk) {
   const picked = WV.picks.has(kk.key);
-  return `<button type="button" class="chip kwc${kk.crawled ? "" : " un"}${picked ? " picked" : ""}" data-key="${esc(kk.key)}" style="--dot:${catColorVar(kk.cat)}"><i></i>${esc(kk.label)} <b>${kk.count}</b></button>`;
+  const note = DOC.notes && DOC.notes.k[kk.key] ? " ✎" : "", srcs = multiSource() && kk.srcs && kk.srcs.size > 1 ? ` · ${kk.srcs.size} sources` : "";
+  return `<button type="button" class="chip kwc${kk.crawled ? "" : " un"}${picked ? " picked" : ""}" data-key="${esc(kk.key)}" style="--dot:${catColorVar(kk.cat)}"><i></i>${esc(kk.label)}${note} <b>${kk.count}${srcs}</b></button>`;
 }
 function renderSide() {
   const side = $("wvSide"), k = WV.sel && DOC.kw.get(WV.sel);
@@ -2571,14 +2927,19 @@ function renderSide() {
     const re = focusRe();
     let sis = k.si;
     if (re) { const hit = sis.filter(i => re.test(DOC.sents[i])); if (hit.length) sis = hit; }
-    const quotes = sis.slice(0, 6).map(i => `<p class="quote">${hiKey(DOC.sents[i], k, re)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("");
+    const quotes = sis.slice(0, 6).map(i => `<div class="quote"><span class="loc">${esc(sentLoc(i))}</span>${hiKey(DOC.sents[i], k, re)}${noteHTML("s", i)}
+      <span class="src-acts"><button type="button" class="linkish" data-jump="${i}">Show in text</button><button type="button" class="linkish" data-read-si="${i}">Listen</button><button type="button" class="linkish" data-cite="${i}">Copy citation</button>${noteBtn("s", i)}</span></div>`).join("");
+    const inSrc = multiSource() ? [...k.srcs].map(x => DOC.sources[x] && DOC.sources[x].title).filter(Boolean) : [];
+    if (WV.bumped !== k.key) { WV.bumped = k.key; bump(k.label, 1); }
     side.innerHTML = `
       <div><button type="button" class="linkish" data-act="back">← All topics</button></div>
       <div style="--dot:${catColorVar(k.cat)}">
         <h3><i></i>${esc(DOC.cats[k.cat].name)}</h3>
         <p class="term">${esc(k.label)}</p>
         <p class="meta">In ${plural(k.count, "sentence")} · ${k.crawled ? "crawled" : "not crawled yet"}</p>
-        <p style="margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap"><button type="button" class="linkish" data-act="jump">Show it on the page</button><button type="button" class="linkish" data-act="pick">${WV.picks.has(k.key) ? "Unpick" : "Pick for a sac"}</button></p>
+        ${inSrc.length ? `<p class="meta">In ${inSrc.length === DOC.sources.length ? "every source" : plural(inSrc.length, "source")}: ${esc(inSrc.join(", "))}</p>` : ""}
+        <p style="margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap"><button type="button" class="linkish" data-act="jump">Show it on the page</button><button type="button" class="linkish" data-act="pick">${WV.picks.has(k.key) ? "Unpick" : "Pick for a sac"}</button>${noteBtn("k", k.key)}<button type="button" class="linkish" data-read-kw="${esc(k.key)}">Read aloud</button></p>
+        ${noteHTML("k", k.key)}
       </div>
       ${nb.length ? `<div><h3>Connected keywords</h3><div class="list">${nb.map(kwChip).join("")}</div></div>` : ""}
       <div style="--dot:${catColorVar(k.cat)}"><h3>${re ? "Where it meets your focus" : "Where it appears"}</h3>${quotes || '<p class="meta">No sentences recorded.</p>'}</div>`;
@@ -2589,7 +2950,13 @@ function renderSide() {
     const sk = new Map();
     for (const kk of DOC.kw.values()) for (const i of kk.si) if (re.test(DOC.sents[i])) sk.set(i, (sk.get(i) || 0) + 1);
     const top = [...sk].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 6).sort((a, b) => a[0] - b[0]);
-    if (top.length) parts.push(`<div><h3>Passages on “${esc(focusTerms().join(" "))}”</h3>${top.map(([i]) => `<p class="quote">${esc(trunc(DOC.sents[i], 380)).replace(new RegExp(re.source + "[a-z]*", "gi"), x => `<mark>${x}</mark>`)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("")}</div>`);
+    if (top.length) parts.push(`<div><h3>Passages on “${esc(focusTerms().join(" "))}”</h3>${top.map(([i]) => `<p class="quote">${esc(trunc(DOC.sents[i], 380)).replace(new RegExp(re.source + "\\p{L}*", "giu"), x => `<mark>${x}</mark>`)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("")}</div>`);
+  }
+  const kn = Object.entries(DOC.notes.k).filter(([key]) => DOC.kw.has(key)), sn = Object.entries(DOC.notes.s);
+  if (kn.length || sn.length) parts.push(`<div><h3>Your notes</h3>${kn.map(([key, t]) => `<p class="quote"><button type="button" class="linkish" data-key="${esc(key)}">${esc(DOC.kw.get(key).label)}</button>: ${esc(t)}</p>`).join("")}${sn.map(([i, t]) => `<p class="quote"><span class="loc">${esc(sentLoc(+i))}</span>“${esc(trunc(DOC.sents[+i] || "", 140))}” <br>✎ ${esc(t)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("")}</div>`);
+  if (multiSource()) {
+    const shared = [...DOC.kw.values()].filter(k => k.srcs && k.srcs.size > 1).sort((a, b) => b.srcs.size - a.srcs.size || b.count - a.count).slice(0, 30);
+    if (shared.length) parts.push(`<div><h3>Where sources agree</h3><p class="meta" style="margin-bottom:8px">Keywords that come up in more than one source.</p><div class="list">${shared.map(kwChip).join("")}</div></div>`);
   }
   const done = doneSacs();
   if (done.length) parts.push(`<div><h3>Egg sacs</h3><div class="list">${done.map(s => `<button type="button" class="chip" data-sac="${sacs.indexOf(s)}" style="--dot:${sacColor(s)}"><i></i>#${s.n} ${esc(trunc(s.label, 24))} <b>${new Set(s.keys).size}</b></button>`).join("")}</div></div>`);
@@ -2943,7 +3310,7 @@ function sacMarkdown(sac) {
 }
 function outlineMarkdown() {
   const ks = notedKeys(), ft = focusTerms().join(" "), re = focusRe();
-  let md = `# Research notes: ${DOC.title}\n${DOC.cite ? `\nSource: ${DOC.cite}\n` : ""}${ft ? `\nFocus: ${ft}\n` : ""}\n`;
+  let md = `# Research notes: ${DOC.title}\n${ft ? `\nFocus: ${ft}\n` : ""}\n`;
   DOC.cats.forEach((c, i) => {
     const list = ks.filter(k => k.cat === i).sort((a, b) => b.count - a.count);
     if (!list.length) return;
@@ -2952,7 +3319,8 @@ function outlineMarkdown() {
       const rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
       let si = k.si; if (re) { const h = si.filter(x => re.test(DOC.sents[x])); if (h.length) si = h; }
       const q = si.length ? DOC.sents[si[0]] : "";
-      md += `- **${k.label}** (${k.count})${rel.length ? ` · related: ${rel.join(", ")}` : ""}\n${q ? `  > ${trunc(q, 300)}\n` : ""}`;
+      const qi = si.length ? si[0] : -1, note = DOC.notes.k[k.key];
+      md += `- **${k.label}** (${k.count})${rel.length ? ` · related: ${rel.join(", ")}` : ""}${multiSource() && k.srcs.size > 1 ? ` · in ${k.srcs.size} sources` : ""}\n${q ? `  > ${trunc(q, 300)} ${inText(srcOf(qi), cfg.citeStyle, pageOf(qi))}\n` : ""}${note ? `  - Note: ${note}\n` : ""}`;
     }
     md += "\n";
   });
@@ -2962,6 +3330,9 @@ function outlineMarkdown() {
     md += `# Questions\n\n`;
     for (const a of DOC.asks) { md += `## ${a.q}\n\n${a.a || "(passages only)"}\n\n**Sources**\n\n${sourcesMd(a.si)}\n\n`; }
   }
+  const sn = Object.entries(DOC.notes.s);
+  if (sn.length) { md += `# Passage notes\n\n`; for (const [i, t] of sn) md += `- ${sentLoc(+i)}: “${trunc(DOC.sents[+i] || "", 200)}” ${inText(srcOf(+i), cfg.citeStyle, pageOf(+i))}\n  - ${t}\n`; md += "\n"; }
+  md += `# Bibliography (${STYLE_NAMES[cfg.citeStyle]})\n\n${bibliography().map(b => "- " + b).join("\n")}\n`;
   return md;
 }
 function keywordsCsv() {
@@ -3017,9 +3388,10 @@ $("wvCopy").onclick = async () => {
 // ---------------- ask the text ----------------
 let askCtl = null;
 function rankPassages(terms) {
-  const res = terms.map(t => new RegExp(`\\b${reEsc(t.replace(/(es|s)$/, ""))}`, "i"));
+  const res = terms.map(t => new RegExp(`${WB}${reEsc(t.replace(/(es|s)$/, ""))}`, "iu"));
   const scored = [];
   DOC.sents.forEach((s, i) => {
+    if (isHeadingSent(i)) return;
     const hit = res.filter(r => r.test(s)).length; if (!hit) return;
     const ks = DOC.sentKeys.get(i);
     scored.push([i, hit * 2 + (ks ? ks.size * 0.25 : 0) - (s.length > 600 ? 1 : 0)]);
@@ -3027,14 +3399,16 @@ function rankPassages(terms) {
   return scored.sort((a, b) => b[1] - a[1]).slice(0, 8).map(([i]) => i);
 }
 function renderAnswer(text, si) {
-  const out = $("askAnswer"); out.hidden = !text;
+  const out = $("askAnswer"); out.hidden = !text; $("askTools").hidden = !text;
   out.innerHTML = citedHTML(text, si);
 }
 function renderAskHistory() {
   $("askHistory").hidden = !DOC.asks.length;
   $("askList").innerHTML = DOC.asks.slice().reverse().map((a, j) => `<li><div><b>${esc(a.q)}</b><p class="meta">${esc(trunc(a.a || "Passages only", 160))}</p></div><button class="btn" type="button" data-ask="${DOC.asks.length - 1 - j}">Show</button></li>`).join("");
 }
+let curAsk = null;
 function showAsk(a) {
+  curAsk = a;
   $("askQ").value = a.q; renderAnswer(a.a || "", a.si || []);
   $("askPassages").innerHTML = sourcesHTML(a.si || []);
   $("askPWrap").hidden = !(a.si || []).length;
@@ -3042,8 +3416,9 @@ function showAsk(a) {
 $("fAsk").addEventListener("submit", async e => {
   e.preventDefault();
   const q = $("askQ").value.trim(), err = $("askErr"); err.hidden = true;
-  const terms = [...new Set((q.toLowerCase().match(/[a-z][a-z'’-]{2,}/g) || []).filter(w => !STOP.has(w) && !QSTOP.has(w)))];
+  const terms = [...new Set((q.toLowerCase().match(/\p{L}[\p{L}'’-]{2,}/gu) || []).filter(w => !STOP.has(w) && !QSTOP.has(w) && !(STOPS[DOC.lang] || STOP).has(w)))];
   if (!terms.length) { err.textContent = "Ask about something specific, like a name, a place or an idea from the text."; err.hidden = false; return; }
+  for (const w of terms) bump(w, 2);
   $("focus").value = terms.join(" "); applyFocus(); wake();
   const si = rankPassages(terms);
   const entry = { q, a: "", si };
@@ -3132,15 +3507,18 @@ function captureState(name) {
     sacs: doneSacs().map(s => ({ keys: [...new Set(s.keys)], label: s.label, color: s.color, summary: s.summary || "", summarySi: s.summarySi || [], n: s.n })),
     cite: DOC.cite || "",
     asks: DOC.asks.slice(-30).map(a => ({ q: a.q, a: trunc(a.a || "", 4000), si: a.si || [] })),
-    compareTitle: DOC.compare ? DOC.compare.title : "", words: DOC.words, kwCount: DOC.kw.size
+    compareTitle: DOC.compare ? DOC.compare.title : "", words: DOC.words, kwCount: DOC.kw.size,
+    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }
   };
 }
 function restoreState(st, raw, craw, id) {
   cfg.sort = st.sort || cfg.sort; cfg.topics = st.topics || ""; cfg.k = st.k || cfg.k; saveCfg(); syncSettings();
   $("focus").value = st.focus || "";
-  const d = st.mode === "sample" ? buildSample() : buildText(raw, st.docTitle || st.title, cfg.k);
+  const d = st.mode === "sample" ? buildSample() : buildText(raw, st.docTitle || st.title, cfg.k, st.lang);
   if (!d) throw { code: "broken" };
   d.libId = id; d.asks = st.asks || []; if (st.cite) d.cite = st.cite;
+  if (st.sources && st.sources.length) d.sources = st.sources;
+  if (st.notes) d.notes = st.notes;
   if (craw) d.compare = buildCompare(craw, st.compareTitle);
   loadDoc(d);
   for (const t of st.highlights || []) addHighlight(t, null, true);
@@ -3201,6 +3579,184 @@ $("libList").addEventListener("click", async e => {
 function openLib() { $("libMsg").textContent = ""; if (!$("libName").value) $("libName").value = DOC.title; renderLib(); if (!$("dLib").open) $("dLib").showModal(); }
 $("bLib").onclick = openLib;
 
+// ---------------- shared actions: citations, notes and listening work wherever a passage is shown ----------------
+document.addEventListener("click", e => {
+  const t = e.target.closest && e.target.closest("[data-cite], [data-note-s], [data-note-k], [data-read-si], [data-read-kw]");
+  if (!t) return;
+  if (t.dataset.cite != null) copyCitation(+t.dataset.cite);
+  else if (t.dataset.noteS != null) openNote("s", t.dataset.noteS);
+  else if (t.dataset.noteK != null) { hidePop(); openNote("k", t.dataset.noteK); }
+  else if (t.dataset.readSi != null) speak(DOC.sents[+t.dataset.readSi], t);
+  else if (t.dataset.readKw != null) { const k = DOC.kw.get(t.dataset.readKw); if (k) speak(k.label + ". " + k.si.slice(0, 5).map(i => DOC.sents[i]).join(" "), t); }
+});
+function refreshNotesViews() {
+  saveNotes();
+  if (WV.open) renderSide();
+  if ($("dSac").open) renderSac();
+  if ($("dAsk").open && curAsk) $("askPassages").innerHTML = sourcesHTML(curAsk.si || []);
+  if (!$("findPanel").hidden) runFind();
+}
+$("fNote").addEventListener("submit", e => {
+  e.preventDefault();
+  const { kind, id } = noteTarget, t = $("noteText").value.trim();
+  if (t) { DOC.notes[kind][id] = t; if (kind === "k") bump((DOC.kw.get(id) || {}).label, 3); } else delete DOC.notes[kind][id];
+  $("dNote").close(); refreshNotesViews(); flash(t ? "Note saved." : "Note removed.");
+});
+$("noteDel").onclick = () => { delete DOC.notes[noteTarget.kind][noteTarget.id]; $("dNote").close(); refreshNotesViews(); flash("Note removed."); };
+$("noteCancel").onclick = () => $("dNote").close();
+
+// ---------------- find and contents ----------------
+const findP = $("findPanel");
+function openFind(tab) {
+  findP.hidden = false; findP.style.top = $("bar").getBoundingClientRect().bottom + "px";
+  setFindTab(tab || "search"); if (!tab || tab === "search") $("findQ").focus();
+}
+function closeFind() { findP.hidden = true; if (window.CSS && CSS.highlights) CSS.highlights.delete("find"); }
+function setFindTab(t) {
+  for (const b of $("findTabs").children) b.setAttribute("aria-selected", String(b.dataset.ft === t));
+  for (const p of findP.querySelectorAll("[data-fp]")) p.hidden = p.dataset.fp !== t;
+  if (t === "contents") renderToc();
+  if (t === "sources") renderSrcInfo();
+}
+$("findTabs").addEventListener("click", e => { const b = e.target.closest("[data-ft]"); if (b) setFindTab(b.dataset.ft); });
+$("bFind").onclick = () => findP.hidden ? openFind() : closeFind();
+$("findClose").onclick = closeFind;
+const foldAcc = t => t.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+let findTimer = 0;
+$("findQ").addEventListener("input", () => { clearTimeout(findTimer); findTimer = setTimeout(runFind, 200); });
+function runFind() {
+  const q = $("findQ").value.trim(), out = $("findResults");
+  if (window.CSS && CSS.highlights) CSS.highlights.delete("find");
+  if (q.length < 2) { out.innerHTML = ""; $("findCount").textContent = ""; return; }
+  const nq = foldAcc(q), hits = [];
+  for (let i = 0; i < DOC.sents.length && hits.length < 200; i++) if (foldAcc(DOC.sents[i]).includes(nq)) hits.push(i);
+  $("findCount").textContent = hits.length ? (hits.length >= 200 ? "200+ matching sentences" : plural(hits.length, "matching sentence")) : "No matches.";
+  const lq = q.toLowerCase();
+  out.innerHTML = hits.map(i => {
+    const st = trunc(DOC.sents[i], 240), at = st.toLowerCase().indexOf(lq);
+    const body = at >= 0 ? esc(st.slice(0, at)) + "<mark>" + esc(st.slice(at, at + q.length)) + "</mark>" + esc(st.slice(at + q.length)) : esc(st);
+    return '<li><span class="loc">' + esc(sentLoc(i)) + "</span>" + body + noteHTML("s", i) +
+      '<span class="src-acts"><button type="button" class="linkish" data-si="' + i + '">Show in text</button><button type="button" class="linkish" data-cite="' + i + '">Copy citation</button>' + noteBtn("s", i) + "</span></li>";
+  }).join("");
+  // highlight every match on the page itself, where the browser supports it
+  if (window.CSS && CSS.highlights && window.Highlight) {
+    const ranges = [], tw = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+    let tn;
+    while ((tn = tw.nextNode()) && ranges.length < 1500) {
+      const v = tn.nodeValue.toLowerCase(); let k = v.indexOf(lq);
+      while (k >= 0 && ranges.length < 1500) { const r = new Range(); r.setStart(tn, k); r.setEnd(tn, k + lq.length); ranges.push(r); k = v.indexOf(lq, k + lq.length); }
+    }
+    if (ranges.length) CSS.highlights.set("find", new Highlight(...ranges));
+  }
+  for (const w of q.split(/\s+/)) if (w.length > 2) bump(w, 0.5);
+}
+$("findResults").addEventListener("click", e => { const b = e.target.closest("[data-si]"); if (b) jumpToSentence(+b.dataset.si); });
+function renderToc() {
+  $("pageJump").hidden = !DOC.hasPages;
+  const marks = DOC.marks || [];
+  $("tocList").innerHTML = marks.length
+    ? marks.map((m, j) => '<li><button type="button" class="linkish toc-item" data-toc="' + j + '">' + esc(trunc(m.label, 70)) + "</button>" + (DOC.hasPages && pageOf(m.i) ? '<span class="meta"> p. ' + pageOf(m.i) + "</span>" : "") + "</li>").join("")
+    : '<li class="meta">This text has no headings. Use Search' + (DOC.hasPages ? ", or jump to a page above." : ".") + "</li>";
+}
+$("tocList").addEventListener("click", e => {
+  const b = e.target.closest("[data-toc]"); if (!b) return;
+  const h = page.querySelectorAll("h2")[+b.dataset.toc];
+  if (h) { setFollow(false); h.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" }); h.classList.remove("flash-block"); void h.offsetWidth; h.classList.add("flash-block"); }
+});
+$("pageGo").onclick = () => {
+  const p = +$("pageNo").value, marks = [...page.querySelectorAll(".pgmark")];
+  const m = marks.filter(x => +x.dataset.page <= p).pop() || marks[0];
+  if (m) { setFollow(false); m.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" }); }
+};
+$("pageNo").addEventListener("keydown", e => { if (e.key === "Enter") $("pageGo").click(); });
+function renderSrcInfo() {
+  const counts = new Map(); (DOC.sentSrc || []).forEach(x => counts.set(x, (counts.get(x) || 0) + 1));
+  $("srcInfoList").innerHTML = '<p class="meta">Citation style: ' + STYLE_NAMES[cfg.citeStyle] + ". Change it in Settings → Research.</p>" +
+    '<ol class="sources">' + DOC.sources.map((x, i) => '<li><b>' + esc(x.title) + '</b><span class="meta" style="display:block">' +
+      esc([x.author, x.year, x.site].filter(Boolean).join(" · ") || "No author or year yet") + (multiSource() ? " · " + plural(counts.get(i) || 0, "sentence") : "") + "</span>" +
+      '<span style="display:block;margin-top:4px">' + esc(formatRef(x, cfg.citeStyle)) + "</span>" +
+      '<span class="src-acts"><button type="button" class="linkish" data-copyref="' + i + '">Copy reference</button>' +
+      (isUrl(x.cite) ? '<a href="' + esc(x.cite) + '" target="_blank" rel="noopener">Open ↗</a>' : "") + "</span></li>").join("") + "</ol>";
+}
+$("srcInfoList").addEventListener("click", e => { const b = e.target.closest("[data-copyref]"); if (b) copyText(formatRef(DOC.sources[+b.dataset.copyref], cfg.citeStyle), "Copied the reference."); });
+$("copyBib").onclick = () => copyText(bibliography().join("\n\n"), "Copied the bibliography (" + STYLE_NAMES[cfg.citeStyle] + ").");
+
+// ---------------- read aloud buttons ----------------
+$("askRead").onclick = e => speak($("askAnswer").textContent, e.currentTarget);
+$("askCopy").onclick = () => { if (curAsk) copyText(curAsk.q + "\n\n" + (curAsk.a || "") + "\n\nSources\n" + sourcesMd(curAsk.si) + "\n\n" + bibliography().join("\n"), "Copied the answer with its sources."); };
+$("sacRead").onclick = e => { if (curSac) speak(curSac.summary || keyPassages(curSac.keys, 4).map(i => DOC.sents[i]).join(" "), e.currentTarget); };
+$("dAsk").addEventListener("close", stopSpeaking);
+$("dSac").addEventListener("close", stopSpeaking);
+
+// ---------------- share a crawl as one self-contained web page ----------------
+const PALETTE = {
+  light: "--paper:#f6f7f4;--panel:#eceee9;--ink:#1c211f;--muted:#5b6560;--rule:#d5d9d3;--link:#2a57a3;--silk:#74879f;--c0:#2f6fb3;--c1:#c0562a;--c2:#3b8a52;--c3:#8a4fb0;--c4:#a8840f;--c5:#1f8686;--c6:#c2427a;--c7:#6b6f76",
+  dark: "--paper:#111413;--panel:#181c1b;--ink:#dde3df;--muted:#8e9993;--rule:#2a302d;--link:#8db0ec;--silk:#c4cfdc;--c0:#7fb0ee;--c1:#f08a5d;--c2:#74c48b;--c3:#c391e6;--c4:#e2bf4f;--c5:#5cc5c2;--c6:#ef7fae;--c7:#9aa1a8"
+};
+function shareHtml() {
+  // lay out the keyword web the same way the web view does
+  const prevAll = $("wvAll").checked;
+  if (![...DOC.kw.values()].some(k => k.crawled)) $("wvAll").checked = true;
+  refreshWeb(false);
+  for (let i = 0; i < 320; i++) simStep();
+  $("wvAll").checked = prevAll;
+  const N = WV.nodes, ids = new Map([...DOC.kw.keys()].map((k, i) => [k, "kw" + i]));
+  const cv = c => "var(--c" + (DOC.cats[c] ? DOC.cats[c].color : 7) + ")";
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const n of N) { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y); }
+  const pad = 140, r = v => Math.round(v);
+  const svg = N.length ? '<svg viewBox="' + r(x0 - pad) + " " + r(y0 - pad / 2) + " " + r(x1 - x0 + pad * 2) + " " + r(y1 - y0 + pad) + '" role="img" aria-label="Keyword web">' +
+    WV.edges.map(e => '<line x1="' + r(e.a.x) + '" y1="' + r(e.a.y) + '" x2="' + r(e.b.x) + '" y2="' + r(e.b.y) + '" stroke="var(--silk)" stroke-opacity="' + Math.min(0.6, 0.18 + e.w * 0.06).toFixed(2) + '"/>').join("") +
+    N.map(n => {
+      const rad = clamp(3 + Math.sqrt(n.k.count) * 1.6, 3.5, 12);
+      return '<a href="#' + ids.get(n.k.key) + '"><circle cx="' + r(n.x) + '" cy="' + r(n.y) + '" r="' + rad.toFixed(1) + '" fill="' + cv(n.k.cat) + '"><title>' + esc(n.k.label) + "</title></circle>" +
+        '<text x="' + r(n.x + rad + 5) + '" y="' + r(n.y + 5) + '">' + esc(n.k.label) + "</text></a>";
+    }).join("") + "</svg>" : "";
+  const cites = (text, pre) => esc(text).replace(/\[(\d+)\]/g, (m, k) => '<a href="#' + pre + "-" + k + '">[' + k + "]</a>");
+  const srcList = (si, pre) => '<ol class="src">' + (si || []).map((i, k) => '<li id="' + pre + "-" + (k + 1) + '"><span class="loc">' + esc(sentLoc(i)) + "</span> “" + esc(trunc(DOC.sents[i] || "", 260)) + "” " +
+    esc(inText(srcOf(i), cfg.citeStyle, pageOf(i))) + sentLinks(i).map(l => ' <a href="' + esc(l.href) + '">' + esc(l.label) + "</a>").join("") +
+    (DOC.notes.s[i] ? '<br><span class="note">✎ ' + esc(DOC.notes.s[i]) + "</span>" : "") + "</li>").join("") + "</ol>";
+  const ks = notedKeys();
+  const topics = DOC.cats.map((c, ci) => {
+    const list = ks.filter(k => k.cat === ci).sort((a, b) => b.count - a.count); if (!list.length) return "";
+    return '<section><h3 style="color:var(--c' + c.color + ')">' + esc(c.name) + '</h3><ul class="kws">' + list.map(k => {
+      const rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean);
+      const qi = k.si[0];
+      return '<li id="' + ids.get(k.key) + '"><b>' + esc(k.label) + '</b> <span class="meta">' + plural(k.count, "sentence") + (multiSource() && k.srcs.size > 1 ? " · " + k.srcs.size + " sources" : "") + "</span>" +
+        (rel.length ? '<span class="meta"> · related: ' + rel.map(x => '<a href="#' + ids.get(x.key) + '">' + esc(x.label) + "</a>").join(", ") + "</span>" : "") +
+        (qi != null ? "<blockquote>" + esc(trunc(DOC.sents[qi], 260)) + " " + esc(inText(srcOf(qi), cfg.citeStyle, pageOf(qi))) + "</blockquote>" : "") +
+        (DOC.notes.k[k.key] ? '<p class="note">✎ ' + esc(DOC.notes.k[k.key]) + "</p>" : "") + "</li>";
+    }).join("") + "</ul></section>";
+  }).join("");
+  const sacHtml = doneSacs().map(sac => {
+    const { majors, loose } = sacTree(sac), si = sac.summary ? sac.summarySi || [] : keyPassages(sac.keys, 4), pre = "sac" + sac.n;
+    return '<section class="card"><h3>Egg sac #' + sac.n + ": " + esc(sac.label) + "</h3>" + (sac.summary ? '<p class="sum">' + cites(sac.summary, pre) + "</p>" : "") +
+      "<ul>" + majors.map(m => "<li><b>" + esc(m.k.label) + "</b>" + (m.subs.length ? ": " + m.subs.map(x => esc(x.label)).join(", ") : "") + "</li>").join("") +
+      (loose.length ? "<li>Other: " + loose.map(x => esc(x.label)).join(", ") + "</li>" : "") + "</ul><h4>Sources</h4>" + srcList(si, pre) + "</section>";
+  }).join("");
+  const asks = DOC.asks.map((a, k) => '<section class="card"><h3>' + esc(a.q) + "</h3>" + (a.a ? '<p class="sum">' + cites(a.a, "q" + k) + "</p>" : "") + "<h4>Sources</h4>" + srcList(a.si, "q" + k) + "</section>").join("");
+  const pn = Object.entries(DOC.notes.s);
+  const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  return '<!doctype html><html lang="' + (DOC.lang || "en") + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(DOC.title) + " · keyword web</title><style>" +
+    ":root{" + PALETTE.light + ";color-scheme:light}@media (prefers-color-scheme:dark){:root{" + PALETTE.dark + ";color-scheme:dark}}" +
+    "body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 Georgia,'Times New Roman',serif}main{max-width:52rem;margin:0 auto;padding:32px 16px 80px}" +
+    "h1{font-size:2.2rem;line-height:1.15;margin:0 0 6px;font-weight:500}h2{font-size:1.4rem;font-weight:500;border-bottom:1px solid var(--rule);padding-bottom:4px;margin:40px 0 12px}h3{margin:20px 0 8px;font-weight:600}" +
+    "h4{margin:14px 0 6px;font:600 12px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}" +
+    ".meta,.loc{color:var(--muted);font-size:.9rem}.loc{font:12px ui-monospace,Consolas,monospace}a{color:var(--link)}svg{width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}" +
+    "svg text{font:14px Georgia,serif;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px}svg a:hover circle{stroke:var(--ink);stroke-width:2}" +
+    "blockquote{margin:6px 0 10px;padding-left:12px;border-left:2px solid var(--rule);font-size:.95rem}.note{color:var(--c6);font-size:.95rem;margin:4px 0}.kws{padding-left:1.1em}.kws li{margin-bottom:10px}" +
+    ".card{border:1px solid var(--rule);border-radius:10px;padding:4px 18px 12px;margin:14px 0;background:var(--panel)}.sum{white-space:pre-wrap}.src{font-size:.93rem;padding-left:1.4em}.src li,.bib li{margin-bottom:8px}" +
+    "footer{margin-top:48px;color:var(--muted);font-size:.85rem}</style></head><body><main>" +
+    "<h1>" + esc(DOC.title) + '</h1><p class="meta">' + DOC.words.toLocaleString() + " words · " + plural(DOC.kw.size, "keyword") + " · " + plural(DOC.cats.length, "topic") +
+    (multiSource() ? " · " + plural(DOC.sources.length, "source") : "") + (focusTerms().length ? " · focus “" + esc(focusTerms().join(" ")) + "”" : "") + " · exported " + esc(today) + "</p>" +
+    (svg ? "<h2>The web</h2>" + svg + '<p class="meta">Each dot is a keyword, colored by topic. Lines join keywords that appear in the same sentences. Click a dot to jump to it below.</p>' : "") +
+    (topics ? "<h2>Topics and keywords</h2>" + topics : "") + (sacHtml ? "<h2>Egg sacs</h2>" + sacHtml : "") + (asks ? "<h2>Questions</h2>" + asks : "") +
+    (pn.length ? "<h2>Passage notes</h2><ul>" + pn.map(([i, t]) => '<li><span class="loc">' + esc(sentLoc(+i)) + "</span> “" + esc(trunc(DOC.sents[+i] || "", 220)) + '”<br><span class="note">✎ ' + esc(t) + "</span></li>").join("") + "</ul>" : "") +
+    "<h2>Bibliography (" + STYLE_NAMES[cfg.citeStyle] + ')</h2><ul class="bib">' + bibliography().map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>" +
+    "<footer>Made with CAK3D Crawler · https://github.com/real-CAK3D/CAK3D-Crawler</footer></main></body></html>";
+}
+$("exShare").onclick = () => saveFile(slug(DOC.title) + "-web.html", shareHtml());
+
 // ---------------- controls + settings ----------------
 function setFollow(v) { follow = v; $("bFollow").setAttribute("aria-pressed", String(v)); }
 const togglePause = () => { paused = !paused; updateStatus(); };
@@ -3215,7 +3771,8 @@ addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: 
 addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
 
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
-  size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never" };
+  size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never",
+  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None" };
 const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String], ["cfgType", "type", String], ["cfgDew", "dew", Boolean],
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgWorkers", "workers", Boolean], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
@@ -3223,7 +3780,9 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgLayout", "layout", String], ["cfgLinks", "links", Number, "oLinks"], ["cfgThreadColor", "threadColor", String], ["cfgWordColor", "wordColor", String],
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
-  ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String]];
+  ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
+  ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
+  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
   $("topicsField").hidden = cfg.sort !== "topics";
@@ -3251,7 +3810,18 @@ function settingChanged(key) {
   if (key === "ambient") resetAmbient();
   if (key === "sound" && cfg.sound) audioOn();
   if (key === "exit" && S.mode === "done") startExit();
+  if (key === "spiders") { spawnHelpers(); applyTopics(); }
+  if (key === "citeStyle" && WV.open) renderSide();
 }
+function fillVoices() {
+  const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
+  const lang = ((DOC && DOC.lang) || "en").slice(0, 2);
+  const list = have.filter(v => v.lang.toLowerCase().startsWith(lang)).concat(have.filter(v => !v.lang.toLowerCase().startsWith(lang)));
+  sel.innerHTML = `<option value="">Device default</option>` + list.slice(0, 60).map(v => `<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join("");
+  sel.value = cfg.ttsVoice;
+}
+if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", fillVoices);
+$("forgetInt").onclick = () => { for (const k of Object.keys(INT)) delete INT[k]; store.set("silk-interest", null); $("intNote").textContent = "Forgotten."; };
 for (const [id, key, parse, out] of BIND) {
   const el = $(id);
   const evt = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
@@ -3306,7 +3876,11 @@ $("setTabs").addEventListener("click", e => {
 });
 $("replay").onclick = () => { $("dSettings").close(); enter(); };
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
-$("bSettings").onclick = () => { syncSettings(); if (!window.claude) fillAiForm(); $("dSettings").showModal(); };
+$("bSettings").onclick = () => {
+  syncSettings(); fillVoices(); if (!window.claude) fillAiForm();
+  $("intNote").textContent = Object.keys(INT).length ? `It has learned ${plural(Object.keys(INT).length, "interest")}.` : "";
+  $("dSettings").showModal();
+};
 $("bTheme").onclick = cycleTheme;
 $("aiProvider").addEventListener("change", syncAiForm);
 $("aiQuick").addEventListener("click", e => {
@@ -3345,20 +3919,125 @@ $("aiClear").onclick = () => {
 
 // source
 const dSource = $("dSource");
-$("bSource").onclick = () => { $("srcErr").hidden = true; dSource.showModal(); };
+const SRC = { list: [], results: [] };   // sources queued for one crawl, and the latest web search results
+const srcMsg = (t, info) => { const e = $("srcErr"); e.textContent = t || ""; e.hidden = !t; e.style.color = info ? "var(--muted)" : ""; };
+function syncSrcMode() {
+  const mode = document.querySelector('input[name="src"]:checked').value;
+  $("urlField").hidden = mode !== "url"; $("followField").hidden = mode !== "url"; $("searchField").hidden = mode !== "search";
+  for (const id of ["srcText", "srcFile"]) $(id).closest(".field").hidden = mode === "url" || mode === "search" || mode === "sample";
+  for (const id of ["srcTitle", "srcCite"]) $(id).closest(".field").hidden = mode === "sample" || mode === "search";
+  $("srcAuthor").closest(".row2").hidden = mode === "sample" || mode === "search";
+  $("srcAdd").hidden = mode === "sample";
+}
+document.querySelectorAll('input[name="src"]').forEach(r => r.addEventListener("change", syncSrcMode));
+$("bSource").onclick = () => { srcMsg(""); renderSrcList(); syncSrcMode(); dSource.showModal(); };
 $("srcCancel").onclick = () => dSource.close();
 $("srcText").addEventListener("input", () => { $("srcTextR").checked = true; });
-$("srcFile").addEventListener("change", e => {
+
+// ---- PDF and EPUB readers, loaded only when needed (the app's own copy when bundled, otherwise cdnjs)
+const VENDOR = () => (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.vendor) || "";
+const loadedScripts = {};
+function loadScript(src) {
+  if (!loadedScripts[src]) loadedScripts[src] = new Promise((ok, bad) => {
+    const s = document.createElement("script"); s.src = src; s.onload = ok;
+    s.onerror = () => { delete loadedScripts[src]; bad(new Error("load")); };
+    document.head.appendChild(s);
+  });
+  return loadedScripts[src];
+}
+async function getPdfjs() {
+  if (!window.pdfjsLib) {
+    const base = VENDOR() || "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+    // loading the worker as a plain script makes pdf.js parse on the main thread, which works even where web workers are blocked
+    await loadScript(base + "pdf.worker.min.js");
+    await loadScript(base + "pdf.min.js");
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js";
+  }
+  return window.pdfjsLib;
+}
+async function getJSZip() { if (!window.JSZip) await loadScript((VENDOR() || "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/") + "jszip.min.js"); return window.JSZip; }
+
+async function pdfToText(buf, onProgress) {
+  const lib = await getPdfjs();
+  const pdf = await lib.getDocument({ data: buf, isEvalSupported: false }).promise;
+  let info = {};
+  try { info = (await pdf.getMetadata()).info || {}; } catch (e) { /* no metadata */ }
+  const out = []; let total = 0;
+  for (let p = 1; p <= pdf.numPages && total < MAX_CHARS; p++) {
+    const tc = await (await pdf.getPage(p)).getTextContent();
+    const lines = []; let line = "", lastY = null;
+    for (const it of tc.items) {
+      if (!("str" in it)) continue;
+      const y = it.transform[5];
+      if (lastY !== null && Math.abs(y - lastY) > 2 && line) { lines.push(line); line = ""; }
+      line += (line && !/\s$/.test(line) && it.str && !/^\s/.test(it.str) ? " " : "") + it.str;
+      lastY = y;
+      if (it.hasEOL && line) { lines.push(line); line = ""; lastY = null; }
+    }
+    if (line) lines.push(line);
+    const clean = lines.map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+    const maxLen = clean.reduce((m, l) => Math.max(m, l.length), 0);
+    // a line that ends a sentence well short of the page width ends its paragraph
+    const paras = []; let cur = "";
+    for (const l of clean) {
+      if (/^\d{1,4}$/.test(l)) continue;
+      cur = cur ? (/[a-z]-$/.test(cur) ? cur.slice(0, -1) + l : cur + " " + l) : l;
+      if ((/[.!?:"”’)]$/.test(l) && l.length < maxLen * 0.85) || (isHeading(l) && l.length < maxLen * 0.6)) { paras.push(cur); cur = ""; }
+    }
+    if (cur) paras.push(cur);
+    const txt = paras.join("\n\n");
+    if (txt.trim()) { out.push(`⟦page ${p}⟧\n\n${txt}`); total += txt.length; }
+    if (onProgress) onProgress(p, pdf.numPages);
+  }
+  return { title: info.Title || "", author: info.Author || "", text: out.join("\n\n"), pages: pdf.numPages };
+}
+async function epubToText(buf) {
+  const JSZip = await getJSZip(), zip = await JSZip.loadAsync(buf);
+  const read = p => { const f = zip.file(p); return f ? f.async("text") : Promise.resolve(""); };
+  const opfPath = (/full-path="([^"]+)"/.exec(await read("META-INF/container.xml")) || [])[1];
+  if (!opfPath) throw new Error("epub");
+  const opf = new DOMParser().parseFromString(await read(opfPath), "application/xml");
+  const DC = "http://purl.org/dc/elements/1.1/", dc = n => (opf.getElementsByTagNameNS(DC, n)[0] || {}).textContent || "";
+  const resolve = href => decodeURIComponent(new URL(href, "http://x/" + opfPath).pathname.slice(1));
+  const manifest = {};
+  for (const it of opf.getElementsByTagName("item")) manifest[it.getAttribute("id")] = it.getAttribute("href");
+  const out = []; let total = 0;
+  for (const ref of opf.getElementsByTagName("itemref")) {
+    const href = manifest[ref.getAttribute("idref")]; if (!href || total > MAX_CHARS) continue;
+    const doc = new DOMParser().parseFromString(await read(resolve(href)), "text/html"), parts = [];
+    doc.querySelectorAll("h1, h2, h3, h4, p, li, blockquote").forEach(e => { const t = e.textContent.replace(/\s+/g, " ").trim(); if (t) parts.push(t); });
+    const txt = parts.join("\n\n"); if (txt) { out.push(txt); total += txt.length; }
+  }
+  return { title: dc("title"), author: dc("creator"), year: (dc("date").match(/\d{4}/) || [""])[0], text: out.join("\n\n") };
+}
+
+$("srcFile").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    const t = String(rd.result || "");
+  const name = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " "), ext = ((f.name.match(/\.([^.]+)$/) || [])[1] || "").toLowerCase();
+  $("srcTextR").checked = true; syncSrcMode();
+  try {
+    if (ext === "pdf" || ext === "epub") {
+      srcMsg(`Reading ${f.name}…`, true);
+      const buf = await f.arrayBuffer();
+      const got = ext === "pdf" ? await pdfToText(buf, (p, n) => srcMsg(`Reading ${f.name}: page ${p} of ${n}…`, true)) : await epubToText(buf);
+      if (!got.text.trim()) throw new Error(ext === "pdf" ? "scanned" : "empty");
+      $("srcText").value = got.text.slice(0, MAX_CHARS);
+      if (!$("srcTitle").value) $("srcTitle").value = got.title || name;
+      if (!$("srcAuthor").value && got.author) $("srcAuthor").value = got.author;
+      if (!$("srcYear").value && got.year) $("srcYear").value = got.year;
+      $("srcInfo").textContent = `Loaded ${f.name}${got.pages ? `: ${got.pages} pages, and citations will show page numbers` : ""}.${got.text.length > MAX_CHARS ? ` Only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : ""}`;
+      srcMsg(""); return;
+    }
+    const t = await f.text();
     $("srcInfo").textContent = t.length > MAX_CHARS ? `Loaded ${f.name}. It is long, so only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : `Loaded ${f.name} (${t.length.toLocaleString()} characters).`;
-    $("srcText").value = t.slice(0, MAX_CHARS); $("srcTextR").checked = true;
-    if (!$("srcTitle").value) $("srcTitle").value = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
-  };
-  rd.onerror = () => { $("srcErr").textContent = "That file could not be read. Try saving it as plain text (.txt) first."; $("srcErr").hidden = false; };
-  rd.readAsText(f);
+    $("srcText").value = t.slice(0, MAX_CHARS);
+    if (!$("srcTitle").value) $("srcTitle").value = name;
+    srcMsg("");
+  } catch (ex) {
+    srcMsg(ex && ex.message === "scanned" ? "That PDF has no text layer (it's probably scanned pages). Try a PDF whose text you can select."
+      : ex && ex.message === "load" ? "Couldn't load the PDF or EPUB reader. Check your connection and try again."
+      : "That file couldn't be read. Try a PDF, EPUB or plain-text file.");
+  }
 });
 // ---- loading a web page by link (web and Android versions; claude.ai blocks other sites)
 const IN_CLAUDE = !!window.claude;
@@ -3369,74 +4048,182 @@ function mdToText(md) {
     .replace(/^#{1,6}\s*(.+)$/gm, "\n$1\n").replace(/^\s*[-*+]\s+/gm, "").replace(/[*_`>|]+/g, "")
     .replace(/\n{3,}/g, "\n\n").trim();
 }
+const SKIP_LINK = /(log ?in|sign ?(in|up)|register|privacy|cookie|terms|subscribe|newsletter|donate|advertis|facebook|twitter|instagram|linkedin|youtube|tiktok|share|contact|about us|careers|help)/i;
 function htmlToText(html, url) {
   const d = new DOMParser().parseFromString(html, "text/html");
   d.querySelectorAll("script, style, nav, header, footer, aside, form, noscript, svg").forEach(e => e.remove());
-  const root = d.querySelector("article, main") || d.body, parts = [];
+  const root = d.querySelector("article, main") || d.body, parts = [], links = [];
   root.querySelectorAll("h1, h2, h3, p, li").forEach(e => { const t = e.textContent.replace(/\s+/g, " ").trim(); if (t.length > 1) parts.push(t); });
-  return { title: (d.title || new URL(url).hostname).trim(), text: parts.join("\n\n"), url };
+  root.querySelectorAll("a[href]").forEach(a => { try { links.push({ text: a.textContent.trim(), url: new URL(a.getAttribute("href"), url).href }); } catch (e) { /* bad link */ } });
+  return { title: (d.title || new URL(url).hostname).trim(), text: parts.join("\n\n"), url, links };
+}
+// rank a page's links for "follow links": same site first, words that matter on the page, no navigation clutter
+function rankLinks(links, pageUrl, text) {
+  const host = new URL(pageUrl).hostname, seen = new Set([pageUrl.replace(/#.*$/, "")]), low = text.toLowerCase();
+  return links.map(l => ({ ...l, url: l.url.replace(/#.*$/, "") }))
+    .filter(l => /^https?:/.test(l.url) && l.text.length >= 3 && l.text.length < 100 && !SKIP_LINK.test(l.text) && !/\.(png|jpe?g|gif|svg|webp|zip|mp4|mp3)$/i.test(l.url) && !seen.has(l.url) && seen.add(l.url))
+    .map(l => ({ ...l, score: (new URL(l.url).hostname === host ? 3 : 0) + Math.min(5, low.split(l.text.toLowerCase()).length - 1) }))
+    .sort((a, b) => b.score - a.score);
 }
 async function fetchPage(url) {
   const u = new URL(url);
   if (/(^|\.)wikipedia\.org$/.test(u.hostname) && u.pathname.startsWith("/wiki/")) {
     const title = decodeURIComponent(u.pathname.slice(6));
-    const api = `https://${u.hostname}/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&redirects=1&format=json&origin=*&titles=${encodeURIComponent(title)}`;
+    const api = `https://${u.hostname}/w/api.php?action=query&prop=extracts|links&explaintext=1&exsectionformat=wiki&pllimit=max&plnamespace=0&redirects=1&format=json&origin=*&titles=${encodeURIComponent(title)}`;
     const j = await (await fetch(api)).json();
     const p = Object.values((j.query || {}).pages || {})[0];
     if (!p || p.missing !== undefined || !p.extract) throw new Error("notfound");
     let text = p.extract.replace(/^(=+)\s*(.+?)\s*\1\s*$/gm, (m, eq, h) => `\n\n${h}\n\n`);
     text = text.split(/\n\s*\n(?:See also|References|External links|Further reading|Notes|Bibliography|Citations|Sources)\s*\n/)[0];
-    return { title: p.title, text, url: `https://${u.hostname}/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}` };
+    const low = text.toLowerCase();
+    // Wikipedia lists links alphabetically, so rank them by how often the linked article's title appears in this one
+    const links = (p.links || []).map(l => ({ text: l.title, url: `https://${u.hostname}/wiki/${encodeURIComponent(l.title.replace(/ /g, "_"))}`, score: low.split(l.title.toLowerCase()).length - 1 }))
+      .filter(l => l.score >= 2).sort((a, b) => b.score - a.score);
+    return { title: p.title, text, url: `https://${u.hostname}/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}`, site: "Wikipedia", links };
   }
   try {
     const r = await fetch(url);
-    if (r.ok && /text\/html/.test(r.headers.get("content-type") || "")) { const got = htmlToText(await r.text(), url); if (got.text.length > 200) return got; }
+    if (r.ok && /text\/html/.test(r.headers.get("content-type") || "")) {
+      const got = htmlToText(await r.text(), url);
+      if (got.text.length > 200) return { ...got, links: rankLinks(got.links, url, got.text) };
+    }
   } catch (e) { /* most sites block direct reads; use the reader service */ }
   const r = await fetch("https://r.jina.ai/" + url);
   if (!r.ok) throw new Error("fetch");
-  const t = await r.text();
+  const t = await r.text(), body = t.split(/^Markdown Content:\s*$/m)[1] || t;
   const title = ((t.match(/^Title:\s*(.+)$/m) || [])[1] || u.hostname).trim();
-  return { title, text: mdToText(t.split(/^Markdown Content:\s*$/m)[1] || t), url };
+  const raw = [...body.matchAll(/(?<!!)\[([^\]]{3,120})\]\((https?:\/\/[^)\s]+)/g)].map(m => ({ text: m[1].replace(/[*_`]/g, "").trim(), url: m[2] }));
+  const text = mdToText(body);
+  return { title, text, url, links: rankLinks(raw, url, text) };
 }
 
+// ---- search the web: Wikipedia's search, plus DuckDuckGo results read through the reader service
+async function webSearch(q) {
+  const out = [], lang = $("srcLang").value !== "auto" ? $("srcLang").value : "en";
+  try {
+    const j = await (await fetch(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=5&format=json&origin=*`)).json();
+    for (const r of (j.query || {}).search || []) out.push({ title: r.title, site: "Wikipedia", url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(r.title.replace(/ /g, "_"))}`, snippet: r.snippet.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&amp;/g, "&") });
+  } catch (e) { /* Wikipedia unreachable */ }
+  try {
+    const r = await fetch("https://r.jina.ai/https://html.duckduckgo.com/html/?q=" + encodeURIComponent(q));
+    if (r.ok) {
+      const md = await r.text(), seen = new Set(out.map(o => o.url));
+      for (const m of md.matchAll(/\[([^\]]{4,160})\]\(((?:https?:)?\/\/[^)\s]+)\)/g)) {
+        let link = m[2].startsWith("//") ? "https:" + m[2] : m[2];
+        try { const uu = new URL(link); if (/duckduckgo\.com$/.test(uu.hostname)) { const real = uu.searchParams.get("uddg"); if (!real) continue; link = real; } } catch (e) { continue; }
+        const title = m[1].replace(/[*_`]/g, "").trim();
+        if (/^https?:|^www\./i.test(title) || seen.has(link) || /duckduckgo|bing\.com\/aclick/.test(link)) continue;
+        seen.add(link); out.push({ title, site: new URL(link).hostname.replace(/^www\./, ""), url: link, snippet: "" });
+        if (out.length >= 13) break;
+      }
+    }
+  } catch (e) { /* reader unreachable */ }
+  return out;
+}
+function renderResults() {
+  $("webResults").innerHTML = SRC.results.map((r, i) => `<li><label class="chk" style="align-items:flex-start;flex:1"><input type="checkbox" data-res="${i}"${i < 2 ? " checked" : ""}>
+    <span><b>${esc(r.title)}</b><span class="meta" style="display:block">${esc(r.site)}${r.snippet ? " · " + esc(trunc(r.snippet, 140)) : ""}</span></span></label></li>`).join("");
+}
+$("webGo").onclick = async () => {
+  const q = $("webQ").value.trim(); if (!q) return;
+  if (IN_CLAUDE) { srcMsg("Inside claude.ai this page can't reach other websites. Use the web or Android version to search the web."); return; }
+  $("webGo").disabled = true; srcMsg("Searching…", true);
+  try { SRC.results = await webSearch(q); renderResults(); srcMsg(SRC.results.length ? `${SRC.results.length} results. Tick the ones to crawl, then Load and crawl.` : "No results. Try other words.", !!SRC.results.length); for (const w of q.split(/\s+/)) bump(w, 1); }
+  finally { $("webGo").disabled = false; }
+};
+$("webQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("webGo").click(); } });
+
+const blockedMsg = "Inside claude.ai this page can't reach other websites. Use the web or Android version to load pages by link, or copy the page's text into “My own text”.";
+async function pageSource(url, extra) {
+  const pg = await fetchPage(url);
+  const text = pg.text.slice(0, MAX_CHARS);
+  if (text.split(/\s+/).length < 30) throw new Error("short");
+  return Object.assign({ title: pg.title, author: "", year: "", cite: pg.url, site: pg.site || new URL(pg.url).hostname.replace(/^www\./, ""), accessed: new Date().toISOString().slice(0, 10), text, links: pg.links || [] }, extra || {});
+}
+// what the dialog currently describes, as a list of sources (a page plus the pages it links to, search results, or text)
+async function currentSources() {
+  const meta = { title: $("srcTitle").value.trim(), author: $("srcAuthor").value.trim(), year: $("srcYear").value.trim(), cite: $("srcCite").value.trim(), accessed: new Date().toISOString().slice(0, 10) };
+  if ($("srcSearchR").checked) {
+    const picked = [...document.querySelectorAll("#webResults [data-res]:checked")].map(c => SRC.results[+c.dataset.res]);
+    if (!picked.length) throw new Error("Search, then tick at least one result to crawl.");
+    const out = [];
+    for (const [k, r] of picked.entries()) {
+      srcMsg(`Reading ${k + 1} of ${picked.length}: ${trunc(r.title, 50)}…`, true);
+      try { out.push(await pageSource(r.url, { title: r.title })); } catch (e) { /* skip pages that can't be read */ }
+    }
+    if (!out.length) throw new Error(IN_CLAUDE ? blockedMsg : "None of those pages could be read. Try other results.");
+    return out;
+  }
+  if ($("srcUrlR").checked) {
+    const url = $("srcUrl").value.trim();
+    if (!isUrl(url)) throw new Error("Enter a full link that starts with https://");
+    srcMsg("Fetching the page…", true);
+    let main;
+    try { main = await pageSource(url, meta.title ? { title: meta.title, author: meta.author, year: meta.year } : { author: meta.author, year: meta.year }); }
+    catch (ex) { throw new Error(IN_CLAUDE ? blockedMsg : ex.message === "short" ? "That page didn't have enough readable text to crawl." : "Couldn't load that page. Check the link, or copy the page's text into “My own text”."); }
+    const out = [main];
+    const follow = main.links.slice(0, cfg.follow * 2);
+    for (const l of follow) {
+      if (out.length > cfg.follow) break;
+      srcMsg(`Following link ${out.length} of ${cfg.follow}: ${trunc(l.text, 50)}…`, true);
+      try { out.push(await pageSource(l.url)); } catch (e) { /* skip unreadable pages */ }
+    }
+    return out;
+  }
+  const text = $("srcText").value.slice(0, MAX_CHARS).trim();
+  if (text.split(/\s+/).length < 30) throw new Error("Paste at least a paragraph or two (30+ words), or open a file, so there is something to crawl.");
+  if (!meta.title) { const b = splitBlocks(text).find(x => x.type !== "mark"); meta.title = b && b.type === "h" ? b.text : "Your text"; }
+  if (isUrl(meta.cite)) meta.site = new URL(meta.cite).hostname.replace(/^www\./, "");
+  return [Object.assign(meta, { text })];
+}
+function clearSourceInputs() {
+  for (const id of ["srcTitle", "srcAuthor", "srcYear", "srcCite", "srcText", "srcUrl", "webQ"]) $(id).value = "";
+  $("srcFile").value = ""; SRC.results = []; renderResults();
+  $("srcInfo").textContent = "Plain text works best. Up to about 600,000 characters (a long novel).";
+}
+function renderSrcList() {
+  $("srcListWrap").hidden = !SRC.list.length;
+  $("srcList").innerHTML = SRC.list.map((s, i) => `<li><div><b>${esc(s.title)}</b><p class="meta">${esc([s.author, s.year, s.site].filter(Boolean).join(" · ") || "Your text")} · ${s.text.split(/\s+/).length.toLocaleString()} words</p></div><button class="btn" type="button" data-rm="${i}">Remove</button></li>`).join("");
+}
+$("srcList").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (b) { SRC.list.splice(+b.dataset.rm, 1); renderSrcList(); } });
+$("srcAdd").onclick = async () => {
+  if ($("srcSample").checked) { srcMsg("The sample can't be combined with other sources."); return; }
+  $("srcAdd").disabled = true;
+  try {
+    const got = await currentSources(); SRC.list.push(...got); clearSourceInputs(); renderSrcList();
+    srcMsg(`Added ${got.length === 1 ? "“" + got[0].title + "”" : got.length + " sources"}. Add more, or choose Load and crawl.`, true);
+  } catch (ex) { srcMsg(ex.message); } finally { $("srcAdd").disabled = false; }
+};
+function crawlSources(list) {
+  const multi = list.length > 1;
+  const raw = multi ? list.map((s, i) => `⟦source ${i + 1}⟧\n\n${s.title}\n\n${s.text}`).join("\n\n") : list[0].text;
+  const title = multi ? `${list[0].title} + ${list.length - 1} more` : list[0].title;
+  const d = buildText(raw, title, cfg.k, $("srcLang").value);
+  if (!d) throw new Error("No repeated keywords were found. Try longer texts.");
+  d.sources = list.map(({ text, links, ...m }) => m);
+  d.cite = multi ? "" : list[0].cite;
+  store.set("silk-src", raw.length < 1500000 ? { raw, title, cite: d.cite, sources: d.sources, lang: d.lang } : null);
+  loadDoc(d);
+  if (multi) log("LOAD", `${list.length} sources crawled together`);
+}
 $("fSource").addEventListener("submit", async e => {
   e.preventDefault();
-  if ($("srcSample").checked) { loadDoc(buildSample()); store.set("silk-src", null); dSource.close(); return; }
-  if ($("srcUrlR").checked) {
-    const url = $("srcUrl").value.trim(), err = $("srcErr");
-    if (!isUrl(url)) { err.textContent = "Enter a full link that starts with https://"; err.hidden = false; return; }
-    const btn = e.submitter || $("fSource").querySelector("[type=submit]");
-    err.hidden = false; err.textContent = "Fetching the page…"; btn.disabled = true;
-    try {
-      const pg = await fetchPage(url);
-      const text = pg.text.slice(0, MAX_CHARS);
-      if (text.split(/\s+/).length < 30) throw new Error("short");
-      const d = buildText(text, $("srcTitle").value.trim() || pg.title, cfg.k);
-      if (!d) throw new Error("short");
-      d.cite = pg.url; $("srcCite").value = pg.url; $("srcText").value = text;
-      store.set("silk-src", text.length < 900000 ? { raw: text, title: d.title, cite: d.cite } : null);
-      err.hidden = true; loadDoc(d); dSource.close();
-    } catch (ex) {
-      err.textContent = IN_CLAUDE
-        ? "Inside claude.ai this page can't reach other websites. Use the web or Android version to load pages by link, or copy the page's text into “My own text”."
-        : ex && ex.message === "short" ? "That page didn't have enough readable text to crawl." : "Couldn't load that page. Check the link, or copy the page's text into “My own text”.";
-    } finally { btn.disabled = false; }
-    return;
-  }
-  const raw = $("srcText").value.slice(0, MAX_CHARS).trim();
-  if (raw.split(/\s+/).length < 30) { $("srcErr").textContent = "Paste at least a paragraph or two (30+ words) so there is something to crawl."; $("srcErr").hidden = false; return; }
-  const blocks = splitBlocks(raw);
-  const title = $("srcTitle").value.trim() || (blocks[0] && blocks[0].type === "h" ? blocks[0].text : "Your text");
-  const d = buildText(raw, title, cfg.k);
-  if (!d) { $("srcErr").textContent = "No repeated keywords were found. Try a longer passage."; $("srcErr").hidden = false; return; }
-  d.cite = $("srcCite").value.trim();
-  store.set("silk-src", raw.length < 900000 ? { raw, title, cite: d.cite } : null);
-  loadDoc(d); dSource.close();
+  if ($("srcSample").checked && !SRC.list.length) { loadDoc(buildSample()); store.set("silk-src", null); dSource.close(); return; }
+  $("srcGo").disabled = true;
+  try {
+    const list = SRC.list.slice();
+    const pending = $("srcSearchR").checked ? document.querySelector("#webResults [data-res]:checked") : $("srcUrlR").checked ? $("srcUrl").value.trim() : $("srcText").value.trim();
+    if (pending || !list.length) list.push(...await currentSources());
+    srcMsg("Crawling…", true);
+    crawlSources(list);
+    SRC.list = []; renderSrcList(); clearSourceInputs(); srcMsg(""); dSource.close();
+  } catch (ex) { srcMsg(ex.message || "Something went wrong loading that source."); }
+  finally { $("srcGo").disabled = false; }
 });
 
 // keyboard
 addEventListener("keydown", e => {
-  if (e.key === "Escape") { hidePop(); $("hlBtn").hidden = true; if (WV.open && !document.querySelector("dialog[open]")) closeWeb(); return; }
+  if (e.key === "Escape") { hidePop(); stopSpeaking(); $("hlBtn").hidden = true; if (!findP.hidden && !document.querySelector("dialog[open]")) { closeFind(); return; } if (WV.open && !document.querySelector("dialog[open]")) closeWeb(); return; }
   if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]")) return;
   const t = e.target; if (t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
   if (WV.open && WV.tab === "cards") {
@@ -3452,6 +4239,8 @@ addEventListener("keydown", e => {
   else if (k === "l") openLib();
   else if (k === "r") { paused = false; restart(); }
   else if (k === "t") cycleTheme();
+  else if (e.key === "/") { e.preventDefault(); openFind("search"); }
+  else if (k === "c") openFind("contents");
   else if (e.key === "?") $("dHelp").showModal();
   else if (["arrowup", "arrowdown", "pageup", "pagedown", "home", "end"].includes(k) && !WV.open) stopFollow();
 });
@@ -3471,8 +4260,8 @@ resize();
 const saved = store.get("silk-src");
 let first = null;
 if (saved && saved.raw) {
-  try { first = buildText(saved.raw, saved.title, cfg.k); } catch (e) { first = null; }
-  if (first) { first.cite = saved.cite || ""; $("srcText").value = saved.raw; $("srcTitle").value = saved.title; $("srcCite").value = saved.cite || ""; }
+  try { first = buildText(saved.raw, saved.title, cfg.k, saved.lang); } catch (e) { first = null; }
+  if (first) { first.cite = saved.cite || ""; if (saved.sources) first.sources = saved.sources; }
 }
 if (!first) { first = buildSample(); $("srcSample").checked = true; }
 loadDoc(first);
