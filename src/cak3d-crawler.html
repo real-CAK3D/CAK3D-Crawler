@@ -63,6 +63,42 @@
 .sitetree { margin: 0; padding-left: 1.2em; }
 .sitetree ul { padding-left: 1.2em; }
 .note.other { background: color-mix(in srgb, var(--c0) 10%, transparent); }
+/* live stats panel: docked along the bottom */
+body.sp-open { padding-bottom: min(48vh, 430px); }
+.sp { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-height: min(48vh, 430px); overflow: auto; background: var(--panel); color: var(--ink);
+  border-top: 1px solid var(--rule); box-shadow: 0 -6px 24px rgba(0,0,0,.18); font-family: var(--mono); font-size: 12px; }
+.sp-head { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+.sp-head h2 { margin: 0; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+.sp-count { display: flex; gap: 14px; margin: 0 0 0 auto; }
+.sp-count div { text-align: right; } .sp-count dt { color: var(--muted); font-size: 10px; } .sp-count dd { margin: 0; font-size: 18px; font-weight: 600; }
+.sp-grid { display: grid; gap: 10px; padding: 10px 16px 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.sp-card { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; background: var(--paper); min-width: 0; }
+.sp-card h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sp-stream { grid-column: span 2; }
+@media (max-width: 560px) { .sp-stream { grid-column: auto; } .sp-count { margin-left: 0; } }
+.sp-stream table { width: 100%; border-collapse: collapse; }
+.sp-stream th { text-align: left; font-weight: 400; color: var(--muted); font-size: 10px; padding: 0 4px 3px; }
+.sp-stream td { padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.sp-stream tr.low td { background: color-mix(in srgb, var(--c1) 10%, transparent); }
+.sp-chip { display: inline-block; padding: 0 5px; border-radius: 3px; background: color-mix(in srgb, var(--cat, var(--link)) 22%, transparent); border-left: 3px solid var(--cat, var(--link)); }
+.rt { display: inline-flex; align-items: center; gap: 4px; } .rt::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--rc); }
+.rt-rules { --rc: var(--c2); } .rt-ai { --rc: var(--c1); } .rt-you { --rc: var(--c4); } .rt-wait { --rc: var(--rule); }
+.sp-big { font-size: 40px; font-weight: 700; line-height: 1; color: var(--c1); }
+.sp-bar { display: grid; grid-template-columns: 52px 1fr 30px; gap: 6px; align-items: center; margin-top: 4px; }
+.sp-bar i { display: block; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; } .sp-bar i b { display: block; height: 100%; background: var(--rc); }
+.sp-bar span:last-child { text-align: right; }
+.sp canvas { width: 100%; height: 90px; display: block; }
+.sp-dots { display: flex; flex-wrap: wrap; gap: 3px; max-height: 92px; overflow: hidden; }
+.sp-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
+.sp-dots i.rules { background: var(--c2); } .sp-dots i.ai { background: var(--c1); } .sp-dots i.you { background: var(--c4); }
+.sp-who { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sp-who li { border-left: 3px solid var(--rc); padding-left: 8px; } .sp-who b { display: block; }
+.sp-tag { margin: 8px 0 0; color: var(--muted); }
+.sp-review { grid-column: span 2; } @media (max-width: 560px) { .sp-review { grid-column: auto; } }
+.sp-review ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sp-review li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.sp-review .btn { padding: 2px 8px; font-size: 12px; }
+.sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
 .packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); margin: 6px 0 12px; }
 .pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
 .pack.focus { outline: 2px solid var(--link); outline-offset: 2px; }
@@ -356,6 +392,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <button class="btn" id="bLib" type="button">Library</button>
     <button class="btn" id="bSource" type="button">Source</button>
     <button class="btn" id="bTheme" type="button" title="Switch between light, dark and your device's setting">Light</button>
+    <button class="btn" id="bStats" type="button" aria-pressed="false" aria-controls="statsPanel">Stats</button>
     <button class="btn" id="bSettings" type="button">Settings</button>
     <button class="btn" id="bHelp" type="button" aria-label="Keyboard shortcuts and tips">?</button>
   </div>
@@ -423,6 +460,24 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
 </main>
 
 <canvas id="web" aria-hidden="true"></canvas>
+<section id="statsPanel" class="sp" hidden aria-labelledby="spH">
+  <div class="sp-head">
+    <h2 id="spH">Crawl stats</h2><span class="meta" id="spMode"></span>
+    <dl class="sp-count" id="spCount"></dl>
+    <button class="btn" type="button" id="spClose">Close</button>
+  </div>
+  <div class="sp-grid">
+    <div class="sp-card sp-stream"><h3>Decision stream</h3>
+      <table><thead><tr><th scope="col">time</th><th scope="col">keyword</th><th scope="col">question</th><th scope="col">p</th><th scope="col">route</th></tr></thead><tbody id="spStream"></tbody></table></div>
+    <div class="sp-card"><h3>Routed this crawl</h3><div class="sp-big" id="spRouted">0</div><p class="meta" id="spRoutedOf"></p><div id="spBars"></div></div>
+    <div class="sp-card"><h3>Confidence · last 40</h3><canvas id="spConf" aria-hidden="true"></canvas><p class="meta" id="spAvg"></p></div>
+    <div class="sp-card"><h3>Keywords read</h3><div id="spDots" class="sp-dots" aria-hidden="true"></div><p class="meta" id="spRead"></p></div>
+    <div class="sp-card"><h3>Text coverage</h3><canvas id="spCover" aria-hidden="true"></canvas><p class="meta" id="spCov"></p></div>
+    <div class="sp-card"><h3>Who had to think</h3><ul id="spWho" class="sp-who"></ul><p class="sp-tag">The AI only thinks where the rules can't decide.</p></div>
+    <div class="sp-card sp-review"><h3>Your call</h3><div id="spReview"></div></div>
+    <div class="sp-card"><h3>The crawl</h3><dl id="spLive" class="sp-live"></dl></div>
+  </div>
+</section>
 <div id="announce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 <canvas id="mini" title="Minimap: click to jump" aria-hidden="true"></canvas>
 <div id="pop" class="pop" hidden></div>
@@ -687,6 +742,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
         <label class="field"><span>Flies to hunt</span>
           <div class="range"><input type="range" id="cfgFlies" min="0" max="5" step="1"><output id="oFlies"></output></div>
           <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
+        <label class="chk"><input type="checkbox" id="cfgCornerWeb"> Builds a web in a corner of the page when it sits still, and catches flies in it</label>
         <p class="hintline">Extra spiders each hunt one topic and spin it in that topic's color.</p>
       </section>
       <section data-g="moves" hidden>
@@ -866,6 +922,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <dt>/</dt><dd>Search inside the text.</dd>
       <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
       <dt>Web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
+      <dt>S</dt><dd>Show or hide the live crawl stats.</dd>
       <dt>Esc</dt><dd>Close whatever is open.</dd>
     </dl>
     <p class="meta" id="helpLegal">© 2026 CAK3D. All rights reserved.<span id="privacyLink" hidden> · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></span></p>
@@ -958,7 +1015,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2 }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1435,7 +1492,7 @@ const tuckFeet = () => { for (const g of legs) { g.foot = toWorld({ f: g.rest.f 
 const kwOf = n => DOC.kw.get(n.key);
 const relevant = n => kwOf(n).rel > 0;
 const limitReached = () => cfg.stop > 0 && crawled >= cfg.stop;
-const wake = () => { if (S.mode === "done") S.mode = "walk"; else if (S.mode === "gone") enter(); };
+const wake = () => { if (S.mode === "done" || S.mode === "sit" || S.mode === "build" || S.mode === "toWeb") S.mode = "walk"; else if (S.mode === "gone") enter(); };
 function nextTarget() {
   while (S.manual.length && S.manual[0].caught) S.manual.shift();
   if (S.manual.length) return S.manual[0];
@@ -1601,6 +1658,7 @@ function catchNode(n, silent, by) {
   const prev = list[list.length - 1];
   linkTargets(list, n, k, b).forEach((o, i) => { threads.push({ a: o, b: a, born: now + 110 * i, bucket: b }); spun++; });
   list.push(a); if (!by) tie = n;
+  if (!silent) decide(k);
   if (!silent) {
     catchFx(n, k);
     log(n.prey ? "PREY" : "GET", DOC.mode === "sample" && n.el.dataset.w ? "/wiki/" + decodeURIComponent(n.el.dataset.w) : `“${k.label}” · ${DOC.cats[k.cat].name}`);
@@ -1808,6 +1866,8 @@ function updateFlies(dt) {
     f.ph += dt; f.t += dt;
     if (f.state === "gone") { f.respawn -= dt; if (f.respawn <= 0) Object.assign(f, spawnFly()); continue; }
     if (f.state === "wrapped") { if (f.byBabies && !f.hunted && f.t > 30) { f.state = "gone"; f.respawn = 4; } continue; }
+    if (f.state === "stuck") continue;
+    if (inCornerWeb(f) && Math.random() < dt * 2.5) { f.state = "stuck"; f.t = 0; if (!S.snagNote) { S.snagNote = true; log("FLY", "A fly got stuck in the web"); } continue; }
     // wander toward random spots in view; drift back if you scroll away
     if (f.tx == null || Math.hypot(f.tx - f.x, f.ty - f.y) < 24 || Math.random() < dt * 0.25 || f.ty < v.y0 - 200 || f.ty > v.y1 + 200) {
       f.tx = v.x0 + Math.random() * (v.x1 - v.x0); f.ty = v.y0 + Math.random() * (v.y1 - v.y0);
@@ -1824,17 +1884,18 @@ function updateFlies(dt) {
 }
 function canHunt() {
   if (!flies.length || S.prey || paused) return false;
+  if (S.mode === "sit") return flies.some(f => f.state === "stuck");
   if (S.mode === "done") return ["stay", "wander", "sleep"].includes(cfg.exit);
   return S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && helpers.some(h => h.target);
 }
 function startHunt() {
-  const f = nearestFly(S.x, S.y, 900, ["wrapped"]) || nearestFly(S.x, S.y, 700);
+  const f = S.mode === "sit" ? nearestFly(S.x, S.y, 900, ["stuck"]) : nearestFly(S.x, S.y, 900, ["stuck", "wrapped"]) || nearestFly(S.x, S.y, 700);
   if (!f) return;
   S.prey = f; f.hunted = true; S.huntFrom = S.mode; S.mode = "hunt"; S.huntT = 0;
 }
 function endHunt() {
   if (S.prey) S.prey.hunted = false;
-  S.prey = null; S.mode = S.huntFrom === "done" ? "done" : "walk"; S.huntFrom = null;
+  S.prey = null; S.mode = S.huntFrom === "done" ? "done" : S.huntFrom === "sit" ? "toWeb" : "walk"; S.huntFrom = null; S.keep = false;
 }
 function drawFly(f, now) {
   if (f.state === "gone") return;
@@ -1845,8 +1906,9 @@ function drawFly(f, now) {
     for (const a of [-0.7, 0, 0.7]) { ctx.beginPath(); ctx.ellipse(f.x, f.y, 5 * k, 1.6 * k, a, 0, 7); ctx.stroke(); }
     return;
   }
-  const a = Math.atan2(f.vy, f.vx), flap = Math.abs(Math.sin(now * 0.09 + f.ph * 10));
-  ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(a);
+  const a = Math.atan2(f.vy, f.vx), flap = Math.abs(Math.sin(now * (f.state === "stuck" ? 0.18 : 0.09) + f.ph * 10));
+  const jx = f.state === "stuck" ? Math.sin(now * 0.07) * 1.2 : 0;
+  ctx.save(); ctx.translate(f.x + jx, f.y); ctx.rotate(f.state === "stuck" ? Math.sin(now * 0.02) * 0.6 : a);
   ctx.globalAlpha = 0.45; ctx.fillStyle = C.silk;
   for (const y of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-1, y * (2 + flap * 1.5), 3.6, 1.5 + flap, y * 0.5, 0, 7); ctx.fill(); }
   ctx.globalAlpha = 1; ctx.fillStyle = C.ink;
@@ -1854,6 +1916,231 @@ function drawFly(f, now) {
   ctx.fillStyle = "#b3261e"; for (const y of [-0.9, 0.9]) { ell(2.9, y, 0.7, 0.7); ctx.fill(); }
   ctx.restore();
 }
+
+// ---- corner web: after sitting still for a while the spider spins an orb web in a corner of the page
+// and waits in the middle of it. Flies that blunder in get stuck; the spider runs out and wraps them.
+let CW = null, webCatch = [];
+function rayTri(h, a, T) {
+  const dx = Math.cos(a), dy = Math.sin(a); let best = null, bt = Infinity;
+  for (let i = 0; i < 3; i++) {
+    const p = T[i], q = T[(i + 1) % 3], ex = q.x - p.x, ey = q.y - p.y, den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const t = ((p.x - h.x) * ey - (p.y - h.y) * ex) / den, u = ((p.x - h.x) * dy - (p.y - h.y) * dx) / den;
+    if (t > 0 && u >= 0 && u <= 1 && t < bt) { bt = t; best = { x: h.x + dx * t, y: h.y + dy * t }; }
+  }
+  return best;
+}
+function planCornerWeb() {
+  const v = viewBox(), pw = pageBox().width, right = Math.abs(S.x - pw) < Math.abs(S.x);
+  const cx = right ? pw - 4 : 4, cy = Math.max(v.y0 + 6, 4), dx = right ? -1 : 1, D = 64 * clamp(cfg.size, 0.85, 1.4);
+  const C = { x: cx, y: cy }, A1 = { x: cx + dx * D * 2.8, y: cy }, A2 = { x: cx, y: cy + D * 2.8 }, hub = { x: cx + dx * D, y: cy + D };
+  const N = 14, spokes = [];
+  for (let i = 0; i < N; i++) { const e = rayTri(hub, i / N * Math.PI * 2 + 0.1, [C, A1, A2]); if (e) spokes.push(e); }
+  const path = [];
+  for (const e of spokes) path.push(e, hub); // out and back along every spoke
+  const rings = 7;
+  for (let r = rings; r >= 1; r--) for (let i = 0; i < spokes.length; i++) { // then the sticky spiral, from the outside in
+    const fr = (r - i / spokes.length) / (rings + 0.4) * 0.94, e = spokes[i];
+    path.push({ x: hub.x + (e.x - hub.x) * fr, y: hub.y + (e.y - hub.y) * fr });
+  }
+  CW = { C, A1, A2, hub, spokes, path, step: 0, done: false, R: D * 1.45 };
+  log("WEB", `${spiderName()} is spinning a web in the ${right ? "top right" : "top left"} corner`);
+}
+const inCornerWeb = p => CW && CW.step > CW.spokes.length * 2 + 4 && Math.hypot(p.x - CW.hub.x, p.y - CW.hub.y) < CW.R * Math.min(1, (CW.step - CW.spokes.length * 2) / (CW.path.length - CW.spokes.length * 2) + 0.35);
+const freeWork = () => !limitReached() && nodes.some(n => !n.caught && relevant(n) && !n.claim);
+function updateCornerWeb(dt) {
+  const idle = S.mode === "done" || (S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && !S.manual.length);
+  if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat"].includes(S.mode)) S.idleT = 0;
+  if (["build", "sit", "toWeb"].includes(S.mode)) {
+    S.workCheck = (S.workCheck || 0) - dt;
+    if (S.workCheck <= 0) { S.workCheck = 0.5; if (freeWork() || S.sacQueue.length || [...webs.values()].some(l => cfg.sacs && l.length >= cfg.cap)) { S.mode = "walk"; return; } }
+  }
+  if (!cfg.cornerWeb || reduce || paused || S.idleT < 6 || !idle) return;
+  if (S.mode === "done" && !["stay", "wander", "sleep"].includes(cfg.exit)) return;
+  if (!CW) planCornerWeb();
+  S.mode = CW.done ? "toWeb" : "build";
+}
+function drawCornerWeb() {
+  if (!CW) return;
+  const { C: P0, A1, A2, hub, spokes, path, step } = CW, N = spokes.length;
+  ctx.save(); ctx.strokeStyle = C.silk; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.75; ctx.lineCap = "round";
+  silkPath(P0.x, P0.y, A1.x, A1.y, 1, false, 0); silkPath(P0.x, P0.y, A2.x, A2.y, 1, false, 0); silkPath(A1.x, A1.y, A2.x, A2.y, 1, false, 0, 6);
+  const spokesDone = Math.min(N, Math.floor(step / 2));
+  for (let i = 0; i < spokesDone; i++) seg(hub.x, hub.y, spokes[i].x, spokes[i].y);
+  if (!CW.done && step < N * 2) seg(hub.x, hub.y, S.x, S.y);
+  if (step > N * 2) {
+    ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(path[N * 2].x, path[N * 2].y);
+    for (let i = N * 2 + 1; i < Math.min(step, path.length); i++) ctx.lineTo(path[i].x, path[i].y);
+    if (!CW.done) ctx.lineTo(S.x, S.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+  for (const w of webCatch) { // flies wrapped and left hanging in the web
+    ctx.fillStyle = C.silk; ctx.strokeStyle = C.silk; ctx.globalAlpha = 0.9; ell(w.x, w.y, 4.2, 3.2); ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = 0.7;
+    for (const a of [-0.7, 0, 0.7]) { ctx.beginPath(); ctx.ellipse(w.x, w.y, 4.8, 1.5, a, 0, 7); ctx.stroke(); }
+  }
+}
+
+// ---- decisions: every keyword the spider catches becomes a few typed questions with a confidence p.
+// Sure ones (p ≥ 0.95) are filed by the rules with no AI call, unsure ones go to the AI if one is set up,
+// and close calls between two topics come to you.
+const DEC = { list: [], byKey: new Map(), t0: 0, aiCalls: 0, aiBusy: false, checks: 0 };
+const ROUTE_NAME = { rules: "rules", ai: "AI", you: "you" };
+function judge(k) {
+  const by = new Map(); let tot = 0;
+  for (const [nb, w] of k.nb) { const o = DOC.kw.get(nb); if (!o) continue; tot += w; by.set(o.cat, (by.get(o.cat) || 0) + w); }
+  const own = by.get(k.cat) || 0; let alt = -1, altW = 0;
+  for (const [c, w] of by) if (c !== k.cat && w > altW) { alt = c; altW = w; }
+  const fit = tot ? own / tot : 0.5, margin = tot ? (own - altW) / tot : 0.3;
+  // how often it's mentioned, compared with a typical keyword in this text (the sample's keywords are its hand-picked links)
+  if (DOC._med == null) { const c = [...DOC.kw.values()].map(x => x.count).sort((a, b) => a - b); DOC._med = c[Math.floor(c.length / 2)] || 1; }
+  const support = DOC.mode === "sample" ? 1 : Math.min(1, k.count / DOC._med);
+  const focused = !!focusRe(), checks = [];
+  // a discovery crawl has to work out what the keywords and topics are; a focused crawl asks whether each one helps
+  if (focused) checks.push(["relevant to focus?", clamp(0.7 + 0.05 * k.rel, 0, 0.995)], ["backed by passages?", 0.9 + 0.095 * support]);
+  else checks.push(["a real keyword?", 0.9 + 0.095 * support]);
+  checks.push(["fits its topic?", 0.5 + 0.495 * fit], ["clear-cut topic?", 0.55 + 0.445 * clamp(margin, 0, 1)]);
+  if (multiSource()) checks.push(["sources agree?", 0.75 + 0.25 * (k.srcs.size - 1) / Math.max(1, DOC.sources.length - 1)]);
+  checks.sort((a, b) => a[1] - b[1]);
+  const mean = checks.reduce((t, c) => t + c[1], 0) / checks.length;
+  const p = Math.round((0.6 * checks[0][1] + 0.4 * mean) * 1000) / 1000;
+  const route = p >= 0.95 ? "rules" : alt >= 0 && margin < 0.12 ? "you" : p >= 0.72 ? "ai" : "you";
+  return { q: checks[0][0], p, route, alt, n: checks.length };
+}
+function decide(k) {
+  if (DEC.byKey.has(k.key)) return;
+  if (!DEC.t0) DEC.t0 = performance.now();
+  const j = judge(k);
+  const d = { key: k.key, t: (performance.now() - DEC.t0) / 1000, q: j.q, p: j.p, route: j.route, alt: j.alt, open: j.route !== "rules", how: j.route === "rules" ? "rules" : "" };
+  DEC.list.push(d); DEC.byKey.set(k.key, d); DEC.checks += j.n;
+  SP.dirty = true;
+}
+function resetDecisions() { DEC.list = []; DEC.byKey.clear(); DEC.t0 = 0; DEC.aiCalls = 0; DEC.checks = 0; SP.dirty = true; }
+// move a keyword to another topic everywhere it shows
+function setCat(k, c) {
+  if (c == null || c < 0 || !DOC.cats[c] || k.cat === c) return;
+  k.cat = c;
+  for (const n of nodes) if (n.key === k.key) n.el.style.setProperty("--cat", catColorVar(c));
+  page.querySelectorAll(".echo").forEach(el => { if (el.dataset.k === k.key) el.style.setProperty("--cat", catColorVar(c)); });
+  if (WV.open) refreshWeb(true);
+}
+function resolve(d, how, cat) {
+  const k = DOC.kw.get(d.key); if (!k) return;
+  if (cat != null) setCat(k, cat);
+  d.open = false; d.how = how; d.final = k.cat; SP.dirty = true;
+}
+// one AI call sorts every keyword that's waiting on it
+async function aiSort() {
+  const wait = DEC.list.filter(d => d.open && d.route === "ai");
+  if (!SAMPLE || !wait.length || DEC.aiBusy) return;
+  DEC.aiBusy = true; SP.dirty = true; renderStatsPanel();
+  const topics = DOC.cats.map((c, i) => `${i}: ${c.name} (e.g. ${[...DOC.kw.values()].filter(k => k.cat === i).sort((a, b) => b.count - a.count).slice(0, 5).map(k => k.label).join(", ")})`).join("\n");
+  const items = wait.slice(0, 40).map(d => { const k = DOC.kw.get(d.key); return `- ${k.key}: "${trunc(DOC.sents[k.si[0]] || "", 200)}"`; }).join("\n");
+  const prompt = `A research tool sorted the keywords of a text titled "${DOC.title}" into these numbered topics:\n${topics}\n\nFor each keyword below (with a sentence where it appears), choose the topic number it belongs to. Reply with only a JSON object mapping each keyword to a topic number, like {"silk": 2}.\n${items}`;
+  try {
+    const { text } = await SAMPLE(prompt, {});
+    const m = text.match(/\{[\s\S]*\}/), out = m ? JSON.parse(m[0]) : {};
+    DEC.aiCalls++;
+    for (const d of wait.slice(0, 40)) { const c = out[d.key]; resolve(d, "ai", Number.isInteger(c) ? c : null); }
+    log("AI", `${aiName()} sorted ${plural(Math.min(40, wait.length), "unsure keyword")}`);
+  } catch (e) { flash(sampleErr(e) || "The AI couldn't sort them this time."); }
+  finally { DEC.aiBusy = false; SP.dirty = true; renderStatsPanel(); }
+}
+
+// ---- the stats panel
+const SP = { dirty: true, last: 0 };
+function toggleStats(on) {
+  const show = on == null ? $("statsPanel").hidden : on;
+  $("statsPanel").hidden = !show; document.body.classList.toggle("sp-open", show);
+  $("bStats").setAttribute("aria-pressed", String(show));
+  if (cfg.statsOpen !== show) { cfg.statsOpen = show; saveCfg(); }
+  if (show) { SP.dirty = true; renderStatsPanel(); }
+}
+$("bStats").onclick = () => toggleStats();
+$("spClose").onclick = () => { toggleStats(false); $("bStats").focus(); };
+setInterval(() => { if (!$("statsPanel").hidden && (SP.dirty || performance.now() - SP.last > 1500)) renderStatsPanel(); }, 400);
+function spCanvas(id) {
+  const cv = $(id), r = cv.getBoundingClientRect(), d = devicePixelRatio || 1;
+  if (cv.width !== Math.round(r.width * d) || cv.height !== Math.round(r.height * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); }
+  const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, r.width, r.height);
+  return { g, w: r.width, h: r.height };
+}
+const routeColor = r => r === "rules" ? C.cats[2] : r === "ai" ? C.cats[1] : r === "you" ? C.cats[4] : C.rule;
+function renderStatsPanel() {
+  if (!DOC || $("statsPanel").hidden) return;
+  SP.dirty = false; SP.last = performance.now();
+  const L = DEC.list, ft = $("focus").value.trim();
+  const count = r => L.filter(d => d.route === r).length;
+  const nRules = count("rules"), nAi = count("ai"), nYou = count("you");
+  $("spMode").textContent = ft ? `Focused crawl: looking for “${ft}”` : "Discovery crawl: finding the keywords and topics";
+  const total = DOC.kw.size;
+  $("spCount").innerHTML = [["keywords", `${crawled}/${total}`], ["decisions", L.length], ["rules", nRules], ["AI", nAi], ["you", nYou]]
+    .map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join("");
+  // decision stream, newest first
+  $("spStream").innerHTML = L.slice(-12).reverse().map(d => {
+    const k = DOC.kw.get(d.key); if (!k) return "";
+    const st = d.open ? (d.route === "ai" && !SAMPLE ? "wait" : d.route) : (d.how || d.route);
+    return `<tr class="${d.p < 0.95 ? "low" : ""}"><td>${d.t.toFixed(2)}s</td><td><span class="sp-chip" style="--cat:${catColorVar(k.cat)}">${esc(trunc(k.label, 18))}</span></td><td>${esc(d.q)}</td><td>p ${d.p.toFixed(3)}</td><td><span class="rt rt-${st}">→ ${d.open ? ROUTE_NAME[d.route] : ROUTE_NAME[d.how] || d.how}${d.open ? "" : " ✓"}</span></td></tr>`;
+  }).join("") || `<tr><td colspan="5" class="meta">Decisions appear here as the spider catches keywords.</td></tr>`;
+  // routed totals
+  $("spRouted").textContent = L.length;
+  $("spRoutedOf").textContent = `of ${total} keywords in the text`;
+  $("spBars").innerHTML = [["rules", nRules], ["ai", nAi], ["you", nYou]].map(([r, n]) =>
+    `<div class="sp-bar rt-${r}"><span>${ROUTE_NAME[r]}</span><i><b style="width:${L.length ? n / L.length * 100 : 0}%"></b></i><span>${n}</span></div>`).join("");
+  // confidence sparkline
+  { const { g, w, h } = spCanvas("spConf"), last = L.slice(-40), y = p => h - 6 - (clamp(p, 0.5, 1) - 0.5) / 0.5 * (h - 12);
+    g.strokeStyle = C.rule; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(0, y(0.95)); g.lineTo(w, y(0.95)); g.stroke(); g.setLineDash([]);
+    if (last.length > 1) {
+      g.strokeStyle = C.cats[1]; g.lineWidth = 1.4; g.beginPath();
+      last.forEach((d, i) => { const x = i / (last.length - 1) * (w - 6) + 3; i ? g.lineTo(x, y(d.p)) : g.moveTo(x, y(d.p)); }); g.stroke();
+      last.forEach((d, i) => { g.fillStyle = routeColor(d.route); g.beginPath(); g.arc(i / (last.length - 1) * (w - 6) + 3, y(d.p), 2.2, 0, 7); g.fill(); });
+    }
+    const avg = L.length ? L.reduce((t, d) => t + d.p, 0) / L.length : 0;
+    $("spAvg").textContent = L.length ? `avg ${avg.toFixed(3)} · dashed line is p 0.95` : "No decisions yet."; }
+  // one dot per keyword, in reading order
+  { const ks = [...DOC.kw.values()].sort((a, b) => (a.si[0] || 0) - (b.si[0] || 0)).slice(0, 400);
+    $("spDots").innerHTML = ks.map(k => { const d = DEC.byKey.get(k.key); return `<i class="${d ? d.route : ""}"></i>`; }).join("");
+    $("spRead").textContent = `${crawled} / ${total} read`; }
+  // text coverage: every sentence is a dot; lit once a caught keyword appears in it
+  { const { g, w, h } = spCanvas("spCover"), n = DOC.sents.length, lit = new Set();
+    for (const k of DOC.kw.values()) if (k.crawled) for (const i of k.si) lit.add(i);
+    const R = Math.min(w, h) / 2 - 4, cx = w / 2, cy = h / 2, step = Math.max(1, Math.ceil(n / 600));
+    const dot = clamp(R / Math.sqrt(Math.min(n, 600)) * 0.5, 1.2, 3.6);
+    for (let i = 0; i < n; i += step) {
+      const r = R * Math.sqrt((i + 0.5) / n), a = i * 2.39996;
+      g.fillStyle = lit.has(i) ? C.cats[2] : C.rule; g.globalAlpha = lit.has(i) ? 0.95 : 0.7;
+      g.beginPath(); g.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, dot * (lit.has(i) ? 1 : 0.7), 0, 7); g.fill();
+    }
+    g.globalAlpha = 1;
+    $("spCov").textContent = `${n ? Math.round(lit.size / n * 100) : 0}% of sentences covered`; }
+  // who had to think
+  const youDone = L.filter(d => d.how === "you").length, youOpen = L.filter(d => d.open && (d.route === "you" || (d.route === "ai" && !SAMPLE))).length;
+  $("spWho").innerHTML = `<li class="rt-rules"><b>rules</b>${nRules} filed · ${DEC.checks} checks</li>
+    <li class="rt-ai"><b>AI${SAMPLE ? " · " + esc(aiName()) : ""}</b>${SAMPLE ? `${plural(DEC.aiCalls, "call")} · ${L.filter(d => d.how === "ai").length} sorted` : "not set up: these come to you"}</li>
+    <li class="rt-you"><b>you</b>${youDone} decided · ${youOpen} waiting</li>`;
+  // your call: close calls, plus anything waiting on an AI that isn't set up
+  const mine = L.filter(d => d.open && (d.route === "you" || (d.route === "ai" && !SAMPLE))).slice(-8).reverse();
+  const aiWait = L.filter(d => d.open && d.route === "ai").length;
+  $("spReview").innerHTML = (SAMPLE && aiWait ? `<p><button class="btn" type="button" data-aisort ${DEC.aiBusy ? "disabled" : ""}>${DEC.aiBusy ? "Sorting…" : `Let ${esc(aiName())} sort ${plural(aiWait, "unsure keyword")}`}</button></p>` : "") +
+    (mine.length ? "<ul>" + mine.map(d => {
+      const k = DOC.kw.get(d.key); if (!k) return "";
+      const cur = DOC.cats[k.cat], alt = d.alt >= 0 && d.alt !== k.cat ? DOC.cats[d.alt] : null;
+      return `<li><span class="sp-chip" style="--cat:${catColorVar(k.cat)}">${esc(k.label)}</span><span class="meta">${esc(d.q)} p ${d.p.toFixed(2)}</span>
+        <button class="btn" type="button" data-keep="${esc(d.key)}">Keep in ${esc(trunc(cur.name, 18))}</button>${alt ? `<button class="btn" type="button" data-move="${esc(d.key)}" data-to="${d.alt}">Move to ${esc(trunc(alt.name, 18))}</button>` : ""}</li>`;
+    }).join("") + "</ul>" : `<p class="meta">${L.length ? "Nothing needs you right now." : "Close calls between two topics show up here."}</p>`);
+  // the crawl itself
+  const secs = DEC.t0 ? (performance.now() - DEC.t0) / 1000 : 0;
+  $("spLive").innerHTML = [["speed", secs > 2 ? `${(crawled / secs * 60).toFixed(0)} keywords/min` : "–"], ["threads", spun], ["sacs", sacs.length], ["bridges", bridges.length],
+    ["spiderlings", babies.length], ["flies eaten", fliesEaten], ["flies in the web", webCatch.length], ["spider", S.mode === "sit" ? "waiting in its web" : S.mode === "build" ? "spinning a web" : S.mode === "hunt" ? "hunting a fly" : S.mode === "eat" ? "wrapping a fly" : S.mode === "done" ? "resting" : S.mode === "gone" ? "away" : "crawling"]]
+    .map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join("");
+}
+$("spReview").addEventListener("click", e => {
+  if (e.target.closest("[data-aisort]")) { aiSort(); return; }
+  const kp = e.target.closest("[data-keep]"), mv = e.target.closest("[data-move]");
+  if (kp) { const d = DEC.byKey.get(kp.dataset.keep); if (d) resolve(d, "you"); }
+  if (mv) { const d = DEC.byKey.get(mv.dataset.move); if (d) { resolve(d, "you", +mv.dataset.to); flash(`Moved “${DOC.kw.get(d.key).label}” to ${DOC.cats[+mv.dataset.to].name}.`); } }
+  renderStatsPanel();
+});
 
 // ---- bridges: spiderlings that run silk from their sac to another sac with related keywords
 let bridges = [];
@@ -1958,7 +2245,8 @@ function restart() {
   for (const n of nodes) { n.caught = false; n.seeded = false; n.el.classList.remove("caught", "packed", "grip", "seed"); }
   for (const k of DOC.kw.values()) { k.crawled = false; k.seeded = false; }
   webs.clear(); hubs.clear();
-  threads = []; sacs = []; babies = []; fluff = []; strands = []; rings = []; bridges = [];
+  threads = []; sacs = []; babies = []; fluff = []; strands = []; rings = []; bridges = []; CW = null; webCatch = []; S.idleT = 0;
+  resetDecisions();
   if (S.prey) endHunt();
   crawled = 0; spun = 0; grips = 0; tie = null; sacCount = 0;
   Object.assign(S, { target: null, wait: 0.4, v: 0, sac: null, goto: null, manual: [], sacQueue: [], finishing: false });
@@ -2053,7 +2341,7 @@ function walk(dt) {
 function update(dt, now) {
   if (paused) { S.v = 0; return; }
   const sp = speedNow();
-  if (S.mode === "done" && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
+  if ((S.mode === "done" || S.mode === "sit" || S.mode === "build" || S.mode === "toWeb") && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
   if (S.mode === "gone") { if (hasWork()) enter(); else return; }
   if (S.mode === "done" && cfg.exit === "wander" && !S.goto) {
     S.wanderT -= dt;
@@ -2119,17 +2407,32 @@ function update(dt, now) {
     const p = Math.min(1, S.spinT / dur);
     sac.wrap = p; sac.r = 12 * ease(Math.min(1, p * 1.4));
     if (p >= 1) finishSpin(sac);
+  } else if (S.mode === "toWeb") {
+    if (!CW) S.mode = "done";
+    else { const d = travel(CW.hub.x, CW.hub.y, dt); if (d < 6 && !S.hop) { S.mode = "sit"; S.v = 0; } }
+  } else if (S.mode === "build") {
+    if (!CW) S.mode = "done";
+    else {
+      const p = CW.path[CW.step], d = travel(p.x, p.y, dt);
+      if (d < 7 && !S.hop) { CW.step++; if (CW.step >= CW.path.length) { CW.done = true; S.mode = "toWeb"; log("WEB", `The web is done. ${spiderName()} waits in the middle for flies`); } }
+    }
+  } else if (S.mode === "sit") {
+    S.v = 0; S.a += clamp(wrapA(Math.PI / 2 - S.a), -2 * dt, 2 * dt);
   } else if (S.mode === "hunt") {
     const fl = S.prey; S.huntT += dt;
     if (!fl || fl.state === "gone" || S.huntT > 14 || (S.huntFrom === "walk" && (S.sacQueue.length || S.manual.some(n => !n.caught)))) endHunt();
     else {
       const d = travel(fl.x, fl.y, dt);
-      if (d < 12 && !S.hop) { fl.state = "wrapped"; fl.t = 0; S.mode = "eat"; S.eatT = 1.8; S.v = 0; sfx("seed"); }
+      if (d < 12 && !S.hop) { S.keep = fl.state === "stuck" && !!CW; fl.state = "wrapped"; fl.t = 0; S.mode = "eat"; S.eatT = 1.8; S.v = 0; sfx("seed"); }
     }
   } else if (S.mode === "eat") {
     const fl = S.prey; S.v = 0; S.eatT -= dt * Math.min(speedNow(), 2);
-    if (fl) { const mx = S.x + Math.cos(S.a) * 14 * cfg.size, my = S.y + Math.sin(S.a) * 14 * cfg.size; fl.x += (mx - fl.x) * Math.min(1, dt * 8); fl.y += (my - fl.y) * Math.min(1, dt * 8); }
-    if (S.eatT <= 0) {
+    if (fl && !S.keep) { const mx = S.x + Math.cos(S.a) * 14 * cfg.size, my = S.y + Math.sin(S.a) * 14 * cfg.size; fl.x += (mx - fl.x) * Math.min(1, dt * 8); fl.y += (my - fl.y) * Math.min(1, dt * 8); }
+    if (S.eatT <= 0 && S.keep) { // wrapped and left hanging in the web for later
+      if (fl) { webCatch.push({ x: fl.x, y: fl.y }); if (webCatch.length > 6) webCatch.shift(); fl.state = "gone"; fl.respawn = 6 + Math.random() * 8; }
+      if (webCatch.length === 1) log("WRAP", `${spiderName()} wrapped a fly in its web`);
+      endHunt();
+    } else if (S.eatT <= 0) {
       if (fl) { fl.state = "gone"; fl.respawn = 7 + Math.random() * 9; }
       fliesEaten++; if (fliesEaten === 1 || [5, 10, 25, 50, 100].includes(fliesEaten) || fliesEaten % 250 === 0) log("EAT", `${spiderName()} ate ${fliesEaten === 1 ? "a fly" : fliesEaten + " flies"}`);
       endHunt();
@@ -2152,6 +2455,7 @@ function update(dt, now) {
   updateBabies(dt);
   updateHelpers(dt);
   updateFlies(dt);
+  updateCornerWeb(dt);
   S.huntCheck = (S.huntCheck || 0) - dt;
   if (S.huntCheck <= 0) { S.huntCheck = 0.5; if (canHunt()) startHunt(); }
   if (S.mode === "done" && cfg.sacs) for (const list of webs.values()) if (list.length >= cfg.cap) { S.mode = "walk"; break; }
@@ -2767,6 +3071,7 @@ function draw(now) {
   }
   ctx.globalAlpha = 1;
   drawBridges(vis);
+  drawCornerWeb();
   for (const b of babies) if (vis(b.y, b.y)) drawBaby(b, now);
   for (const fl of flies) if (vis(fl.y, fl.y)) drawFly(fl, now);
   fx = fx.filter(f => now - f.born < (f.type === "label" ? 1400 : 750));
@@ -4708,7 +5013,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
   ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
-  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"]];
+  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgCornerWeb", "cornerWeb", Boolean]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
   $("topicsField").hidden = cfg.sort !== "topics";
@@ -4739,6 +5044,7 @@ function settingChanged(key) {
   if (key === "spiders") { spawnHelpers(); applyTopics(); }
   if (key === "citeStyle" && WV.open) renderSide();
   if (key === "flies") resetFlies();
+  if (key === "cornerWeb" && !cfg.cornerWeb) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; }
 }
 function fillVoices() {
   const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
@@ -4813,6 +5119,7 @@ markPaid();
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && !window.CdvPurchase) document.addEventListener("deviceready", start, { once: true }); else start();
 }
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
+if (cfg.statsOpen) toggleStats(true);
 $("bSettings").onclick = () => {
   syncSettings(); fillVoices(); if (!window.claude) fillAiForm();
   $("intNote").textContent = Object.keys(INT).length ? `It has learned ${plural(Object.keys(INT).length, "interest")}.` : "";
@@ -5246,6 +5553,7 @@ addEventListener("keydown", e => {
   else if (k === "l") openLib();
   else if (k === "r") { paused = false; restart(); }
   else if (k === "t") cycleTheme();
+  else if (k === "s") toggleStats();
   else if (e.key === "/") { e.preventDefault(); openFind("search"); }
   else if (k === "c") openFind("contents");
   else if (e.key === "?") $("dHelp").showModal();
