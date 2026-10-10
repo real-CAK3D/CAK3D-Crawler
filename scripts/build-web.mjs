@@ -16,7 +16,10 @@ await build({
   bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", outfile: `${OUT}/anthropic.js`, logLevel: "warning"
 });
 
-const page = readFileSync("src/silk-crawler.html", "utf8");
+// the source page is named Silk Crawler (its claude.ai name); the released app is CAK3D Crawler
+const page = readFileSync("src/silk-crawler.html", "utf8")
+  .replace("<title>Silk Crawler</title>", "<title>CAK3D Crawler</title>")
+  .replace('<div class="brand">Silk Crawler<small', '<div class="brand">CAK3D Crawler<small');
 const head = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111413">
