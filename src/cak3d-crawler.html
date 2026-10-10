@@ -63,6 +63,14 @@
 .sitetree { margin: 0; padding-left: 1.2em; }
 .sitetree ul { padding-left: 1.2em; }
 .note.other { background: color-mix(in srgb, var(--c0) 10%, transparent); }
+.packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); margin: 6px 0 12px; }
+.pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
+.pack.focus { outline: 2px solid var(--link); outline-offset: 2px; }
+.pack h3 { margin: 0; font-size: 1.05rem; }
+.pack p { margin: 0; }
+.pack .state { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.pack .btn { align-self: flex-start; }
+.bridges { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 10px; }
 .sharecode { font-family: var(--mono); background: var(--panel); padding: 1px 6px; border-radius: 4px; }
 .done-card { cursor: default; }
 /* how keywords are colored on the page (Settings → Web) */
@@ -488,7 +496,20 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     </div>
     <section><h3 class="sub" id="sacSumH">Summary</h3><div id="sacSum" class="sum"></div></section>
     <section><h3 class="sub">Sources</h3><div id="sacSrc"></div></section>
+    <section id="sacBridgeWrap" hidden><h3 class="sub">Connected sacs</h3><div id="sacBridges"></div></section>
     <section><h3 class="sub">Keyword tree</h3><ul class="tree" id="sacTree"></ul></section>
+  </div>
+</dialog>
+
+<!-- Store: paid packs -->
+<dialog id="dStore" aria-labelledby="storeH">
+  <div class="body">
+    <div class="head">
+      <div><h2 id="storeH">Unlock more</h2><p class="meta" id="storeNote"></p></div>
+      <button class="btn" type="button" id="storeClose">Close</button>
+    </div>
+    <div id="storeList" class="packs"></div>
+    <div class="rowi"><button class="btn" type="button" id="storeRestore" hidden>Restore purchases</button></div>
   </div>
 </dialog>
 
@@ -604,6 +625,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
           <option value="study">Study mode: high contrast, calm, focused</option>
         </select></label>
       <button class="btn" type="button" id="surprise">Surprise me</button>
+      <button class="btn" type="button" id="bStore">✦ Unlock more</button>
     </div>
     <div class="tabs" id="setTabs" role="tablist">
       <button type="button" role="tab" data-g="spider" aria-selected="true">Spider</button>
@@ -623,6 +645,10 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
               <option value="orb">Orb weaver: builds wheel webs</option>
               <option value="jumping">Jumping spider: hops between words</option>
               <option value="wolf">Wolf spider: fast runner</option>
+              <option value="huntsman">Huntsman: long legs, very fast</option>
+              <option value="trapdoor">Trapdoor spider: waits, then pounces</option>
+              <option value="cellar">Cellar spider: tiny body, very long legs</option>
+              <option value="widow">Widow: glossy, with a red hourglass</option>
             </select></label>
           <label class="field"><span>Look</span>
             <select id="cfgLook">
@@ -634,11 +660,17 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
               <option value="peacock">Peacock spider (fans out on a catch)</option>
               <option value="ghost">Ghost</option>
               <option value="pixel">Pixel art</option>
+              <option value="realistic">Realistic</option>
+              <option value="hero">Web-slinger hero (red and blue suit)</option>
+              <option value="crystal">Crystal</option>
+              <option value="skeleton">Skeleton</option>
             </select></label>
           <label class="field"><span>Color</span>
             <select id="cfgTint">
               <option value="auto">Theme default</option><option value="c0">Blue</option><option value="c1">Rust</option><option value="c2">Green</option>
               <option value="c3">Purple</option><option value="c4">Gold</option><option value="c5">Teal</option><option value="c6">Pink</option>
+              <option value="hero">Hero red and blue</option><option value="onyx">Onyx and red</option><option value="metal">Metallic gold</option>
+              <option value="rainbow">Rainbow</option><option value="pearl">Pearl</option>
             </select></label>
           <label class="field"><span>Name</span><input type="text" id="cfgName" placeholder="e.g. Charlotte" maxlength="24" autocomplete="off"></label>
         </div>
@@ -652,6 +684,9 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
               <option value="summer">Summer sunglasses</option><option value="autumn">Autumn leaf</option><option value="halloween">Halloween witch hat</option>
               <option value="winter">Winter hat</option></select></label>
         </div>
+        <label class="field"><span>Flies to hunt</span>
+          <div class="range"><input type="range" id="cfgFlies" min="0" max="5" step="1"><output id="oFlies"></output></div>
+          <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
         <p class="hintline">Extra spiders each hunt one topic and spin it in that topic's color.</p>
       </section>
       <section data-g="moves" hidden>
@@ -739,7 +774,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
           <label class="field"><span>Spiderlings look like</span>
             <select id="cfgBabyLook"><option value="spiderlings">Tiny spiders</option><option value="clones">Mini copies of the parent</option><option value="fireflies">Glowing fireflies</option></select></label>
           <label class="field"><span>Spiderlings do</span>
-            <select id="cfgBabyMode"><option value="mixed">A bit of everything</option><option value="workers">Go mark related keywords</option><option value="run">Scatter across the page</option><option value="balloon">Float away on silk</option></select></label>
+            <select id="cfgBabyMode"><option value="mixed">A bit of everything</option><option value="workers">Go mark related keywords</option><option value="run">Scatter across the page</option><option value="balloon">Float away on silk</option><option value="bridges">Build bridges to related sacs</option></select></label>
           <label class="field"><span>Spiderling color</span>
             <select id="cfgBabyColor"><option value="topic">Topic of their sac</option><option value="parent">Same as the parent</option><option value="rainbow">Rainbow</option></select></label>
           <label class="field"><span>Hatching</span>
@@ -752,6 +787,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
             <div class="range"><input type="range" id="cfgBabySize" min="0.6" max="2" step="0.1"><output id="oBabySize"></output></div></label>
         </div>
         <label class="chk"><input type="checkbox" id="cfgWorkers"> Spiderlings mark related keywords for the spider to crawl next</label>
+        <p class="hintline">Bridge builders run silk to other sacs that share ideas with theirs. Open a sac to see what connects them, with the passages where the two topics meet.</p>
       </section>
       <section data-g="theme" hidden>
         <label class="field"><span>Page theme</span>
@@ -832,9 +868,14 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <dt>Web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
       <dt>Esc</dt><dd>Close whatever is open.</dd>
     </dl>
+    <p class="meta" id="helpLegal">© 2026 CAK3D. All rights reserved.<span id="privacyLink" hidden> · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></span></p>
     <div class="actions"><button class="btn primary" type="submit">Got it</button></div>
   </form>
 </dialog>
+<script>
+  // the privacy page ships with the web and Android builds (not with the single-file claude.ai version)
+  if (window.CRAWLER_CONFIG) document.getElementById("privacyLink").hidden = false;
+</script>
 
 <!-- Note dialog -->
 <dialog id="dNote" aria-labelledby="noteH">
@@ -917,7 +958,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2 }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1349,8 +1390,19 @@ const TYPES = {
   cobweb: { name: "Cobweb weaver", leg: 1, speed: 1 },
   orb: { name: "Orb weaver", leg: 1.1, speed: 0.9 },
   jumping: { name: "Jumping spider", leg: 0.72, speed: 1 },
-  wolf: { name: "Wolf spider", leg: 1.12, speed: 1.8 }
+  wolf: { name: "Wolf spider", leg: 1.12, speed: 1.8 },
+  huntsman: { name: "Huntsman", leg: 1.38, speed: 1.6 },
+  trapdoor: { name: "Trapdoor spider", leg: 0.92, speed: 1.1, ambush: true },
+  cellar: { name: "Cellar spider", leg: 1.95, speed: 0.7 },
+  widow: { name: "Widow", leg: 1.15, speed: 0.85 }
 };
+// body proportions for each kind: abdomen [x, rx, ry] and head [x, rx, ry]
+const BODY = {
+  cobweb: { a: [-14, 12, 8.5], t: [2, 7.5, 6] }, orb: { a: [-15, 14, 12], t: [2, 7, 6] }, jumping: { a: [-10, 9, 7], t: [3, 8.5, 7.5] },
+  wolf: { a: [-16, 13, 8], t: [3, 9.5, 7] }, huntsman: { a: [-13, 11, 7.5], t: [3, 9, 8.5] }, trapdoor: { a: [-14, 12, 10], t: [3, 9.5, 8] },
+  cellar: { a: [-10, 8.5, 4.2], t: [1, 3.8, 3.6] }, widow: { a: [-15, 12.5, 11], t: [2, 6.5, 5.5] }
+};
+const bodyOf = () => BODY[cfg.type] || BODY.cobweb;
 const speedNow = () => cfg.speed * (TYPES[cfg.type] || TYPES.cobweb).speed;
 const legs = [];
 function buildLegs() {
@@ -1612,7 +1664,11 @@ function hatch(sac) {
   // spiderlings head for keywords related to this sac that have not been crawled yet
   const score = new Map();
   for (const key of keys) { const k = DOC.kw.get(key); if (!k) continue; for (const [nb, w] of k.nb) if (!inSac.has(nb)) score.set(nb, (score.get(nb) || 0) + w); }
-  const mode = cfg.babyMode, maxWorkers = !cfg.workers ? 0 : mode === "workers" ? n : mode === "mixed" ? Math.ceil(n * 0.5) : 0;
+  const mode = cfg.babyMode, maxWorkers = !cfg.workers ? 0 : mode === "workers" ? n : mode === "mixed" ? Math.ceil(n * 0.4) : 0;
+  // bridge builders head for the sacs that share the most with this one
+  const others = mode === "bridges" || mode === "mixed"
+    ? sacs.filter(o => o !== sac && (o.state === "full" || o.state === "hatched") && !bridgeBetween(sac, o)).map(o => [o, sacLinks(sac, o).reduce((t, p) => t + p[2], 0)]).filter(x => x[1] > 0).sort((x, y) => y[1] - x[1]).slice(0, mode === "bridges" ? 3 : 2).map(x => x[0])
+    : [];
   const targets = maxWorkers ? [...score].sort((a, b) => b[1] - a[1]).map(([key]) => nodes.find(x => x.key === key && !x.caught && !x.seeded)).filter(Boolean).slice(0, maxWorkers) : [];
   const gentle = cfg.hatchFx === "gentle";
   for (let i = 0; i < n && babies.length < 400; i++) {
@@ -1623,6 +1679,10 @@ function hatch(sac) {
       life: (3.5 + Math.random() * 3) * (gentle ? 1.6 : 1), type, cat: k ? k.cat : 0, idx: i,
       ph: Math.random() * 6, vy: -(24 + Math.random() * 30) * (gentle ? 0.5 : 1), drift: (Math.random() - 0.5) * 30 };
     if (i < targets.length) { const t = targets[i]; b.type = "worker"; b.target = t; b.cat = kwOf(t).cat; b.v = Math.max(70, Math.hypot(t.cx - sac.x, t.cy - sac.y) / 3); b.life = 12; }
+    else if (i - targets.length < others.length * 2 && others.length) {
+      const o = others[(i - targets.length) % others.length];
+      b.type = "bridge"; b.from = sac; b.to = o; b.v = Math.max(60, Math.hypot(o.x - sac.x, o.y - sac.y) / 3.2); b.life = 14;
+    }
     babies.push(b);
   }
   if (cfg.hatchFx === "confetti" && !reduce) {
@@ -1637,7 +1697,7 @@ function hatch(sac) {
     }
   }
   sfx("hatch");
-  log("HATCH", `${n} spiderlings left sac #${sac.n}${targets.length ? `, ${targets.length} heading for related keywords` : ""}`);
+  log("HATCH", `${n} spiderlings left sac #${sac.n}${targets.length ? `, ${targets.length} heading for related keywords` : ""}${others.length ? `, some building bridges to ${others.map(o => "#" + o.n).join(" and ")}` : ""}`);
 }
 function seed(n) {
   if (n.caught || n.seeded) return;
@@ -1726,6 +1786,117 @@ function startExit() {
 }
 const hasWork = () => S.goto || S.sacQueue.length || nextTarget();
 
+// ---- flies: they buzz around the part of the page you're looking at. The spider hunts them when it has
+// nothing to crawl (waiting for helpers, or done), and spiderlings wrap any they bump into for the spider to eat.
+let flies = [], fliesEaten = 0;
+function viewBox() { const pr = pageBox(), vw = document.documentElement.clientWidth; return { x0: -pr.left + 24, x1: vw - pr.left - 24, y0: -pr.top + 80, y1: H - pr.top - 30 }; }
+function spawnFly() {
+  const v = viewBox(), side = Math.random() < 0.5;
+  return { x: side ? v.x0 : v.x1, y: v.y0 + Math.random() * (v.y1 - v.y0), vx: 0, vy: 0, tx: null, ty: null, ph: Math.random() * 6, state: "fly", t: 0, respawn: 0, byBabies: false };
+}
+function resetFlies() { flies = []; if (S.prey) { S.prey = null; if (S.mode === "hunt" || S.mode === "eat") S.mode = S.huntFrom || "walk"; } for (let i = 0; i < (cfg.flies | 0); i++) flies.push(spawnFly()); }
+function nearestFly(x, y, max, states = ["fly"]) {
+  let best = null, bd = max;
+  for (const f of flies) { if (!states.includes(f.state) || f.hunted) continue; const d = Math.hypot(f.x - x, f.y - y); if (d < bd) { bd = d; best = f; } }
+  return best;
+}
+function updateFlies(dt) {
+  if (flies.length !== (cfg.flies | 0)) resetFlies();
+  if (!flies.length) return;
+  const v = viewBox();
+  for (const f of flies) {
+    f.ph += dt; f.t += dt;
+    if (f.state === "gone") { f.respawn -= dt; if (f.respawn <= 0) Object.assign(f, spawnFly()); continue; }
+    if (f.state === "wrapped") { if (f.byBabies && !f.hunted && f.t > 30) { f.state = "gone"; f.respawn = 4; } continue; }
+    // wander toward random spots in view; drift back if you scroll away
+    if (f.tx == null || Math.hypot(f.tx - f.x, f.ty - f.y) < 24 || Math.random() < dt * 0.25 || f.ty < v.y0 - 200 || f.ty > v.y1 + 200) {
+      f.tx = v.x0 + Math.random() * (v.x1 - v.x0); f.ty = v.y0 + Math.random() * (v.y1 - v.y0);
+    }
+    if (f.y < v.y0 - 500 || f.y > v.y1 + 500) { Object.assign(f, spawnFly()); continue; }
+    let ax = f.tx - f.x, ay = f.ty - f.y; const d = Math.hypot(ax, ay) || 1; ax /= d; ay /= d;
+    const hunted = S.prey === f, sd = Math.hypot(S.x - f.x, S.y - f.y) || 1;
+    if (hunted && sd < 120) { ax -= (S.x - f.x) / sd * 0.7; ay -= (S.y - f.y) / sd * 0.7; } // dodge, a little
+    const sp = hunted ? 55 : 95;
+    f.vx += (ax * sp - f.vx) * Math.min(1, dt * 2.5) + (Math.random() - 0.5) * 300 * dt;
+    f.vy += (ay * sp - f.vy) * Math.min(1, dt * 2.5) + (Math.random() - 0.5) * 300 * dt;
+    f.x += f.vx * dt; f.y += f.vy * dt;
+  }
+}
+function canHunt() {
+  if (!flies.length || S.prey || paused) return false;
+  if (S.mode === "done") return ["stay", "wander", "sleep"].includes(cfg.exit);
+  return S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && helpers.some(h => h.target);
+}
+function startHunt() {
+  const f = nearestFly(S.x, S.y, 900, ["wrapped"]) || nearestFly(S.x, S.y, 700);
+  if (!f) return;
+  S.prey = f; f.hunted = true; S.huntFrom = S.mode; S.mode = "hunt"; S.huntT = 0;
+}
+function endHunt() {
+  if (S.prey) S.prey.hunted = false;
+  S.prey = null; S.mode = S.huntFrom === "done" ? "done" : "walk"; S.huntFrom = null;
+}
+function drawFly(f, now) {
+  if (f.state === "gone") return;
+  if (f.state === "wrapped") {
+    const k = S.prey === f && S.mode === "eat" ? clamp(S.eatT / 1.8, 0.15, 1) : 1;
+    ctx.fillStyle = C.silk; ctx.strokeStyle = C.silk; ctx.globalAlpha = 0.85;
+    ell(f.x, f.y, 4.6 * k, 3.4 * k); ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = 0.7;
+    for (const a of [-0.7, 0, 0.7]) { ctx.beginPath(); ctx.ellipse(f.x, f.y, 5 * k, 1.6 * k, a, 0, 7); ctx.stroke(); }
+    return;
+  }
+  const a = Math.atan2(f.vy, f.vx), flap = Math.abs(Math.sin(now * 0.09 + f.ph * 10));
+  ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(a);
+  ctx.globalAlpha = 0.45; ctx.fillStyle = C.silk;
+  for (const y of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-1, y * (2 + flap * 1.5), 3.6, 1.5 + flap, y * 0.5, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1; ctx.fillStyle = C.ink;
+  ell(-1.2, 0, 3.2, 2.2); ctx.fill(); ell(2.3, 0, 1.6, 1.7); ctx.fill();
+  ctx.fillStyle = "#b3261e"; for (const y of [-0.9, 0.9]) { ell(2.9, y, 0.7, 0.7); ctx.fill(); }
+  ctx.restore();
+}
+
+// ---- bridges: spiderlings that run silk from their sac to another sac with related keywords
+let bridges = [];
+function sacLinks(a, b) {
+  const kb = new Set(b.keys), pairs = [];
+  for (const key of new Set(a.keys)) {
+    const k = DOC.kw.get(key); if (!k) continue;
+    if (kb.has(key)) pairs.push([key, key, 3]);
+    for (const [nb, w] of k.nb) if (kb.has(nb) && nb !== key) pairs.push([key, nb, w]);
+  }
+  return pairs.sort((x, y) => y[2] - x[2]);
+}
+function bridgeBetween(a, b) { return bridges.find(br => (br.a === a && br.b === b) || (br.a === b && br.b === a)); }
+function makeBridge(a, b) {
+  if (!sacs.includes(a) || !sacs.includes(b) || bridgeBetween(a, b)) return;
+  const pairs = sacLinks(a, b); if (!pairs.length) return;
+  bridges.push({ a, b, pairs: pairs.slice(0, 6), born: performance.now() });
+  const lab = p => DOC.kw.get(p[0]).label + (p[0] === p[1] ? "" : " ↔ " + DOC.kw.get(p[1]).label);
+  log("BRIDGE", `Spiderlings linked sac #${a.n} and #${b.n} through ${pairs.slice(0, 2).map(p => "“" + lab(p) + "”").join(" and ")}`);
+}
+// sentences where both sides of a bridge meet
+function bridgePassages(br, max = 3) {
+  const out = [];
+  for (const [ka, kb] of br.pairs) {
+    const A = DOC.kw.get(ka), B = DOC.kw.get(kb); if (!A || !B) continue;
+    const inB = new Set(B.si);
+    for (const i of A.si) if ((ka === kb || inB.has(i)) && !out.includes(i)) { out.push(i); if (out.length >= max) return out; }
+  }
+  if (!out.length && br.pairs.length) for (const key of br.pairs[0].slice(0, 2)) { const k = DOC.kw.get(key); if (k && k.si.length && !out.includes(k.si[0])) out.push(k.si[0]); }
+  return out;
+}
+function drawBridges(vis) {
+  bridges = bridges.filter(br => sacs.includes(br.a) && sacs.includes(br.b) && br.a.state !== "vanish" && br.b.state !== "vanish");
+  if (!bridges.length) return;
+  ctx.save(); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.2;
+  for (const br of bridges) {
+    const { a, b } = br; if (!vis(Math.min(a.y, b.y), Math.max(a.y, b.y))) continue;
+    ctx.strokeStyle = sacColor(a); ctx.globalAlpha = 0.65;
+    silkPath(a.x, a.y, b.x, b.y, 1, false, 0, 10);
+  }
+  ctx.restore(); ctx.globalAlpha = 1;
+}
+
 // ---- extra spiders: one per topic, each hunting its own topic and spinning it in that topic's color
 let helpers = [];
 function spawnHelpers() {
@@ -1787,7 +1958,8 @@ function restart() {
   for (const n of nodes) { n.caught = false; n.seeded = false; n.el.classList.remove("caught", "packed", "grip", "seed"); }
   for (const k of DOC.kw.values()) { k.crawled = false; k.seeded = false; }
   webs.clear(); hubs.clear();
-  threads = []; sacs = []; babies = []; fluff = []; strands = []; rings = [];
+  threads = []; sacs = []; babies = []; fluff = []; strands = []; rings = []; bridges = [];
+  if (S.prey) endHunt();
   crawled = 0; spun = 0; grips = 0; tie = null; sacCount = 0;
   Object.assign(S, { target: null, wait: 0.4, v: 0, sac: null, goto: null, manual: [], sacQueue: [], finishing: false });
   logEl.innerHTML = '<li class="empty">Waiting for the first keyword…</li>';
@@ -1837,8 +2009,15 @@ function travel(tx, ty, dt) {
     S.hop = { fx: S.x, fy: S.y, tx: S.x + Math.cos(S.a) * len, ty: S.y + Math.sin(S.a) * len, t: 0, dur: 0.32 / Math.sqrt(sp), len };
     return dist;
   }
+  let boost = 1;
+  if ((TYPES[cfg.type] || {}).ambush) {
+    const A = S.amb || (S.amb = { rest: 0.5, dash: 0 });
+    if (A.dash > 0) { A.dash -= dt; boost = 2.3; }
+    else if (A.rest > 0) { A.rest -= dt; S.v = 0; S.a += clamp(wrapA(Math.atan2(ty - S.y, tx - S.x) - S.a), -3 * dt, 3 * dt); return Math.hypot(tx - S.x, ty - S.y); }
+    else { A.dash = 0.35 + Math.random() * 0.35; A.rest = 0.45 + Math.random() * 0.8; }
+  }
   const r = steer(tx, ty, dt);
-  S.x += Math.cos(S.a) * r.v * dt; S.y += Math.sin(S.a) * r.v * dt; S.v = r.v;
+  S.x += Math.cos(S.a) * r.v * boost * dt; S.y += Math.sin(S.a) * r.v * boost * dt; S.v = r.v * boost;
   return r.dist;
 }
 const far = (x, y) => Math.hypot(x - S.x, y - S.y) > Math.max(900, H * 1.3);
@@ -1940,6 +2119,21 @@ function update(dt, now) {
     const p = Math.min(1, S.spinT / dur);
     sac.wrap = p; sac.r = 12 * ease(Math.min(1, p * 1.4));
     if (p >= 1) finishSpin(sac);
+  } else if (S.mode === "hunt") {
+    const fl = S.prey; S.huntT += dt;
+    if (!fl || fl.state === "gone" || S.huntT > 14 || (S.huntFrom === "walk" && (S.sacQueue.length || S.manual.some(n => !n.caught)))) endHunt();
+    else {
+      const d = travel(fl.x, fl.y, dt);
+      if (d < 12 && !S.hop) { fl.state = "wrapped"; fl.t = 0; S.mode = "eat"; S.eatT = 1.8; S.v = 0; sfx("seed"); }
+    }
+  } else if (S.mode === "eat") {
+    const fl = S.prey; S.v = 0; S.eatT -= dt * Math.min(speedNow(), 2);
+    if (fl) { const mx = S.x + Math.cos(S.a) * 14 * cfg.size, my = S.y + Math.sin(S.a) * 14 * cfg.size; fl.x += (mx - fl.x) * Math.min(1, dt * 8); fl.y += (my - fl.y) * Math.min(1, dt * 8); }
+    if (S.eatT <= 0) {
+      if (fl) { fl.state = "gone"; fl.respawn = 7 + Math.random() * 9; }
+      fliesEaten++; if (fliesEaten === 1 || [5, 10, 25, 50, 100].includes(fliesEaten) || fliesEaten % 250 === 0) log("EAT", `${spiderName()} ate ${fliesEaten === 1 ? "a fly" : fliesEaten + " flies"}`);
+      endHunt();
+    }
   } else if (!["appear", "balloonIn", "exit", "exitUp", "exitBalloon", "exitBurrow"].includes(S.mode)) S.v = 0;
 
   if (S.hop || ["drop", "zip", "balloonIn", "exitUp", "exitBalloon"].includes(S.mode)) { if (S.hop || S.mode !== "drop") tuckFeet(); }
@@ -1957,6 +2151,9 @@ function update(dt, now) {
   if (sacs.some(s => s.dead)) { sacs = sacs.filter(s => !s.dead); updateStats(); }
   updateBabies(dt);
   updateHelpers(dt);
+  updateFlies(dt);
+  S.huntCheck = (S.huntCheck || 0) - dt;
+  if (S.huntCheck <= 0) { S.huntCheck = 0.5; if (canHunt()) startHunt(); }
   if (S.mode === "done" && cfg.sacs) for (const list of webs.values()) if (list.length >= cfg.cap) { S.mode = "walk"; break; }
 
   if (follow && !["gone", "exitUp", "exitBalloon", "exit"].includes(S.mode)) {
@@ -2013,7 +2210,19 @@ function updateBabies(dt) {
       const v = Math.min(b.v, d * 3 + 20);
       b.x += Math.cos(b.a) * v * dt; b.y += Math.sin(b.a) * v * dt;
       if (d < 6) { b.done = true; b.life = Math.min(b.life, 0.9); seed(t); }
+    } else if (b.type === "bridge") {
+      if (b.done) continue;
+      const t = b.to, dx = t.x - b.x, dy = t.y - b.y, d = Math.hypot(dx, dy);
+      if (!sacs.includes(t)) { b.done = true; b.life = Math.min(b.life, 0.8); continue; }
+      b.a += clamp(wrapA(Math.atan2(dy, dx) - b.a), -5 * dt, 5 * dt) + (Math.random() - 0.5) * 1.5 * dt;
+      const v = Math.min(b.v, d * 3 + 20); b.x += Math.cos(b.a) * v * dt; b.y += Math.sin(b.a) * v * dt;
+      if (d < 14) { b.done = true; b.life = Math.min(b.life, 0.9); makeBridge(b.from, b.to); }
     } else if (b.type === "run") {
+      const fl = flies.length ? nearestFly(b.x, b.y, 140) : null;
+      if (fl) { // gang up on a fly and wrap it for the parent
+        b.a += clamp(wrapA(Math.atan2(fl.y - b.y, fl.x - b.x) - b.a), -6 * dt, 6 * dt);
+        if (Math.hypot(fl.x - b.x, fl.y - b.y) < 8) { fl.state = "wrapped"; fl.byBabies = true; fl.t = 0; b.life = Math.min(b.life, 1); if (!S.flyNote) { S.flyNote = true; log("FLY", "Spiderlings wrapped a fly for the spider"); } }
+      }
       b.a += (Math.random() - 0.5) * 7 * dt;
       b.x += Math.cos(b.a) * b.v * dt; b.y += Math.sin(b.a) * b.v * dt;
     } else {
@@ -2083,8 +2292,29 @@ function drawLegs(col, o) {
     const q = legGeom(g);
     ctx.fillStyle = col;
     if (o.pixel) { pixelLine(q.hx, q.hy, q.kx, q.ky); pixelLine(q.kx, q.ky, q.fx, q.fy); continue; }
-    if (o.outline) { ctx.strokeStyle = C.ink; ctx.lineWidth = (o.w[0] + 2) * s; seg(q.hx, q.hy, q.kx, q.ky); ctx.lineWidth = (o.w[1] + 2) * s; seg(q.kx, q.ky, q.fx, q.fy); }
+    const ow = o.thin ? 1.1 : 2;
+    if (o.outline || o.bones) { ctx.strokeStyle = o.bones ? "#26221c" : C.ink; ctx.lineWidth = (o.w[0] + ow) * s; seg(q.hx, q.hy, q.kx, q.ky); ctx.lineWidth = (o.w[1] + ow) * s; seg(q.kx, q.ky, q.fx, q.fy); }
     ctx.strokeStyle = col; ctx.lineWidth = o.w[0] * s; seg(q.hx, q.hy, q.kx, q.ky); ctx.lineWidth = o.w[1] * s; seg(q.kx, q.ky, q.fx, q.fy);
+    if (o.tip) { // red boots on blue legs
+      ctx.strokeStyle = o.tipCol; ctx.lineWidth = o.w[1] * s; seg(q.kx + (q.fx - q.kx) * 0.62, q.ky + (q.fy - q.ky) * 0.62, q.fx, q.fy);
+      ctx.lineWidth = o.w[0] * s; seg(q.hx, q.hy, q.hx + (q.kx - q.hx) * 0.3, q.hy + (q.ky - q.hy) * 0.3);
+    }
+    if (o.bands) { // darker rings at the joints, like a real spider's legs
+      ctx.fillStyle = "rgba(0,0,0,.42)";
+      for (const [ax, ay, bx, by, w] of [[q.hx, q.hy, q.kx, q.ky, o.w[0]], [q.kx, q.ky, q.fx, q.fy, o.w[1]]]) for (const t of [0.42, 0.78]) {
+        ctx.beginPath(); ctx.arc(ax + (bx - ax) * t, ay + (by - ay) * t, w * 0.62 * s, 0, 7); ctx.fill();
+      }
+      ctx.fillStyle = col;
+    }
+    if (o.fine) { // fine hairs
+      ctx.strokeStyle = col; ctx.globalAlpha *= 0.55; ctx.lineWidth = 0.5;
+      for (const [ax, ay, bx, by] of [[q.hx, q.hy, q.kx, q.ky], [q.kx, q.ky, q.fx, q.fy]]) {
+        const an = Math.atan2(by - ay, bx - ax) + Math.PI / 2, c = Math.cos(an) * 1.8 * s, sn = Math.sin(an) * 1.8 * s;
+        for (let t = 0.1; t < 1; t += 0.14) { const x = ax + (bx - ax) * t, y = ay + (by - ay) * t; seg(x, y, x + c, y + sn); seg(x, y, x - c * 0.8, y - sn * 0.8); }
+      }
+      ctx.globalAlpha /= 0.55;
+    }
+    if (o.bones) { ctx.fillStyle = col; for (const [x, y] of [[q.kx, q.ky], [q.hx + (q.kx - q.hx) * 0.5, q.hy + (q.ky - q.hy) * 0.5]]) { ctx.beginPath(); ctx.arc(x, y, 2.2 * s, 0, 7); ctx.fill(); } }
     if (o.hairs) {
       ctx.lineWidth = 0.8;
       for (const [ax, ay, bx, by] of [[q.hx, q.hy, q.kx, q.ky], [q.kx, q.ky, q.fx, q.fy]]) {
@@ -2102,17 +2332,34 @@ function lookAngle() {
   const tx = T.cx != null ? T.cx : T.x, ty = T.cy != null ? T.cy : T.y;
   return Math.atan2(ty - S.y, tx - S.x) - S.a;
 }
-function spiderColor() { return cfg.tint === "auto" ? C.spider : C.cats[+cfg.tint.slice(1)] || C.spider; }
+function spiderColor() { return /^c\d$/.test(cfg.tint) ? C.cats[+cfg.tint.slice(1)] || C.spider : cfg.tint === "auto" ? C.spider : spiderPalette(performance.now()).body; }
+// two-tone colors: body, legs and a trim color
+function spiderPalette(now) {
+  const t = cfg.tint;
+  if (t === "hero" || (t === "auto" && cfg.look === "hero")) return { body: "#d3212c", legs: "#2152c4", trim: "#101014" };
+  if (t === "onyx") return { body: "#151518", legs: "#232329", trim: "#d0182f" };
+  if (t === "metal") return { body: "#c99a2e", legs: "#a8801f", trim: "#fff1bf", shine: true };
+  if (t === "rainbow") { const h = (now * 0.04) % 360; return { body: `hsl(${h} 78% 52%)`, legs: `hsl(${(h + 50) % 360} 78% 52%)`, trim: "#ffffff" }; }
+  if (t === "pearl") return { body: "#f1ede4", legs: "#ddd6c8", trim: "#8f9db2", shine: true };
+  if (t === "auto" && cfg.look === "realistic") return { body: "#5e4532", legs: "#4b3727", trim: "#d8bf98" };
+  if (t === "auto" && cfg.look === "crystal") return { body: "#86d8ff", legs: "#b9e9ff", trim: "#ffffff", shine: true };
+  if (t === "auto" && cfg.look === "skeleton") return { body: "#ece6d4", legs: "#ece6d4", trim: "#26221c" };
+  const c = /^c\d$/.test(t) ? C.cats[+t.slice(1)] || C.spider : C.spider;
+  return { body: c, legs: c, trim: C.paper };
+}
 const LEG_STYLE = {
   classic: () => { const k = cfg.type === "wolf" ? 1.25 : cfg.type === "jumping" ? 1.15 : 1; return { w: [2.4 * k, 1.5 * k] }; },
   cartoon: () => ({ w: [3, 2.2], outline: true }), neon: () => ({ w: [1.6, 1.2] }), robot: () => ({ w: [2.8, 2], joints: true }),
-  tarantula: () => ({ w: [3.2, 2.4], hairs: true }), peacock: () => ({ w: [1.8, 1.3] }), ghost: () => ({ w: [2, 1.4] }), pixel: () => ({ pixel: true })
+  tarantula: () => ({ w: [3.2, 2.4], hairs: true }), peacock: () => ({ w: [1.8, 1.3] }), ghost: () => ({ w: [2, 1.4] }), pixel: () => ({ pixel: true }),
+  realistic: () => ({ w: [2.8, 1.6], bands: true, fine: true }), hero: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
+  crystal: () => ({ w: [2, 1.4], glow: true }), skeleton: () => ({ w: [1.7, 1.2], bones: true })
 };
 function drawSpider(now) {
   if (S.mode === "gone") return;
   const look = cfg.look, type = cfg.type;
-  let col = spiderColor();
-  if (cfg.tint === "auto") { if (look === "neon") col = C.link; else if (look === "ghost") col = C.silk; else if (look === "robot") col = C.muted; }
+  const P = spiderPalette(now);
+  let col = P.body, legCol = P.legs;
+  if (cfg.tint === "auto") { if (look === "neon") col = legCol = C.link; else if (look === "ghost") col = legCol = C.silk; else if (look === "robot") col = legCol = C.muted; }
   let scale = 1, alpha = 1;
   if (S.appear) { const t = clamp(S.appear.t, 0, 1); if (S.appear.how === "fade") alpha = t; else scale = S.appear.how === "hatch" ? clamp((t - 0.3) / 0.7, 0, 1) : t; }
   // the egg the spider hatches from
@@ -2134,10 +2381,11 @@ function drawSpider(now) {
   ctx.save(); ctx.globalAlpha = alpha * (look === "ghost" ? 0.72 : 1); ctx.translate(0, -S.hopZ);
   if (scale !== 1) { ctx.translate(S.x, S.y); ctx.scale(scale, scale); ctx.translate(-S.x, -S.y); }
   ctx.lineCap = look === "pixel" ? "butt" : "round"; ctx.lineJoin = "round";
-  if (look === "neon") { ctx.shadowColor = col; ctx.shadowBlur = 10; }
+  if (look === "neon" || look === "crystal") { ctx.shadowColor = col; ctx.shadowBlur = look === "crystal" ? 7 : 10; }
   if (look === "ghost") ctx.globalAlpha *= 0.7;
-  drawLegs(col, (LEG_STYLE[look] || LEG_STYLE.classic)());
+  drawLegs(legCol, Object.assign((LEG_STYLE[look] || LEG_STYLE.classic)(), { tipCol: P.body }));
   if (look === "ghost") ctx.globalAlpha /= 0.7;
+  if (look === "crystal") ctx.shadowBlur = 0;
   ctx.translate(S.x, S.y);
   ctx.rotate(look === "pixel" ? Math.round(S.a / (Math.PI / 2)) * (Math.PI / 2) : S.a);
   ctx.scale(cfg.size, cfg.size);
@@ -2193,7 +2441,11 @@ function drawSpider(now) {
     for (let gy = -3; gy <= 3; gy++) for (let gx = -9; gx <= -1; gx++) if ((gx + 5) * (gx + 5) / 17 + gy * gy / 10 <= 1) ctx.fillRect(gx * 3, gy * 3 - 1.5, 3, 3);
     for (let gy = -2; gy <= 2; gy++) for (let gx = 0; gx <= 3; gx++) if ((gx - 1.5) * (gx - 1.5) / 4.5 + gy * gy / 5 <= 1) ctx.fillRect(gx * 3, gy * 3 - 1.5, 3, 3);
     ctx.fillStyle = C.paper; ctx.fillRect(7.5, -6, 3, 3); ctx.fillRect(7.5, 3, 3, 3);
-  } else drawClassicBody(type, col);
+  } else if (look === "realistic") drawRealBody(type, P, now);
+  else if (look === "hero") drawHeroBody(P);
+  else if (look === "crystal") drawCrystalBody(P, now);
+  else if (look === "skeleton") drawSkeletonBody(P);
+  else drawClassicBody(type, col);
   drawAccessory();
   ctx.restore();
   // the "!" when it spots its next keyword, and z's while it sleeps
@@ -2215,10 +2467,131 @@ function drawSpider(now) {
     ctx.globalAlpha = 1;
   }
 }
+// soft light from the top left and shade underneath, over any color
+function shadeEll(x, y, rx, ry, col) {
+  ctx.fillStyle = col; ell(x, y, rx, ry); ctx.fill();
+  const g = ctx.createRadialGradient(x - rx * 0.35, y - ry * 0.45, 0.5, x, y, Math.max(rx, ry) * 1.05);
+  g.addColorStop(0, "rgba(255,255,255,.38)"); g.addColorStop(0.4, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(0,0,0,.42)");
+  ctx.fillStyle = g; ell(x, y, rx, ry); ctx.fill();
+}
+// the widow's red hourglass: two triangles meeting at their points
+function hourglass(x, y, w, h) {
+  ctx.fillStyle = "#d4161f"; ctx.beginPath();
+  ctx.moveTo(x - w, y - h); ctx.lineTo(x - w, y + h); ctx.lineTo(x - 0.6, y + 0.5); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y - h); ctx.lineTo(x + 0.6, y - 0.5); ctx.closePath(); ctx.fill();
+}
+function realEyes(x, list) {
+  for (const [dx, y, r] of list) { ctx.fillStyle = "#08080a"; ell(x + dx, y, r, r); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.85)"; ell(x + dx - r * 0.3, y - r * 0.35, r * 0.35, r * 0.35); ctx.fill(); }
+}
+function drawRealBody(type, P, now) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t, A0 = ctx.globalAlpha;
+  ctx.globalAlpha = A0 * 0.16; ctx.fillStyle = "#000"; ell((ax + tx) / 2 - 2, 4, (tx + trx - ax + arx) / 2 + 4, Math.max(ary, try_) + 2); ctx.fill(); ctx.globalAlpha = A0;
+  // abdomen with a leaf-shaped pattern, or the widow's hourglass
+  shadeEll(ax, 0, arx, ary, P.body);
+  ctx.save(); ell(ax, 0, arx, ary); ctx.clip();
+  if (type === "widow") {
+    hourglass(ax, 0, 5.5, 3.4);
+  } else {
+    ctx.strokeStyle = "rgba(0,0,0,.38)"; ctx.lineWidth = 1.2;
+    for (let i = 0; i < 4; i++) { const x = ax + arx * 0.55 - i * arx * 0.36; ctx.beginPath(); ctx.moveTo(x - 4, -ary * 0.5); ctx.lineTo(x, 0); ctx.lineTo(x - 4, ary * 0.5); ctx.stroke(); }
+    ctx.fillStyle = P.trim; ctx.globalAlpha = A0 * 0.55;
+    for (let i = 0; i < 3; i++) for (const y of [-1, 1]) { ell(ax + arx * 0.35 - i * arx * 0.4, y * ary * 0.42, 1.3, 1.1); ctx.fill(); }
+    ctx.globalAlpha = A0;
+  }
+  ctx.restore();
+  ctx.strokeStyle = P.body; ctx.lineWidth = 0.5; ctx.globalAlpha = A0 * 0.5;
+  for (let a = 0; a < Math.PI * 2; a += 0.22) seg(ax + Math.cos(a) * arx, Math.sin(a) * ary, ax + Math.cos(a) * (arx + 1.8), Math.sin(a) * (ary + 1.8));
+  ctx.globalAlpha = A0;
+  ctx.fillStyle = P.legs; ell(ax + arx + 0.5, 0, 2.2, 1.6); ctx.fill(); // waist
+  // head and body: shaded, with the grooves that run out from the middle
+  shadeEll(tx, 0, trx, try_, P.legs);
+  ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.lineWidth = 0.8;
+  for (let k = 0; k < 6; k++) { const a = Math.PI * 0.2 + k * Math.PI * 0.32; seg(tx - 1, 0, tx - 1 + Math.cos(a) * trx * 0.8, Math.sin(a) * try_ * 0.8); }
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ell(tx - 1, 0, 1.4, 0.9); ctx.fill();
+  // fangs and palps
+  const fx = tx + trx - 0.5;
+  ctx.fillStyle = P.legs; for (const y of [-1.8, 1.8]) { ell(fx + 1.5, y, 2.2, 1.5); ctx.fill(); }
+  ctx.strokeStyle = "#111"; ctx.lineWidth = 0.9; for (const y of [-1.4, 1.4]) seg(fx + 3, y, fx + 4.6, y * 0.4);
+  ctx.strokeStyle = P.legs; ctx.lineWidth = 1.3; for (const y of [-1, 1]) { ctx.beginPath(); ctx.moveTo(fx, y * 2.5); ctx.quadraticCurveTo(fx + 4, y * 5.5, fx + 6, y * 3.6); ctx.stroke(); }
+  realEyes(tx + trx * 0.55, type === "jumping" ? [[1.2, -2.3, 2], [1.2, 2.3, 2], [-1.4, -4.4, 0.9], [-1.4, 4.4, 0.9]] : [[0.8, -1.2, 0.9], [0.8, 1.2, 0.9], [0.4, -3, 0.75], [0.4, 3, 0.75], [-1.4, -1.9, 0.7], [-1.4, 1.9, 0.7], [-1.8, -3.6, 0.6], [-1.8, 3.6, 0.6]]);
+  if (P.shine) { ctx.globalAlpha = A0 * (0.35 + 0.25 * Math.sin(now * 0.004)); ctx.fillStyle = "#fff"; ell(ax - arx * 0.3, -ary * 0.45, arx * 0.3, ary * 0.18); ctx.fill(); ctx.globalAlpha = A0; }
+}
+function drawHeroBody(P) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t;
+  // abdomen: blue sides, red middle with the web pattern and a black spider emblem
+  ctx.fillStyle = P.legs; ell(ax, 0, arx, ary); ctx.fill();
+  ctx.save(); ell(ax, 0, arx, ary); ctx.clip();
+  ctx.fillStyle = P.body; ctx.fillRect(ax - arx, -ary * 0.45, arx * 2, ary * 0.9);
+  ctx.strokeStyle = "rgba(10,10,14,.75)"; ctx.lineWidth = 0.6;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 5) seg(ax, 0, ax + Math.cos(a) * arx * 1.2, Math.sin(a) * ary * 1.2);
+  for (const r of [0.35, 0.65, 0.95]) { ctx.beginPath(); ctx.ellipse(ax, 0, arx * r, ary * r, 0, 0, 7); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = "#0b0b10"; ctx.lineWidth = 1.1; ell(ax, 0, arx, ary); ctx.stroke();
+  ctx.fillStyle = "#0b0b10"; ell(ax + 1, 0, 2.2, 1.6); ctx.fill(); ell(ax - 2.4, 0, 2.6, 1.9); ctx.fill();
+  ctx.lineWidth = 0.7; for (const y of [-1, 1]) for (let i = 0; i < 4; i++) seg(ax - 0.5, y * 0.6, ax - 4 + i * 2.6, y * (3.6 - Math.abs(i - 1.5) * 0.5));
+  // head: red mask with web lines and big white eyes
+  ctx.fillStyle = P.body; ell(tx, 0, trx, try_); ctx.fill();
+  ctx.save(); ell(tx, 0, trx, try_); ctx.clip();
+  ctx.strokeStyle = "rgba(10,10,14,.75)"; ctx.lineWidth = 0.55;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) seg(tx + trx * 0.2, 0, tx + trx * 0.2 + Math.cos(a) * trx * 1.4, Math.sin(a) * try_ * 1.4);
+  for (const r of [0.45, 0.85]) { ctx.beginPath(); ctx.ellipse(tx + trx * 0.2, 0, trx * r, try_ * r, 0, 0, 7); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = "#0b0b10"; ctx.lineWidth = 1.1; ell(tx, 0, trx, try_); ctx.stroke();
+  for (const y of [-1, 1]) {
+    ctx.save(); ctx.translate(tx + trx * 0.45, y * try_ * 0.42); ctx.rotate(y * 0.5);
+    ctx.fillStyle = "#0b0b10"; ell(0, 0, Math.max(2.2, trx * 0.34), Math.max(1.5, try_ * 0.26)); ctx.fill();
+    ctx.fillStyle = "#fff"; ell(0, 0, Math.max(1.5, trx * 0.26), Math.max(1, try_ * 0.18)); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawCrystalBody(P, now) {
+  const B = bodyOf(), A0 = ctx.globalAlpha;
+  const gem = (x, rx, ry, sides) => {
+    const pts = []; for (let i = 0; i < sides; i++) { const a = i / sides * Math.PI * 2; pts.push([x + Math.cos(a) * rx, Math.sin(a) * ry]); }
+    ctx.globalAlpha = A0 * 0.62; ctx.fillStyle = P.body; ctx.beginPath(); pts.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = A0 * 0.9; ctx.strokeStyle = P.trim; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.globalAlpha = A0 * 0.5; for (const [px, py] of pts) seg(x - rx * 0.15, -ry * 0.1, px, py);
+    ctx.globalAlpha = A0 * 0.35; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(x, -ry * 0.15); for (const p of pts.slice(sides - 2)) ctx.lineTo(p[0], p[1]); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = A0;
+  };
+  gem(B.a[0], B.a[1], B.a[2], 7); gem(B.t[0], B.t[1], B.t[2], 6);
+  const tw = Math.max(0, Math.sin(now * 0.003)); // a twinkle now and then
+  if (tw > 0.85) { const r = (tw - 0.85) * 40, x = B.a[0] - B.a[1] * 0.3, y = -B.a[2] * 0.4; ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; seg(x - r, y, x + r, y); seg(x, y - r, x, y + r); }
+  ctx.fillStyle = "#fff"; for (const y of [-1.6, 1.6]) { ell(B.t[0] + B.t[1] * 0.55, y, 1, 1); ctx.fill(); }
+}
+function drawSkeletonBody(P) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t, dark = P.trim;
+  // ribcage abdomen: a dark shadow, a spine and ribs
+  ctx.globalAlpha *= 0.85; ctx.fillStyle = dark; ell(ax, 0, arx, ary); ctx.fill(); ctx.globalAlpha /= 0.85;
+  ctx.strokeStyle = P.body; ctx.lineWidth = 1.6; seg(ax - arx * 0.9, 0, ax + arx, 0);
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i < 5; i++) { const x = ax + arx * 0.7 - i * arx * 0.35, h = ary * Math.sqrt(Math.max(0, 1 - Math.pow((x - ax) / arx, 2))) * 0.9; ctx.beginPath(); ctx.moveTo(x, -h); ctx.quadraticCurveTo(x - 4, 0, x, h); ctx.stroke(); }
+  // skull head
+  ctx.fillStyle = P.body; ctx.strokeStyle = dark; ctx.lineWidth = 1; ell(tx, 0, trx, try_); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = dark; for (const y of [-1, 1]) { ell(tx + trx * 0.25, y * try_ * 0.38, Math.max(1.3, trx * 0.22), Math.max(1.2, try_ * 0.24)); ctx.fill(); }
+  ctx.beginPath(); ctx.moveTo(tx + trx * 0.55, -0.9); ctx.lineTo(tx + trx * 0.75, 0); ctx.lineTo(tx + trx * 0.55, 0.9); ctx.fill();
+  ctx.lineWidth = 0.6; for (let y = -2; y <= 2; y += 1.3) seg(tx + trx * 0.85, y, tx + trx, y);
+}
 function drawClassicBody(type, col) {
   const A0 = ctx.globalAlpha, al = v => { ctx.globalAlpha = A0 * v; };
   ctx.fillStyle = col;
-  if (type === "orb") {
+  if (type === "huntsman") {
+    ell(-13, 0, 11, 7.5); ctx.fill(); ell(3, 0, 9, 8.5); ctx.fill();
+    ctx.strokeStyle = C.paper; al(0.35); ctx.lineWidth = 1.2; seg(-22, 0, -6, 0); ctx.beginPath(); ctx.arc(3, 0, 5, -1.3, 1.3); ctx.stroke(); al(1);
+    eyes([[10, -2, 1], [10, 2, 1], [8.5, -4, .8], [8.5, 4, .8]]);
+  } else if (type === "trapdoor") {
+    ell(-14, 0, 12, 10); ctx.fill(); ell(3, 0, 9.5, 8); ctx.fill();
+    ctx.fillStyle = C.paper; al(0.3); ell(-17, -4, 5, 2.4); ctx.fill(); ell(1, -3.5, 3.5, 1.6); ctx.fill(); al(1);
+    eyes([[9, -1.5, .9], [9, 1.5, .9], [8, 0, .8]]);
+  } else if (type === "cellar") {
+    ell(-9, 0, 8.5, 4.2); ctx.fill(); ell(1, 0, 3.8, 3.6); ctx.fill();
+    ctx.fillStyle = C.paper; al(0.35); ell(-10, 0, 4, 1.4); ctx.fill(); al(1);
+    eyes([[3.6, -1.1, .6], [3.6, 1.1, .6]]);
+  } else if (type === "widow") {
+    ell(-15, 0, 12.5, 11); ctx.fill(); ell(2, 0, 6.5, 5.5); ctx.fill();
+    hourglass(-15, 0, 5.5, 3.4);
+    ctx.fillStyle = C.paper; al(0.3); ell(-19, -5.5, 4, 2); ctx.fill(); al(1);
+    eyes([[7, -1.5, .9], [7, 1.5, .9]]);
+  } else if (type === "orb") {
     ell(-15, 0, 14, 12); ctx.fill(); ell(2, 0, 7, 6); ctx.fill();
     ctx.fillStyle = C.paper; al(0.35); ell(-16, 0, 8, 5); ctx.fill(); al(0.6);
     for (const [x, y] of [[-10, -5], [-10, 5], [-19, -6], [-19, 6], [-24, 0]]) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 7); ctx.fill(); }
@@ -2288,6 +2661,10 @@ function babyColor(b) {
 function drawBaby(b, now) {
   const col = babyColor(b), s = cfg.babySize;
   ctx.globalAlpha = Math.min(1, b.life / 1.2);
+  if (b.type === "bridge" && !b.done) {
+    ctx.save(); ctx.strokeStyle = sacColor(b.from); ctx.globalAlpha *= 0.6; ctx.lineWidth = 0.9; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.restore();
+  }
   if (b.type === "balloon") {
     ctx.strokeStyle = C.silk; ctx.lineWidth = 0.8;
     ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x - 4, b.y - 26, b.x - 10, b.y - 52); ctx.stroke();
@@ -2389,7 +2766,9 @@ function draw(now) {
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot); ctx.fillRect(-3, -1.5, 6, 3); ctx.restore();
   }
   ctx.globalAlpha = 1;
+  drawBridges(vis);
   for (const b of babies) if (vis(b.y, b.y)) drawBaby(b, now);
+  for (const fl of flies) if (vis(fl.y, fl.y)) drawFly(fl, now);
   fx = fx.filter(f => now - f.born < (f.type === "label" ? 1400 : 750));
   for (const f of fx) {
     const t = (now - f.born) / (f.type === "label" ? 1400 : 750);
@@ -2843,6 +3222,14 @@ function renderSac() {
       ${m.subs.length ? `<ul>${m.subs.map(sub).join("")}</ul>` : ""}
     </li>`).join("") +
     (loose.length ? `<li><div class="major"><span class="cnt">NOT LINKED TO A MAJOR KEYWORD</span></div><ul>${loose.map(sub).join("")}</ul></li>` : "");
+  const links = bridges.filter(br => br.a === sac || br.b === sac);
+  $("sacBridgeWrap").hidden = !links.length;
+  $("sacBridges").innerHTML = links.length ? '<ol class="bridges">' + links.map(br => {
+    const o = br.a === sac ? br.b : br.a, lab = key => esc(DOC.kw.get(key).label);
+    const via = br.pairs.slice(0, 4).map(([x, y]) => x === y ? `<b>${lab(x)}</b>` : `<b>${lab(br.a === sac ? x : y)}</b> ↔ <b>${lab(br.a === sac ? y : x)}</b>`).join(", ");
+    const si = bridgePassages(br);
+    return `<li><button type="button" class="linkish" data-opensac="${sacs.indexOf(o)}">#${o.n} ${esc(o.label)}</button> <span class="meta">via ${via}</span>${si.length ? sourcesHTML(si) : ""}</li>`;
+  }).join("") + "</ol>" : "";
   const others = doneSacs().filter(s => s !== sac);
   $("sacMergeSel").innerHTML = others.map(s => `<option value="${sacs.indexOf(s)}">#${s.n} ${esc(trunc(s.label, 28))}</option>`).join("");
   $("sacMergeSel").parentElement.hidden = !others.length;
@@ -2887,7 +3274,10 @@ $("dSac").addEventListener("close", () => { if (sacCtl) sacCtl.abort(); curSac =
 $("sacName").addEventListener("change", () => { if (curSac) { curSac.label = $("sacName").value.trim() || curSac.label; collabSac(curSac); } });
 $("sacMerge").onclick = () => { const o = sacs[+$("sacMergeSel").value]; if (curSac && o) { const m = mergeSacs(curSac, o); curSac = m; renderSac(); } };
 $("sacExport").onclick = () => { if (curSac) saveFile(`${slug(curSac.label)}-sac.md`, sacMarkdown(curSac)); };
-$("dSac").addEventListener("click", e => { const c = e.target.closest("[data-si]"); if (c) jumpToSentence(+c.dataset.si); });
+$("dSac").addEventListener("click", e => {
+  const o = e.target.closest("[data-opensac]"); if (o) { const t = sacs[+o.dataset.opensac]; if (t) { curSac = t; renderSac(); $("dSac").querySelector(".body").scrollTop = 0; } return; }
+  const c = e.target.closest("[data-si]"); if (c) jumpToSentence(+c.dataset.si);
+});
 $("sacTree").addEventListener("click", e => {
   const sp = e.target.closest("[data-split]");
   if (sp) { const ns = splitSac(curSac, sp.dataset.split); if (ns) renderSac(); return; }
@@ -4221,9 +4611,94 @@ addEventListener("wheel", () => { if (!WV.open) stopFollow(); }, { passive: true
 addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: true });
 addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
 
+// ---------------- add-ons: paid packs (sold through Google Play) ----------------
+// Each pack unlocks the setting values listed in its items. Anything not listed here is free.
+// Edit this list to change what's paid; the product ids must match the in-app products in the Play Console.
+const PACKS = [
+  { id: "pack_spiders", name: "Spider kinds", desc: "Huntsman, trapdoor, cellar spider and widow, each with its own body and way of moving.", items: { type: ["huntsman", "trapdoor", "cellar", "widow"] } },
+  { id: "pack_looks", name: "Spider looks", desc: "Realistic, web-slinger hero, crystal, skeleton, hairy tarantula, peacock, robot, ghost, neon and pixel art.",
+    items: { look: ["realistic", "hero", "crystal", "skeleton", "tarantula", "peacock", "robot", "ghost", "neon", "pixel"] } },
+  { id: "pack_colors", name: "Colors", desc: "Hero red and blue, onyx and red, metallic gold, rainbow and pearl.", items: { tint: ["hero", "onyx", "metal", "rainbow", "pearl"] } },
+  { id: "pack_seasons", name: "Seasons and weather", desc: "Seasonal outfits, plus snow, rain, thunderstorms, falling leaves, blossoms, fog, fireflies, dust and starry nights.",
+    items: { season: ["auto", "spring", "summer", "autumn", "halloween", "winter"], ambient: ["season", "dust", "fireflies", "rain", "storm", "snow", "leaves", "blossoms", "fog", "stars"] } },
+  { id: "pack_themes", name: "Page themes", desc: "Sepia, blueprint, forest, spooky and neon.", items: { skin: ["sepia", "blueprint", "forest", "spooky", "neon"] } },
+  { id: "pack_babies", name: "Spiderling styles", desc: "Mini copies of the parent, glowing fireflies and rainbow spiderlings.", items: { babyLook: ["clones", "fireflies"], babyColor: ["rainbow"] } },
+  { id: "pack_all", name: "Everything", desc: "Every pack above, and every pack added later.", items: {}, all: true }
+];
+const FREE_FALLBACK = { type: "cobweb", look: "classic", tint: "auto", season: "off", ambient: "none", skin: "auto", babyLook: "spiderlings", babyColor: "topic" };
+// While the app is in development everything stays unlocked. Set lockPaid: true in config.js to switch the locks on.
+const DEV_UNLOCK = !(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.lockPaid);
+const OWNED = new Set(store.get("cak3d-owned") || []);
+const owns = id => DEV_UNLOCK || OWNED.has("pack_all") || OWNED.has(id);
+const packFor = (field, value) => PACKS.find(p => (p.items[field] || []).includes(value)) || null;
+function locked(field, value) { const p = packFor(field, value); return p && !owns(p.id) ? p : null; }
+const freeOnly = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, locked(k, v) ? FREE_FALLBACK[k] : v]));
+// mark paid options with ✦, and 🔒 when they're still locked
+function markPaid() {
+  for (const [id, key] of BIND) {
+    const el = $(id); if (el.tagName !== "SELECT") continue;
+    for (const o of el.options) {
+      const p = packFor(key, o.value); if (!p) continue;
+      o.textContent = o.textContent.replace(/ [✦🔒]+$/u, "") + (owns(p.id) ? " ✦" : " 🔒");
+    }
+  }
+}
+// Google Play billing, through cordova-plugin-purchase (CdvPurchase) in the Android app
+const BILLING = {
+  ready: false, prices: {}, store: null,
+  async init() {
+    const P = window.CdvPurchase;
+    if (!P || !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
+    const st = P.store;
+    st.register(PACKS.map(p => ({ id: p.id, type: P.ProductType.NON_CONSUMABLE, platform: P.Platform.GOOGLE_PLAY })));
+    st.when().productUpdated(p => { if (p.pricing) BILLING.prices[p.id] = p.pricing.price; if (p.owned) grant(p.id, true); if ($("dStore").open) renderStore(); })
+      .approved(t => t.verify()).verified(r => r.finish()).finished(t => { for (const p of t.products) grant(p.id); });
+    await st.initialize([P.Platform.GOOGLE_PLAY]);
+    BILLING.store = st; BILLING.ready = true;
+    if ($("dStore").open) renderStore();
+  },
+  async buy(id) {
+    const p = BILLING.store.get(id, window.CdvPurchase.Platform.GOOGLE_PLAY), offer = p && p.getOffer();
+    if (!offer) throw new Error("That pack isn't available in the store yet.");
+    const err = await offer.order(); if (err && err.code !== window.CdvPurchase.ErrorCode.PAYMENT_CANCELLED) throw new Error(err.message || "The purchase didn't go through.");
+  },
+  restore() { return BILLING.store.restorePurchases(); }
+};
+function grant(id, quiet) {
+  if (OWNED.has(id)) return;
+  OWNED.add(id); store.set("cak3d-owned", [...OWNED]); markPaid();
+  if (!quiet) { const p = PACKS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
+  if ($("dStore").open) renderStore();
+}
+let storeFocus = null;
+function renderStore() {
+  const native = BILLING.ready, play = window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.playUrl;
+  $("storeNote").textContent = DEV_UNLOCK ? "Everything is unlocked while the app is in development. Options marked ✦ will be paid packs."
+    : native ? "Purchases belong to your Google account and unlock on every Android device you use it on."
+    : "Packs are sold in the Android app on Google Play. Options marked 🔒 unlock there.";
+  $("storeRestore").hidden = !native;
+  $("storeList").innerHTML = PACKS.map(p => {
+    const n = Object.values(p.items).reduce((t, v) => t + v.length, 0), have = owns(p.id);
+    const price = BILLING.prices[p.id];
+    const action = have ? `<span class="state">${DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked for development" : "Unlocked"}</span>`
+      : native ? `<button class="btn primary" type="button" data-buy="${p.id}">Buy${price ? " · " + esc(price) : ""}</button>`
+      : play ? `<a class="btn" href="${esc(play)}" target="_blank" rel="noopener">Get the Android app</a>` : `<span class="state">In the Android app</span>`;
+    return `<div class="pack${storeFocus === p.id ? " focus" : ""}"><h3>${esc(p.name)}</h3><p>${esc(p.desc)}</p><p class="meta">${p.all ? "All packs" : plural(n, "item")}</p>${action}</div>`;
+  }).join("");
+}
+function openStore(focus) { storeFocus = focus || null; renderStore(); if (!$("dStore").open) $("dStore").showModal(); const el = $("storeList").querySelector(".focus"); if (el) el.scrollIntoView({ block: "nearest" }); }
+$("bStore").onclick = () => openStore();
+$("storeClose").onclick = () => $("dStore").close();
+$("storeRestore").onclick = async () => { try { await BILLING.restore(); flash("Checked Google Play for your purchases."); } catch (e) { flash("Couldn't reach Google Play. Try again later."); } };
+$("storeList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-buy]"); if (!b) return;
+  b.disabled = true;
+  try { await BILLING.buy(b.dataset.buy); } catch (err) { flash(err.message); } finally { b.disabled = false; }
+});
+
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
   size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never",
-  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}` };
+  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}`, flies: v => +v ? `${v}` : "None" };
 const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String], ["cfgType", "type", String], ["cfgDew", "dew", Boolean],
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgWorkers", "workers", Boolean], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
@@ -4233,7 +4708,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
   ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
-  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String]];
+  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
   $("topicsField").hidden = cfg.sort !== "topics";
@@ -4263,6 +4738,7 @@ function settingChanged(key) {
   if (key === "exit" && S.mode === "done") startExit();
   if (key === "spiders") { spawnHelpers(); applyTopics(); }
   if (key === "citeStyle" && WV.open) renderSide();
+  if (key === "flies") resetFlies();
 }
 function fillVoices() {
   const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
@@ -4277,6 +4753,9 @@ for (const [id, key, parse, out] of BIND) {
   const el = $(id);
   const evt = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
   el.addEventListener(evt, () => {
+    // a paid option that isn't unlocked yet: put the old choice back and show the pack
+    const lock = el.tagName === "SELECT" && locked(key, el.value);
+    if (lock) { el.value = cfg[key]; openStore(lock.id); return; }
     cfg[key] = el.type === "checkbox" ? el.checked : parse(el.value);
     if (out) $(out).textContent = fmt[key](cfg[key]);
     saveCfg(); settingChanged(key);
@@ -4310,11 +4789,11 @@ function applyAll() {
 }
 $("preset").addEventListener("change", e => {
   const p = PRESETS[e.target.value]; if (!p) return;
-  Object.assign(cfg, p); applyAll(); flash(`Applied the ${e.target.selectedOptions[0].textContent.split(":")[0]} style.`);
+  Object.assign(cfg, freeOnly(p)); applyAll(); flash(`Applied the ${e.target.selectedOptions[0].textContent.split(":")[0]} style.`);
   e.target.value = "";
 });
 $("surprise").onclick = () => {
-  const pick = id => { const o = [...$(id).options].map(x => x.value); return o[Math.floor(Math.random() * o.length)]; };
+  const pick = id => { const key = BIND.find(b => b[0] === id)[1], o = [...$(id).options].map(x => x.value).filter(v => !locked(key, v)); return o[Math.floor(Math.random() * o.length)]; };
   Object.assign(cfg, { look: pick("cfgLook"), type: pick("cfgType"), tint: pick("cfgTint"), layout: pick("cfgLayout"), threadColor: pick("cfgThreadColor"),
     catchFx: pick("cfgCatchFx"), babyLook: pick("cfgBabyLook"), babyColor: pick("cfgBabyColor"), hatchFx: pick("cfgHatchFx"), skin: pick("cfgSkin"),
     ambient: pick("cfgAmbient"), entrance: pick("cfgEntrance"), exit: pick("cfgExit"), breeze: Math.random() < 0.5, dew: Math.random() < 0.6 });
@@ -4326,6 +4805,13 @@ $("setTabs").addEventListener("click", e => {
   for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== b.dataset.g;
 });
 $("replay").onclick = () => { $("dSettings").close(); enter(); };
+// anything saved before a pack was locked goes back to the free choice
+{ let changed = false; for (const k of Object.keys(FREE_FALLBACK)) if (locked(k, cfg[k])) { cfg[k] = FREE_FALLBACK[k]; changed = true; } if (changed) saveCfg(); }
+markPaid();
+{ // in the Android app the billing plugin is ready after Cordova's deviceready event
+  const start = () => BILLING.init().catch(() => { /* billing unavailable: the store says so */ });
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && !window.CdvPurchase) document.addEventListener("deviceready", start, { once: true }); else start();
+}
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
 $("bSettings").onclick = () => {
   syncSettings(); fillVoices(); if (!window.claude) fillAiForm();

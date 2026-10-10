@@ -52,9 +52,13 @@ const ai = {
   baseUrl: process.env.CRAWLER_AI_BASE_URL || "",
   model: process.env.CRAWLER_AI_MODEL || ""
 };
-writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/" }, null, 2)};\n`);
+// Paid packs stay unlocked until CRAWLER_LOCK_PAID=1 (turn it on for the Play release and the public website).
+// CRAWLER_PLAY_URL is the Google Play listing that the web version's store links to.
+const lockPaid = process.env.CRAWLER_LOCK_PAID === "1", playUrl = process.env.CRAWLER_PLAY_URL || "";
+writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/", lockPaid, playUrl }, null, 2)};\n`);
 
 copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
+copyFileSync("web/privacy.html", `${OUT}/privacy.html`);
 writeFileSync(`${OUT}/sw.js`, readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`));
 for (const f of readdirSync("web/icons")) copyFileSync(`web/icons/${f}`, `${OUT}/icons/${f}`);
 console.log(`Built ${OUT}/ (version ${pkg.version})`);

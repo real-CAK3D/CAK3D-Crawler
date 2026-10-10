@@ -2,71 +2,68 @@
 
 A web crawler that actually crawls a web. A spider walks across any text you give it, grabs the main keywords with its legs, spins silk between them, sorts them into topics, and turns the result into research notes with sources.
 
-**Use it:** [real-cak3d.github.io/CAK3D-Crawler](https://real-cak3d.github.io/CAK3D-Crawler/) · **Android:** download the APK from [Releases](https://github.com/real-CAK3D/CAK3D-Crawler/releases/latest)
+**Use it:** [real-cak3d.github.io/CAK3D-Crawler](https://real-cak3d.github.io/CAK3D-Crawler/) (also deployed on Vercel) · **Android:** coming to Google Play; test builds are on [Releases](https://github.com/real-CAK3D/CAK3D-Crawler/releases/latest)
 
 ## What it does
 
-- **Crawls anything you read.** Paste text, open a **PDF** (page numbers kept for citations), **EPUB**, `.txt` or `.md` file, give it a web page link, or **search the web** and pick results. Crawl **several sources at once** and see where they agree.
-- **A real web crawler, too.** Load a page and let the spider **follow its links**, crawling the most relevant linked pages as extra sources. Wikipedia loads directly; other sites are read through the free [r.jina.ai](https://jina.ai/reader) reader service.
-- **Finds the main keywords** (words and two-word phrases) in English, Spanish, French, German, Italian, Portuguese or Dutch, and groups them into topics by which ones appear in the same sentences.
-- **Research focus.** Type a topic and the spider only hunts keywords near it. The best matches show up as prey. It also **learns your interests** and crawls those first next time.
-- **Egg sacs.** When a web fills up, the spider wraps it into a sac. Click a sac to see its keyword tree, key passages, and a summary. Merge, split, rename, or hand-pick keywords into your own sacs.
-- **Citations everywhere.** Summaries and answers cite numbered sources showing the source, chapter and page, with "Show in text", a link that jumps to the passage in the original, and **APA, MLA or Chicago** citations and a bibliography.
-- **Notes, search and listening.** Write notes on keywords and passages, search the text, jump by chapter or page, and have answers and passages **read aloud**.
+- **Crawls anything you read.** Paste text, open a **PDF** (page numbers kept for citations), a **scanned PDF or a photo of a page** (read on your device with OCR), an **EPUB**, `.txt` or `.md` file, give it a web page link, or **search the web** and pick results. Crawl **several sources at once** and see where they agree.
+- **Crawls whole sites.** Let the spider follow links up to three levels deep, with a page limit, and see the result as a **site map**.
+- **Finds the main keywords** in English, Spanish, French, German, Italian, Portuguese or Dutch, and groups them into topics.
+- **Research focus.** Type a topic and the spider only hunts keywords near it. It also **learns your interests**.
+- **Egg sacs.** When a web fills up, the spider wraps it into a sac. Open a sac for its keyword tree, key passages and a summary. Spiderlings that hatch mark related keywords and **build silk bridges to related sacs**, showing how two topics connect, with the passages where they meet.
+- **Citations everywhere.** Numbered sources with chapter and page, "Show in text", **APA, MLA or Chicago**, a bibliography, and export to **Zotero (RIS)** and **BibTeX**.
+- **Study.** Flashcards with **spaced-repetition study sessions**, notes on keywords and passages, search, contents, and read-aloud.
 - **Ask the text** a question and get the passages that answer it, plus a cited answer from the AI you choose.
-- **Web view** with a zoomable graph, a timeline of where topics appear, a comparison with a second text, and flashcards.
-- **Library** to save crawls. **Export** notes as Markdown or CSV, flashcards for Anki, or **share a crawl as one web page** anyone can open.
-- **Lots of style:** 8 spider looks, 4 kinds of movement, extra spiders for each topic, 8 entrances and exits, 7 web layouts, 5 thread color modes, catch effects, spiderling options, 9 themes, 10 kinds of weather, seasonal looks, and presets.
+- **Work together.** Share a crawl so others can add notes and sacs (live in the claude.ai version), or swap crawl files.
+- **Accessible.** The keyword graph works fully from the keyboard and with screen readers, with a list view; every view is checked with axe on each push.
+- **Lots of style:** 8 kinds of spider, 12 looks including realistic and a web-slinger hero, 12 colors, flies for the spider to hunt, seasonal outfits, weather, page themes and presets. Some styles are paid packs (see below).
 
-## Use your own AI
+## Paid packs
 
-Crawling, topics, the graph and citations run entirely on your device. An AI is only used to write the cited summaries and answers, and you choose which one in **Settings → Research**:
+Extra spider kinds, looks, colors, seasons and weather, page themes and spiderling styles are sold as packs through Google Play in the Android app. The packs are listed in one place, `PACKS` in `src/cak3d-crawler.html`; their ids must match the in-app products in the Play Console.
 
-- **Claude** with your Anthropic API key (through the official Anthropic SDK)
-- **Any OpenAI-compatible service:** OpenAI, OpenRouter, Groq, Together, vLLM…
-- **A model on your own computer:** Ollama or LM Studio, free and private
-- **Nothing:** you still get the matching passages as sources
+While the app is in development every pack stays unlocked. Build with `CRAWLER_LOCK_PAID=1` to switch the locks on, and set `CRAWLER_PLAY_URL` to the Play listing so the website's store links to it.
 
-Settings and keys stay on your device, and requests go straight to the provider you pick. Inside claude.ai the app uses your Claude account instead.
+## AI
 
-Hosting a copy for others? Set the `CRAWLER_AI_*` repository variables and deploy the key-holding proxy in [`proxy/`](proxy/) so visitors get an AI without a key ever reaching the page. Details: [Use Your Own AI](https://github.com/real-CAK3D/CAK3D-Crawler/wiki/Use-Your-Own-AI).
+Crawling, topics, the graph and citations run entirely on the device. An AI is only used for cited summaries and answers, and the user chooses it in **Settings → Research**: Claude with an Anthropic API key (through the official Anthropic SDK), any OpenAI-compatible service, a local model (Ollama, LM Studio), or none. Keys stay on the device. Inside claude.ai the app uses the viewer's Claude account.
 
-Full guide: **[the wiki](https://github.com/real-CAK3D/CAK3D-Crawler/wiki)**.
+A deployment can provide a default AI through the `CRAWLER_AI_*` variables and the key-holding proxy in [`proxy/`](proxy/), so no key ever reaches the page.
 
-## Build it yourself
+## Development
 
 Requires Node 22.
 
 ```bash
 npm ci
-npm run icons
-npm run build      # writes the web app to www/
+npm run build      # draws the icons and writes the web app to www/
 npm run serve      # http://localhost:8080
+npx playwright install chromium
+npm test           # opens the app in a browser and checks the features and accessibility
 ```
 
-### Releases
+### Deploys and releases
 
-- Every push to `main` deploys the web app to GitHub Pages (`.github/workflows/web.yml`).
-- Pushing a tag like `v1.2.0` builds a signed Android APK with [Capacitor](https://capacitorjs.com) and publishes a GitHub release with the APK and a zip of the web app (`.github/workflows/android.yml`).
+- **Tests** (`.github/workflows/test.yml`) run on every push and pull request. Deploys and Android builds only run when they pass.
+- **GitHub Pages:** every push to `main` deploys the web app (`.github/workflows/web.yml`).
+- **Vercel:** `vercel.json` builds with `npm run build` and serves `www/`. Import the repository in Vercel; no other settings are needed.
+- **Android:** pushing a tag like `v1.2.0` builds a signed APK and a Google Play app bundle (`.aab`) with [Capacitor](https://capacitorjs.com) and attaches them to a GitHub release (`.github/workflows/android.yml`).
 
-```bash
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-The Android signing key lives in the repository secrets `ANDROID_KEYSTORE_B64` and `ANDROID_KEYSTORE_PASSWORD`. Keep the same key for every release; Android only installs an update over an existing install when it's signed with the same key. Without those secrets the workflow builds a debug APK instead.
+The Android signing (upload) key lives in the repository secrets `ANDROID_KEYSTORE_B64` and `ANDROID_KEYSTORE_PASSWORD`. Keep the same key for every release.
 
 ## Project layout
 
 | Path | What it is |
 | --- | --- |
 | `src/cak3d-crawler.html` | The whole app: one HTML file with its styles and script |
-| `scripts/build-web.mjs` | Wraps the app into an installable web app and bundles the Anthropic SDK |
+| `scripts/build-web.mjs` | Builds the installable web app: icons, OCR and PDF readers, the Anthropic SDK, config |
 | `scripts/make-icons.mjs` | Draws the app icon and splash screen (no image tools needed) |
 | `scripts/android-config.mjs` | Sets the Android version and signing during CI |
-| `web/` | Web app manifest and offline service worker |
-| `proxy/` | Optional Cloudflare Worker that holds an AI key for a public deployment |
+| `tests/` | Playwright browser tests, including axe accessibility checks |
+| `web/` | Web app manifest, offline service worker and privacy policy |
+| `proxy/` | Optional Cloudflare Worker that holds an AI key for a deployment |
+| `vercel.json` | Vercel build settings |
 
 ## License
 
-MIT
+Proprietary. Copyright (c) 2026 CAK3D, all rights reserved. See [LICENSE](LICENSE). Versions up to v1.1.0 were released under the MIT License.

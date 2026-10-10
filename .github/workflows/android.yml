@@ -52,8 +52,10 @@ jobs:
           if [ -n "$KS_B64" ]; then
             export KS_PATH="$RUNNER_TEMP/release.p12"
             echo "$KS_B64" | base64 -d > "$KS_PATH"
-            ./gradlew assembleRelease --no-daemon
+            ./gradlew assembleRelease bundleRelease --no-daemon
             cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/app.apk"
+            # Google Play takes the app bundle (.aab), signed with the same upload key
+            cp app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/app.aab"
           else
             echo "::warning::No signing key in repo secrets; building a debug APK instead."
             ./gradlew assembleDebug --no-daemon
@@ -65,6 +67,7 @@ jobs:
           NAME="${GITHUB_REF_NAME:-manual}"
           mkdir -p dist
           cp "$RUNNER_TEMP/app.apk" "dist/CAK3D-Crawler-$NAME.apk"
+          if [ -f "$RUNNER_TEMP/app.aab" ]; then cp "$RUNNER_TEMP/app.aab" "dist/CAK3D-Crawler-$NAME.aab"; fi
           (cd www && zip -qr "../dist/CAK3D-Crawler-web-$NAME.zip" .)
 
       - uses: actions/upload-artifact@v4
@@ -87,4 +90,4 @@ jobs:
             ## Use it on the web
             Open https://real-cak3d.github.io/CAK3D-Crawler/ in any browser. On a phone, use the browser menu's **Add to Home screen** to install it like an app.
 
-            The web zip is the same app for hosting anywhere or opening offline.
+            The `.aab` file is the app bundle for uploading to Google Play.
