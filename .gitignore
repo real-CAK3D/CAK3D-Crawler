@@ -1,0 +1,9 @@
+node_modules/
+www/
+dist/
+android/
+assets/
+web/icons/
+.signing/
+*.p12
+*.pem

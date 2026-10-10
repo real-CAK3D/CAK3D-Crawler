@@ -1,0 +1,25 @@
+{
+  "name": "cak3d-crawler",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "icons": "node scripts/make-icons.mjs",
+    "build": "node scripts/build-web.mjs",
+    "serve": "npx --yes http-server www -p 8080 -c-1"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.4",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  }
+}

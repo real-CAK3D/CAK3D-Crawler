@@ -1,0 +1,83 @@
+name: Android release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+      - run: npm run icons
+      - run: npm run build
+      - run: npx cap add android
+      - name: Generate app icon and splash screen
+        run: >
+          npx @capacitor/assets generate --android
+          --iconBackgroundColor "#111413" --iconBackgroundColorDark "#111413"
+          --splashBackgroundColor "#111413" --splashBackgroundColorDark "#111413"
+      - run: npx cap sync android
+      - run: node scripts/android-config.mjs
+
+      - name: Build signed APK
+        working-directory: android
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          if [ -n "$KS_B64" ]; then
+            export KS_PATH="$RUNNER_TEMP/release.p12"
+            echo "$KS_B64" | base64 -d > "$KS_PATH"
+            ./gradlew assembleRelease --no-daemon
+            cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/app.apk"
+          else
+            echo "::warning::No signing key in repo secrets; building a debug APK instead."
+            ./gradlew assembleDebug --no-daemon
+            cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/app.apk"
+          fi
+
+      - name: Collect files
+        run: |
+          NAME="${GITHUB_REF_NAME:-manual}"
+          mkdir -p dist
+          cp "$RUNNER_TEMP/app.apk" "dist/CAK3D-Crawler-$NAME.apk"
+          (cd www && zip -qr "../dist/CAK3D-Crawler-web-$NAME.zip" .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cak3d-crawler
+          path: dist/*
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## Install on Android
+            1. On your phone, download **CAK3D-Crawler-${{ github.ref_name }}.apk** below.
+            2. Open it. If Android asks, allow your browser to install unknown apps.
+            3. Open **CAK3D Crawler** from your home screen.
+
+            ## Use it on the web
+            Open https://real-cak3d.github.io/CAK3D-Crawler/ in any browser. On a phone, use the browser menu's **Add to Home screen** to install it like an app.
+
+            The web zip is the same app for hosting anywhere or opening offline.

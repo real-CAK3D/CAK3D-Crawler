@@ -1,0 +1,16 @@
+{
+  "name": "CAK3D Crawler",
+  "short_name": "Crawler",
+  "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111413",
+  "theme_color": "#111413",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
