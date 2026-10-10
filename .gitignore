@@ -7,3 +7,5 @@ web/icons/
 .signing/
 *.p12
 *.pem
+playwright-report/
+test-results/

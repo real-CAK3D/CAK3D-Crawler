@@ -60,7 +60,7 @@ The Android signing key lives in the repository secrets `ANDROID_KEYSTORE_B64` a
 
 | Path | What it is |
 | --- | --- |
-| `src/silk-crawler.html` | The whole app: one HTML file with its styles and script |
+| `src/cak3d-crawler.html` | The whole app: one HTML file with its styles and script |
 | `scripts/build-web.mjs` | Wraps the app into an installable web app and bundles the Anthropic SDK |
 | `scripts/make-icons.mjs` | Draws the app icon and splash screen (no image tools needed) |
 | `scripts/android-config.mjs` | Sets the Android version and signing during CI |

@@ -1,14 +1,15 @@
 {
   "name": "cak3d-crawler",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "type": "module",
   "license": "MIT",
   "scripts": {
     "icons": "node scripts/make-icons.mjs",
-    "build": "node scripts/build-web.mjs",
-    "serve": "npx --yes http-server www -p 8080 -c-1"
+    "build": "node scripts/make-icons.mjs && node scripts/build-web.mjs",
+    "serve": "http-server www -p 8080 -c-1",
+    "test": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0",
@@ -18,11 +19,16 @@
     "@capacitor/filesystem": "8.1.4",
     "@capacitor/share": "8.0.3",
     "jszip": "3.10.1",
-    "pdfjs-dist": "3.11.174"
+    "pdfjs-dist": "3.11.174",
+    "tesseract.js": "5.1.1",
+    "tesseract.js-core": "5.1.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@capacitor/assets": "3.0.5",
     "@capacitor/cli": "8.5.3",
-    "esbuild": "0.28.2"
+    "@playwright/test": "1.64.0",
+    "esbuild": "0.28.2",
+    "http-server": "14.1.1"
   }
 }

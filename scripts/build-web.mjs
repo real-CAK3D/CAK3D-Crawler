@@ -16,16 +16,19 @@ mkdirSync(`${OUT}/vendor`, { recursive: true });
 copyFileSync("node_modules/pdfjs-dist/build/pdf.min.js", `${OUT}/vendor/pdf.min.js`);
 copyFileSync("node_modules/pdfjs-dist/build/pdf.worker.min.js", `${OUT}/vendor/pdf.worker.min.js`);
 copyFileSync("node_modules/jszip/dist/jszip.min.js", `${OUT}/vendor/jszip.min.js`);
+// on-device OCR for scanned pages (the language model itself downloads on first use, then stays cached)
+mkdirSync(`${OUT}/vendor/tesseract`, { recursive: true });
+mkdirSync(`${OUT}/vendor/tesseract-core`, { recursive: true });
+for (const f of ["tesseract.min.js", "worker.min.js"]) copyFileSync(`node_modules/tesseract.js/dist/${f}`, `${OUT}/vendor/tesseract/${f}`);
+for (const f of readdirSync("node_modules/tesseract.js-core").filter(f => f.endsWith("lstm.wasm.js")))
+  copyFileSync(`node_modules/tesseract.js-core/${f}`, `${OUT}/vendor/tesseract-core/${f}`);
 
 await build({
   stdin: { contents: 'import Anthropic from "@anthropic-ai/sdk"; window.AnthropicSDK = Anthropic;', resolveDir: ".", loader: "js" },
   bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", outfile: `${OUT}/anthropic.js`, logLevel: "warning"
 });
 
-// the source page is named Silk Crawler (its claude.ai name); the released app is CAK3D Crawler
-const page = readFileSync("src/silk-crawler.html", "utf8")
-  .replace("<title>Silk Crawler</title>", "<title>CAK3D Crawler</title>")
-  .replace('<div class="brand">Silk Crawler<small', '<div class="brand">CAK3D Crawler<small');
+const page = readFileSync("src/cak3d-crawler.html", "utf8");
 const head = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111413">

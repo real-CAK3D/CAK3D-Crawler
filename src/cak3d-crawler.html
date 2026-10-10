@@ -1,4 +1,4 @@
-<title>Silk Crawler</title>
+<title>CAK3D Crawler</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -49,6 +49,22 @@
   --c0: #0047b3; --c1: #b33000; --c2: #00702e; --c3: #6b1fa3; --c4: #7a5c00; --c5: #006b6b; --c6: #a3004f; --c7: #444444; color-scheme: light; }
 
 [hidden] { display: none !important; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 8px; top: -80px; z-index: 100; background: var(--ink); color: var(--paper); padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: 13px; }
+.skip:focus { top: 8px; }
+#wvCanvas:focus-visible { outline: 3px solid var(--link); outline-offset: -3px; }
+.glist { position: absolute; inset: 0; overflow: auto; padding: 16px 20px 70px; background: var(--paper); }
+.glist h3 { margin: 14px 0 6px; font-size: 1.05rem; }
+.glist ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
+.glist li .meta { font-size: .85rem; }
+.sitemap { width: 100%; max-height: 72vh; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); }
+.sitemap text { font: 13px var(--serif); fill: var(--ink); paint-order: stroke; stroke: var(--panel); stroke-width: 4px; }
+.sitemap a:focus circle, .sitemap a:hover circle { stroke: var(--ink); stroke-width: 3; }
+.sitetree { margin: 0; padding-left: 1.2em; }
+.sitetree ul { padding-left: 1.2em; }
+.note.other { background: color-mix(in srgb, var(--c0) 10%, transparent); }
+.sharecode { font-family: var(--mono); background: var(--panel); padding: 1px 6px; border-radius: 4px; }
+.done-card { cursor: default; }
 /* how keywords are colored on the page (Settings → Web) */
 body.wc-highlight .kw:not(.caught):not(.packed), body.wc-highlight .echo { background: color-mix(in srgb, var(--cat, var(--link)) 13%, transparent); }
 body.wc-off span.kw:not(.caught):not(.packed), body.wc-off .echo { box-shadow: none; }
@@ -98,7 +114,7 @@ h1 { font-size: 2.6rem; font-weight: 500; line-height: 1.1; margin: 0 0 4px; tex
 .from { color: var(--muted); font-size: .9rem; margin: 0 0 18px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
 article h2 { font-size: 1.5rem; font-weight: 500; margin: 34px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); text-wrap: balance; }
 article p { margin: 0 0 14px; }
-article a { color: var(--link); text-decoration: none; }
+article a { color: var(--link); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--link) 45%, transparent); text-underline-offset: 3px; }
 article a:hover { text-decoration: underline; }
 article { cursor: crosshair; }
 article a, article .kw { cursor: pointer; }
@@ -110,12 +126,12 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .kw.caught { background: color-mix(in srgb, var(--cat, var(--link)) 17%, transparent); box-shadow: inset 0 -2px 0 var(--cat, var(--link)); outline: 0; }
 .kw.packed { background: color-mix(in srgb, var(--cat, var(--link)) 9%, transparent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--cat, var(--link)) 55%, transparent); outline: 0; }
 .kw.grip { background: var(--grip); }
-.kw.dim { opacity: .38; }
+.kw.dim { color: var(--muted); text-decoration-color: transparent; } /* faded but still readable */
 .kw.flash, .flash-block { animation: flash 1.4s ease-out; }
 @keyframes flash { 0%, 45% { background: var(--grip); } }
 
 .infobox { float: right; width: 15rem; margin: 4px 0 16px 24px; border: 1px solid var(--rule); background: var(--panel); font-size: .85rem; line-height: 1.45; }
-.infobox h3 { margin: 0; padding: 6px 10px; font-size: .95rem; font-weight: 600; text-align: center; border-bottom: 1px solid var(--rule); }
+.infobox .ib-title { margin: 0; padding: 6px 10px; font-size: .95rem; font-weight: 600; text-align: center; border-bottom: 1px solid var(--rule); }
 .infobox .sp { padding: 10px; text-align: center; font-style: italic; color: var(--muted); border-bottom: 1px solid var(--rule); }
 .infobox table { width: 100%; border-collapse: collapse; }
 .infobox td { padding: 3px 10px; vertical-align: top; }
@@ -129,9 +145,10 @@ ul.cols { columns: 2; padding-left: 1.2em; margin: 0; }
 .log li { display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--rule); min-width: 0; }
 .log li span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log .code { color: var(--link); flex: none; min-width: 3.4em; }
-.log li[data-t="SAC"] .code, .log li[data-t="HATCH"] .code, .log li[data-t="SEED"] .code { color: var(--c4); }
-.log li[data-t="DONE"] .code, .log li[data-t="LOAD"] .code { color: var(--c2); }
-.log li[data-t="PREY"] .code, .log li[data-t="MARK"] .code { color: var(--c6); }
+/* mixed toward the text colour so the tags stay readable in light and dark themes */
+.log li[data-t="SAC"] .code, .log li[data-t="HATCH"] .code, .log li[data-t="SEED"] .code { color: color-mix(in srgb, var(--c4) 55%, var(--ink)); }
+.log li[data-t="DONE"] .code, .log li[data-t="LOAD"] .code { color: color-mix(in srgb, var(--c2) 55%, var(--ink)); }
+.log li[data-t="PREY"] .code, .log li[data-t="MARK"] .code { color: color-mix(in srgb, var(--c6) 55%, var(--ink)); }
 .log .empty { color: var(--muted); border: 0; }
 
 #web { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
@@ -312,8 +329,9 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
 @media (prefers-reduced-motion: reduce) { .btn.ready, .kw.flash, .flash-block { animation: none; } }
 </style>
 
+<a class="skip" href="#page">Skip to the text</a>
 <header class="bar" id="bar">
-  <div class="brand">Silk Crawler<small id="docTitle">Spider</small></div>
+  <div class="brand">CAK3D Crawler<small id="docTitle">Spider</small></div>
   <label class="focus"><span>Focus</span><input id="focus" type="search" placeholder="research topic, e.g. silk" autocomplete="off"></label>
   <div class="stats">
     <span>crawled <b id="sCrawled">0</b>/<b id="sTotal">0</b></span>
@@ -333,16 +351,16 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <button class="btn" id="bSettings" type="button">Settings</button>
     <button class="btn" id="bHelp" type="button" aria-label="Keyboard shortcuts and tips">?</button>
   </div>
-  <div class="status" id="status" aria-live="polite"></div>
+  <div class="status" id="status" aria-live="off"></div>
 </header>
 
-<div class="wrap">
-<article id="page">
+<main class="wrap">
+<article id="page" tabindex="-1" aria-label="The text being crawled">
   <h1>Spider</h1>
   <p class="from">Sample page · load your own text with Source</p>
 
-  <aside class="infobox">
-    <h3>Spiders</h3>
+  <div class="infobox" role="group" aria-label="Spiders at a glance">
+    <p class="ib-title">Spiders</p>
     <div class="sp">Order Araneae</div>
     <table>
       <tr><td>Kingdom</td><td><a data-c="0" data-w="Animal">Animalia</a></td></tr>
@@ -352,7 +370,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <tr><td>Order</td><td>Araneae <a data-c="0" data-w="Carl_Alexander_Clerck">Clerck</a>, 1757</td></tr>
       <tr><td>Suborders</td><td><a data-c="0" data-w="Mesothelae">Mesothelae</a><br><a data-c="0" data-w="Opisthothelae">Opisthothelae</a></td></tr>
     </table>
-  </aside>
+  </div>
 
   <p>Spiders are air-breathing <a data-c="0" data-w="Arthropod">arthropods</a> with eight legs, <a data-c="1" data-w="Chelicerae">chelicerae</a> that end in fangs, and <a data-c="1" data-w="Spinneret">spinnerets</a> that pull out <a data-c="2" data-w="Spider_silk">silk</a>. They form the largest order of <a data-c="0" data-w="Arachnid">arachnids</a>, with more than 50,000 described species, and they live on every continent except <a data-c="0" data-w="Antarctica">Antarctica</a>.</p>
 
@@ -392,12 +410,13 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
 <aside class="log" aria-label="Crawl log">
   <h2>Crawl log</h2>
   <p class="hint">Click the page to send the spider there. Select words to add your own keyword. Click a sac to open it.</p>
-  <ol id="log"><li class="empty">Waiting for the first keyword…</li></ol>
+  <ol id="log" tabindex="0" aria-label="Crawl log entries"><li class="empty">Waiting for the first keyword…</li></ol>
 </aside>
-</div>
+</main>
 
 <canvas id="web" aria-hidden="true"></canvas>
-<canvas id="mini" title="Minimap: click to jump"></canvas>
+<div id="announce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<canvas id="mini" title="Minimap: click to jump" aria-hidden="true"></canvas>
 <div id="pop" class="pop" hidden></div>
 <button id="hlBtn" class="hlbtn" type="button" hidden></button>
 
@@ -411,6 +430,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
         <button type="button" role="tab" data-tab="timeline" aria-selected="false">Timeline</button>
         <button type="button" role="tab" data-tab="compare" aria-selected="false">Compare</button>
         <button type="button" role="tab" data-tab="cards" aria-selected="false">Flashcards</button>
+        <button type="button" role="tab" data-tab="site" aria-selected="false" id="tabSite" hidden>Site map</button>
       </div>
       <span id="wvSum" class="wv-sum"></span>
       <button class="btn primary" id="wvClose" type="button">Back to page</button>
@@ -425,24 +445,30 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <button class="btn" id="exCsv" type="button">Keywords .csv</button>
       <button class="btn" id="exCards" type="button">Flashcards .csv</button>
       <button class="btn" id="exShare" type="button">Share as web page</button>
+      <button class="btn" id="exRis" type="button">Zotero (RIS)</button>
+      <button class="btn" id="exBib" type="button">BibTeX</button>
       <button class="btn" id="wvCopy" type="button">Copy notes</button>
     </div>
   </div>
   <div class="wv-body">
     <div class="wv-main">
-      <div class="pane" id="pGraph"><canvas id="wvCanvas" aria-label="Keyword graph. Click a dot to see what it connects to. Drag to pan, scroll to zoom."></canvas><p id="wvEmpty" class="wv-empty" hidden></p>
+      <div class="pane" id="pGraph"><canvas id="wvCanvas" tabindex="0" role="application" aria-roledescription="keyword graph" aria-label="Keyword graph" aria-describedby="gHelp"></canvas>
+        <p id="gHelp" class="sr-only">Arrow keys move between keywords. Enter reads about the selected keyword in the notes panel. Plus and minus zoom, 0 fits the graph, and L switches to a list view.</p>
+        <div id="gList" class="glist" hidden></div><p id="wvEmpty" class="wv-empty" hidden></p>
         <div class="gctl" role="group" aria-label="Graph controls">
           <button class="btn" type="button" id="gZoomIn" aria-label="Zoom in">+</button>
           <button class="btn" type="button" id="gZoomOut" aria-label="Zoom out">−</button>
           <button class="btn" type="button" id="gFit">Fit</button>
           <button class="btn" type="button" id="gLabels" aria-pressed="false">All labels</button>
           <button class="btn" type="button" id="gNotes">Hide notes</button>
+          <button class="btn" type="button" id="gListBtn" aria-pressed="false">List view</button>
         </div></div>
-      <div class="pane scroll" id="pTimeline" hidden><p class="meta" style="margin-bottom:10px">Where each topic shows up from the start of the text to the end. Darker means more mentions. Click anywhere on a row to jump to that part of the page.</p><canvas id="tlCanvas"></canvas></div>
+      <div class="pane scroll" id="pTimeline" hidden><p class="meta" style="margin-bottom:10px">Where each topic shows up from the start of the text to the end. Darker means more mentions. Click anywhere on a row to jump to that part of the page.</p><canvas id="tlCanvas" role="img" aria-label="Timeline chart. A text version follows."></canvas><div id="tlText" class="sr-only"></div></div>
       <div class="pane scroll" id="pCompare" hidden></div>
       <div class="pane scroll" id="pCards" hidden></div>
+      <div class="pane scroll" id="pSite" hidden></div>
     </div>
-    <aside id="wvSide" class="wv-side"></aside>
+    <div id="wvSide" class="wv-side" role="region" aria-label="Notes"></div>
   </div>
 </section>
 
@@ -489,6 +515,20 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <div class="rowi"><input class="inp" id="libName" type="text" placeholder="Name this crawl" autocomplete="off"><button class="btn primary" type="button" id="libSave">Save</button><button class="btn" type="button" id="libSaveNew" hidden>Save as new</button></div>
     <p class="meta" id="libMsg" aria-live="polite"></p>
     <ul class="lib" id="libList"></ul>
+    <fieldset id="collabBox">
+      <legend>Work together</legend>
+      <div id="collabLive" hidden>
+        <p class="meta">Share this crawl so others can add their own notes and sacs. Everyone sees each other's work as it happens.</p>
+        <div class="rowi"><button class="btn primary" type="button" id="collabShare">Share this crawl</button></div>
+        <div class="rowi" id="collabJoinRow"><input class="inp" id="collabCode" type="text" placeholder="Got a code? Paste it here" autocomplete="off" aria-label="Shared crawl code"><button class="btn" type="button" id="collabJoin">Join</button></div>
+        <div id="collabNow" hidden></div>
+        <p class="meta" id="collabMsg" aria-live="polite"></p>
+      </div>
+      <p class="meta" id="collabOffline">Live sharing works in the claude.ai version. Here, send a crawl file instead: the other person imports it, adds notes and sacs, and sends theirs back for you to merge.</p>
+      <label class="field"><span>Your name on notes you send</span><input type="text" id="cfgMyName" placeholder="e.g. Sam" autocomplete="off"></label>
+      <div class="rowi"><button class="btn" type="button" id="crawlExport">Export crawl file</button><label class="btn" for="crawlImport">Import or merge a crawl file</label><input type="file" id="crawlImport" accept=".json,application/json" class="sr-only"></div>
+      <p class="meta" id="collabMsg2" aria-live="polite"></p>
+    </fieldset>
     <div class="actions"><button class="btn" type="submit">Close</button></div>
   </form>
 </dialog>
@@ -510,9 +550,13 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <small id="webHint">Results come from Wikipedia and DuckDuckGo. Tick the ones to crawl; each becomes a source.</small></div>
     <label class="field" id="urlField"><span>Web page link</span><input type="url" id="srcUrl" placeholder="https://en.wikipedia.org/wiki/Spider" autocomplete="off">
       <small id="urlHint">Wikipedia articles load directly. Other sites are read through the free r.jina.ai reader service. Citations link back to the exact passage on the page.</small></label>
-    <label class="field" id="followField"><span>Also crawl the pages it links to</span>
-      <div class="range"><input type="range" id="cfgFollow" min="0" max="8" step="1"><output id="oFollow"></output></div>
-      <small>Like a real web crawler: the spider follows the page's most relevant links and crawls those pages too, each as its own source.</small></label>
+    <div class="field" id="followField"><span>Crawl further: follow its links</span>
+      <div class="row2">
+        <label class="field"><span>Pages to add</span><div class="range"><input type="range" id="cfgFollow" min="0" max="30" step="1"><output id="oFollow"></output></div></label>
+        <label class="field"><span>Levels deep</span><div class="range"><input type="range" id="cfgDepth" min="1" max="3" step="1"><output id="oDepth"></output></div></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="cfgSameSite"> Stay on the same website</label>
+      <small>Like a real web crawler. Level 1 is the pages this page links to, level 2 adds the pages those link to, and so on, up to the page limit. Each page becomes a source, and the web view's Site map shows how they connect.</small></div>
     <label class="field"><span>Title</span><input type="text" id="srcTitle" placeholder="e.g. Moby-Dick, chapter 1"></label>
     <label class="field"><span>Where it's from (optional)</span><input type="text" id="srcCite" placeholder="A link, or a citation like: Melville, Moby-Dick (1851)">
       <small>Shown with every source in summaries, answers and exports. A link becomes clickable.</small></label>
@@ -522,7 +566,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     </div>
     <label class="field"><span>Text</span><textarea id="srcText" placeholder="Paste text here…"></textarea>
       <small id="srcInfo">Plain text works best. Up to about 600,000 characters (a long novel).</small></label>
-    <label class="field"><span>Or open a file: PDF, EPUB, TXT or MD</span><input type="file" id="srcFile" accept=".txt,.md,.text,.pdf,.epub,text/plain,text/markdown,application/pdf,application/epub+zip"></label>
+    <label class="field"><span>Or open a file: PDF (scanned ones too), EPUB, TXT, MD, or a photo of a page</span><input type="file" id="srcFile" accept=".txt,.md,.text,.pdf,.epub,.png,.jpg,.jpeg,.webp,text/plain,text/markdown,application/pdf,application/epub+zip,image/png,image/jpeg,image/webp"></label>
     <label class="field"><span>Language</span>
       <select id="srcLang"><option value="auto">Detect automatically</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option>
         <option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option><option value="nl">Nederlands</option></select></label>
@@ -534,6 +578,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <p class="err" id="srcErr" hidden></p>
     <div class="actions">
       <button class="btn" type="button" id="srcAdd" style="margin-right:auto">Add as another source</button>
+      <button class="btn" type="button" id="srcStop" hidden>Stop and crawl what's loaded</button>
       <button class="btn" type="button" id="srcCancel">Cancel</button>
       <button class="btn primary" type="submit" id="srcGo">Load and crawl</button>
     </div>
@@ -822,7 +867,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
   </div>
   <div data-fp="sources" class="findp-body" hidden>
     <div id="srcInfoList"></div>
-    <div class="rowi"><button class="btn" type="button" id="copyBib">Copy bibliography</button></div>
+    <div class="rowi"><button class="btn" type="button" id="copyBib">Copy bibliography</button><button class="btn" type="button" id="exRis2">Zotero (RIS)</button><button class="btn" type="button" id="exBib2">BibTeX</button></div>
   </div>
 </aside>
 
@@ -858,27 +903,36 @@ const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
   set(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 };
+// the app used to be called Silk Crawler: carry saved settings, library and notes over to the new names once
+try {
+  for (const k of Object.keys(localStorage)) if (k.startsWith("silk-")) {
+    const nk = "cak3d-" + k.slice(5);
+    if (localStorage.getItem(nk) == null) localStorage.setItem(nk, localStorage.getItem(k));
+    localStorage.removeItem(k);
+  }
+} catch (e) { /* storage blocked */ }
 
 const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: false, knots: false, sacs: true, sort: "mixed", topics: "",
   cap: 12, hatch: 12, workers: true, stop: 0, k: 40, prey: true,
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0 }, store.get("silk-cfg") || {});
-const saveCfg = () => store.set("silk-cfg", cfg);
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "" }, store.get("cak3d-cfg") || {});
+const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
-{ const old = store.get("silk-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
+{ const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
 
 const STOP = new Set(("a about above across after again against all almost alone along already also although always am among an and another any anybody anyone anything anyway anywhere are around as ask asked at away back be became because become becomes been before began behind being below beside besides best better between beyond both but by came can cannot cant come comes could did do does doing done down during each either else enough even ever every everything few find first for found four from further gave get gets getting give given go goes going gone got great had has have having he her here hers herself him himself his how however i if in indeed into is it its itself just keep kept know known last later least less let like likely little long look looked made make makes many may maybe me might mine more most mostly much must my myself near nearly need never new next no none nor not nothing now of off often oh on once one ones only onto or other others otherwise our ours ourselves out over own part per perhaps put quite rather really right said same saw say says second see seem seemed seems seen several shall she should show side since so some something sometimes soon still such sure take taken than that the their theirs them themselves then there therefore these they thing things think this those though thought three through thus till time to together too took toward towards two under unless until up upon us use used uses using very via want was way ways we well went were what whatever when where whether which while who whole whom whose why will with within without would yes yet you your yours yourself yourselves mr mrs ms dr st chapter page don didn doesn isn wasn aren weren won can't i'm it's that's there's he's she's i've i'll i'd you're we're they're let's").split(/\s+/));
 const QSTOP = new Set("what which who whom whose why how when where does did do is are was were text book say says said tell about mean means happen happens author story describe explain".split(" "));
 
 // ---------------- runtime capabilities (all optional) ----------------
-let SAMPLE = null, DBX = null, UID = null, DL = null;
+let SAMPLE = null, DBX = null, UID = null, DL = null, USERCAP = null;
 (async () => {
   try {
     if (!window.claude || !claude.use) return;
     const [s, d, u, dl] = await Promise.all(["sample", "db", "user", "downloads"].map(n => claude.use(n).catch(() => null)));
     SAMPLE = s; DL = dl;
+    USERCAP = u;
     if (d && u) { const id = await u.id(); if (id) { DBX = d; UID = id; } }
   } catch (e) { /* page works without them */ }
   capsReady();
@@ -895,8 +949,8 @@ const AI_QUICK = {
   groq: { provider: "openai", base: "https://api.groq.com/openai/v1", model: "" }
 };
 function aiSettings() {
-  let s = null; try { s = JSON.parse(localStorage.getItem("silk-ai")); } catch (e) { /* storage blocked */ }
-  if (!s) { try { const k = localStorage.getItem("silk-key"); if (k) s = { provider: "anthropic", key: k }; } catch (e) { /* none */ } }
+  let s = null; try { s = JSON.parse(localStorage.getItem("cak3d-ai")); } catch (e) { /* storage blocked */ }
+  if (!s) { try { const k = localStorage.getItem("cak3d-key"); if (k) s = { provider: "anthropic", key: k }; } catch (e) { /* none */ } }
   const d = (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.ai) || {};
   return Object.assign({ provider: d.provider || "none", base: d.baseUrl || "", model: d.model || "", key: "" }, s || {});
 }
@@ -975,6 +1029,7 @@ function syncAiForm() {
   for (const id of ["aiModel", "aiBase", "aiKey"]) $(id).disabled = p === "none";
 }
 function capsReady() {
+  if (DBX && !COLLAB && /^#collab-[a-z0-9]+$/i.test(location.hash)) joinCollab(location.hash.slice(8));
   if (!window.claude) { $("keyField").hidden = false; if (!SAMPLE) useOwnAi(); }
   $("sacSumBtn").hidden = !SAMPLE;
   $("askLede").textContent = SAMPLE
@@ -1030,7 +1085,7 @@ function buildSample() {
     });
     addCooc(kw, [...keys]);
   });
-  return { title: "Spider", mode: "sample", kw, sents, marks, sentPara, cite: "Sample article written for Silk Crawler; keyword links go to Wikipedia",
+  return { title: "Spider", mode: "sample", kw, sents, marks, sentPara, cite: "Sample article written for CAK3D Crawler; keyword links go to Wikipedia",
     cats: SAMPLE_CATS.map((name, i) => ({ name, color: i })), words: page.textContent.trim().split(/\s+/).length };
 }
 
@@ -1392,7 +1447,10 @@ function updateStats() {
 const focusTerms = () => $("focus").value.toLowerCase().split(/[,\s]+/).filter(t => t.length >= 2);
 const focusRe = () => { const t = focusTerms(); return t.length ? new RegExp(`${WB}(?:${t.map(reEsc).join("|")})`, "iu") : null; };
 let holdUntil = 0;
-function flash(msg) { $("status").textContent = msg; holdUntil = performance.now() + 3500; }
+// one calm live region for screen readers, instead of the busy status line
+let annTimer = 0;
+function announce(t) { const a = $("announce"); a.textContent = ""; clearTimeout(annTimer); if (t) annTimer = setTimeout(() => { a.textContent = t; }, 80); }
+function flash(msg) { $("status").textContent = msg; holdUntil = performance.now() + 3500; announce(msg); }
 function updateStatus() {
   $("bPause").textContent = paused ? "Crawl" : "Pause";
   $("bWeb").classList.toggle("ready", S.mode === "done" && crawled > 0 && !WV.open);
@@ -1404,7 +1462,7 @@ function updateStatus() {
   else if (S.mode === "gone") s = `${spiderName()} left. It comes back when there's more to crawl.`;
   else s = `${spiderName()} crawling “${DOC.title}”${ft ? ` for “${ft}”` : ""} · ${plural(rel, "keyword")} to find${cfg.stop ? ` · stops at ${cfg.stop}` : ""}`;
   if (WV.picks.size) s += ` · ${WV.picks.size} picked for a sac`;
-  $("status").textContent = (paused && S.mode !== "done" ? "Paused · " : "") + s;
+  $("status").textContent = (COLLAB ? `Shared crawl ${COLLAB.id} · ${peopleCount()} · ` : "") + (paused && S.mode !== "done" ? "Paused · " : "") + s;
 }
 setInterval(updateStatus, 1200);
 
@@ -1525,6 +1583,7 @@ function finishSpin(sac) {
   tie = sac;
   sfx("sac");
   log("SAC", `#${sac.n} ${sac.label}: ${plural(new Set(sac.keys).size, "keyword")} (click it to open)`);
+  if (typeof collabSac === "function") collabSac(sac);
   S.mode = "walk";
   updateStats();
 }
@@ -1540,6 +1599,7 @@ function beginFinish() {
   if (S.sacQueue.length) S.finishing = true; else finish();
 }
 function finish() {
+  announce(`Crawl complete: ${plural(crawled, "keyword")} collected.`);
   S.mode = "done"; S.target = null; S.finishing = false;
   if (S.doneAt !== crawled) { S.doneAt = crawled; log("DONE", plural(crawled, "keyword") + " collected"); }
   startExit();
@@ -1608,6 +1668,7 @@ function mergeSacs(a, b) {
     keys: [...new Set([...a.keys, ...b.keys])], bucket: "m", label: `${a.label} + ${b.label}`, color: a.color, summary: "" };
   for (const s of [a, b]) { s.state = "vanish"; s.vanishTo = { x: m.x, y: m.y }; s.vt = now; s.r0 = s.r; }
   sacs.push(m); anchorSac(m);
+  collabSacGone(a); collabSacGone(b); collabSac(m);
   log("SAC", `Merged #${a.n} and #${b.n} into #${m.n}`);
   return m;
 }
@@ -1620,6 +1681,7 @@ function splitSac(sac, majorKey) {
   const ns = { n: ++sacCount, x: sac.x + 46, y: sac.y + 12, r: 0, grow: true, wrap: 1, state: sac.state === "hatched" ? "hatched" : "full",
     fullAt: performance.now(), keys: [...move], bucket: sac.bucket, label: m.k.label, color: sac.color, summary: "" };
   sacs.push(ns); anchorSac(ns);
+  collabSac(sac); collabSac(ns);
   log("SAC", `Split “${m.k.label}” out of #${sac.n} into #${ns.n}`);
   updateStats();
   return ns;
@@ -1735,6 +1797,7 @@ function restart() {
 
 function loadDoc(d) {
   DOC = d; DOC.highlights = DOC.highlights || []; DOC.asks = DOC.asks || []; DOC.libId = DOC.libId || null;
+  document.documentElement.lang = d.lang || "en";
   DOC.sources = DOC.sources && DOC.sources.length ? DOC.sources : [{ title: d.title, cite: d.cite || "", author: "", year: "" }];
   loadNotes();
   $("docTitle").textContent = d.title;
@@ -2682,7 +2745,7 @@ function copyCitation(i) {
 }
 
 // ---- your notes on keywords and passages (kept with the crawl and in the library)
-const noteKey = () => "silk-notes:" + (DOC.title + "|" + DOC.words).slice(0, 180);
+const noteKey = () => "cak3d-notes:" + (DOC.title + "|" + DOC.words).slice(0, 180);
 function loadNotes() { DOC.notes = DOC.notes || store.get(noteKey()) || { k: {}, s: {} }; }
 function saveNotes() { store.set(noteKey(), DOC.notes); }
 let noteTarget = null;
@@ -2696,7 +2759,10 @@ function openNote(kind, id) {
   $("dNote").showModal(); $("noteText").focus();
 }
 function noteBtn(kind, id) { const has = (DOC.notes[kind] || {})[id]; return `<button type="button" class="linkish" data-note-${kind}="${esc(String(id))}">${has ? "Edit note" : "Add note"}</button>`; }
-const noteHTML = (kind, id) => { const t = (DOC.notes[kind] || {})[id]; return t ? `<p class="note">✎ ${esc(t)}</p>` : ""; };
+const noteHTML = (kind, id) => {
+  const t = (DOC.notes[kind] || {})[id], others = typeof otherNotes === "function" ? otherNotes(kind, id) : [];
+  return (t ? `<p class="note">✎ ${esc(t)}</p>` : "") + others.map(o => `<p class="note other">✎ <b>${esc(o.by)}</b>: ${esc(o.text)}</p>`).join("");
+};
 
 function sourcesHTML(si) {
   if (!si || !si.length) return '<p class="meta">No passages recorded.</p>';
@@ -2744,13 +2810,13 @@ function speak(text, btn) {
 }
 
 // ---- learning what you're interested in: keywords you open, pick, note or ask about get crawled first next time
-const INT = store.get("silk-interest") || {};
+const INT = store.get("cak3d-interest") || {};
 let intTimer = 0;
 function bump(label, w = 1) {
   if (!cfg.learn || !label) return;
   const k = String(label).toLowerCase(); INT[k] = (INT[k] || 0) + w;
   clearTimeout(intTimer);
-  intTimer = setTimeout(() => store.set("silk-interest", Object.fromEntries(Object.entries(INT).sort((a, b) => b[1] - a[1]).slice(0, 600))), 800);
+  intTimer = setTimeout(() => store.set("cak3d-interest", Object.fromEntries(Object.entries(INT).sort((a, b) => b[1] - a[1]).slice(0, 600))), 800);
 }
 const interest = n => { if (!cfg.learn) return 0; const k = kwOf(n); return Math.max(INT[k.label.toLowerCase()] || 0, INT[k.key] || 0); };
 
@@ -2767,7 +2833,7 @@ function renderSac() {
   const canSplit = majors.length > 1 || loose.length > 0;
   $("sacName").value = sac.label;
   const topics = new Set([...inSac].map(k => DOC.kw.get(k).cat));
-  $("sacMeta").textContent = `Sac #${sac.n} · ${plural(inSac.size, "keyword")} · ${plural(topics.size, "topic")} · ${sac.state === "hatched" ? "hatched" : "about to hatch"}. Click a keyword to open it in the web view.`;
+  $("sacMeta").textContent = `${sac.byLabel ? "By " + sac.byLabel + " · " : ""}Sac #${sac.n} · ${plural(inSac.size, "keyword")} · ${plural(topics.size, "topic")} · ${sac.state === "hatched" ? "hatched" : "about to hatch"}. Click a keyword to open it in the web view.`;
   $("sacTree").innerHTML = majors.map(m => `
     <li style="--dot:${catColorVar(m.k.cat)}">
       <div class="major"><i class="dot"></i>${btn(m.k, "term-btn")}<span class="cnt">${m.k.count} · ${esc(DOC.cats[m.k.cat].name)}</span>${
@@ -2807,7 +2873,7 @@ async function summarizeSac() {
   sacCtl = new AbortController();
   try {
     const { text } = await SAMPLE(prompt, { signal: sacCtl.signal, onText: ({ text }) => { if (curSac === sac) out.textContent = text; } });
-    sac.summary = text; sac.summarySi = si;
+    sac.summary = text; sac.summarySi = si; collabSac(sac);
     if (curSac === sac) renderSac();
   } catch (e) {
     const msg = sampleErr(e);
@@ -2818,7 +2884,7 @@ $("sacSumBtn").onclick = summarizeSac;
 $("sacStop").onclick = () => sacCtl && sacCtl.abort();
 $("sacClose").onclick = () => $("dSac").close();
 $("dSac").addEventListener("close", () => { if (sacCtl) sacCtl.abort(); curSac = null; });
-$("sacName").addEventListener("change", () => { if (curSac) { curSac.label = $("sacName").value.trim() || curSac.label; } });
+$("sacName").addEventListener("change", () => { if (curSac) { curSac.label = $("sacName").value.trim() || curSac.label; collabSac(curSac); } });
 $("sacMerge").onclick = () => { const o = sacs[+$("sacMergeSel").value]; if (curSac && o) { const m = mergeSacs(curSac, o); curSac = m; renderSac(); } };
 $("sacExport").onclick = () => { if (curSac) saveFile(`${slug(curSac.label)}-sac.md`, sacMarkdown(curSac)); };
 $("dSac").addEventListener("click", e => { const c = e.target.closest("[data-si]"); if (c) jumpToSentence(+c.dataset.si); });
@@ -2887,18 +2953,55 @@ function refreshWeb(full) {
   if (WV.tab === "timeline") drawTimeline();
   if (full && WV.tab === "compare") renderCompare();
   if (full && WV.tab === "cards") renderCards();
+  if (full && WV.tab === "site") renderSiteMap();
 }
 function setTab(tab) {
   WV.tab = tab;
   for (const b of $("wvTabs").children) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
-  $("pGraph").hidden = tab !== "graph"; $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards";
+  $("pGraph").hidden = tab !== "graph"; $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
+  if (tab === "site") renderSiteMap();
   if (tab === "timeline") drawTimeline();
   if (tab === "compare") renderCompare();
   if (tab === "cards") renderCards();
 }
 $("wvTabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
+const hasSiteMap = () => (DOC.sources || []).some(x => x.depth > 0);
+// the site map: the first page in the middle, each level of links on a ring around it
+function renderSiteMap() {
+  const el = $("pSite"), P = DOC.sources || [];
+  if (!hasSiteMap()) { el.innerHTML = '<p class="meta">The site map appears when you load a web page and let the spider follow its links (Source → A web page → Crawl further).</p>'; return; }
+  const kids = P.map(() => []); P.forEach((x, i) => { if (x.parent >= 0 && kids[x.parent]) kids[x.parent].push(i); });
+  const ang = new Array(P.length).fill(0), leaves = [];
+  (function walk(i) { if (!kids[i].length) leaves.push(i); kids[i].forEach(walk); })(0);
+  leaves.forEach((i, k) => { ang[i] = k / Math.max(1, leaves.length) * Math.PI * 2; });
+  (function up(i) { if (kids[i].length) { kids[i].forEach(up); ang[i] = kids[i].reduce((a, c) => a + ang[c], 0) / kids[i].length; } })(0);
+  const sents = new Map(); (DOC.sentSrc || []).forEach(x => sents.set(x, (sents.get(x) || 0) + 1));
+  const kws = new Map(); for (const k of DOC.kw.values()) for (const x of k.srcs || []) kws.set(x, (kws.get(x) || 0) + 1);
+  const R = 170, maxD = P.reduce((m, x) => Math.max(m, x.depth || 0), 0), half = maxD * R + 190;
+  const pos = P.map((x, i) => { const r = (x.depth || 0) * R; return { x: Math.cos(ang[i] - Math.PI / 2) * r, y: Math.sin(ang[i] - Math.PI / 2) * r }; });
+  const lines = P.map((x, i) => x.parent >= 0 ? `<line x1="${pos[x.parent].x.toFixed(1)}" y1="${pos[x.parent].y.toFixed(1)}" x2="${pos[i].x.toFixed(1)}" y2="${pos[i].y.toFixed(1)}" stroke="var(--silk)" stroke-opacity=".6"/>` : "").join("");
+  const rings = Array.from({ length: maxD }, (_, d) => `<circle cx="0" cy="0" r="${(d + 1) * R}" fill="none" stroke="var(--rule)" stroke-dasharray="4 6"/>`).join("");
+  const dots = P.map((x, i) => {
+    const r = clamp(7 + Math.sqrt(sents.get(i) || 1) / 2, 7, 20), host = isUrl(x.cite) ? new URL(x.cite).hostname.replace(/^www\./, "") : "";
+    const label = `${x.title}, ${x.depth ? "level " + x.depth : "starting page"}, ${plural(kws.get(i) || 0, "keyword")}${host ? ", " + host : ""}`;
+    return `<a href="#" data-srcjump="${i}" aria-label="${esc(label)}"><circle cx="${pos[i].x.toFixed(1)}" cy="${pos[i].y.toFixed(1)}" r="${r.toFixed(1)}" fill="var(--c${(x.depth || 0) % 8})"><title>${esc(label)}</title></circle>
+      <text x="${(pos[i].x + r + 5).toFixed(1)}" y="${(pos[i].y + 4).toFixed(1)}">${esc(trunc(x.title, 34))}</text></a>`;
+  }).join("");
+  const tree = i => `<li><button type="button" class="linkish" data-srcjump="${i}">${esc(P[i].title)}</button> <span class="meta">${plural(kws.get(i) || 0, "keyword")}${isUrl(P[i].cite) ? " · " + esc(new URL(P[i].cite).hostname.replace(/^www\./, "")) : ""}</span>${kids[i].length ? "<ul>" + kids[i].map(tree).join("") + "</ul>" : ""}</li>`;
+  el.innerHTML = `<p class="meta" style="margin-bottom:10px">${plural(P.length, "page")} crawled, ${plural(maxD, "level")} deep. Each ring is one more link away from the starting page; bigger dots have more text. Click a page to jump to it.</p>
+    <svg class="sitemap" viewBox="${-half} ${-half} ${half * 2} ${half * 2}" role="group" aria-label="Site map">${rings}${lines}${dots}</svg>
+    <h3 class="sub" style="margin-top:16px">Pages</h3><ul class="sitetree">${tree(0)}</ul>`;
+}
+$("pSite").addEventListener("click", e => {
+  const b = e.target.closest("[data-srcjump]"); if (!b) return;
+  e.preventDefault();
+  const i = +b.dataset.srcjump, mark = page.querySelectorAll(".srcmark")[i] || page.querySelector("h1");
+  closeWeb(); setFollow(false);
+  if (mark) { mark.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" }); const h = mark.nextElementSibling; if (h) { h.classList.remove("flash-block"); void h.offsetWidth; h.classList.add("flash-block"); } }
+});
 
 function openWeb(sel) {
+  $("tabSite").hidden = !hasSiteMap(); if (WV.tab === "site" && !hasSiteMap()) WV.tab = "graph";
   hidePop();
   WV.open = true; if (sel) WV.sel = sel;
   $("wv").hidden = false; document.body.style.overflow = "hidden";
@@ -2952,8 +3055,14 @@ function renderSide() {
     const top = [...sk].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 6).sort((a, b) => a[0] - b[0]);
     if (top.length) parts.push(`<div><h3>Passages on “${esc(focusTerms().join(" "))}”</h3>${top.map(([i]) => `<p class="quote">${esc(trunc(DOC.sents[i], 380)).replace(new RegExp(re.source + "\\p{L}*", "giu"), x => `<mark>${x}</mark>`)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("")}</div>`);
   }
-  const kn = Object.entries(DOC.notes.k).filter(([key]) => DOC.kw.has(key)), sn = Object.entries(DOC.notes.s);
-  if (kn.length || sn.length) parts.push(`<div><h3>Your notes</h3>${kn.map(([key, t]) => `<p class="quote"><button type="button" class="linkish" data-key="${esc(key)}">${esc(DOC.kw.get(key).label)}</button>: ${esc(t)}</p>`).join("")}${sn.map(([i, t]) => `<p class="quote"><span class="loc">${esc(sentLoc(+i))}</span>“${esc(trunc(DOC.sents[+i] || "", 140))}” <br>✎ ${esc(t)} <button type="button" class="linkish" data-jump="${i}">show</button></p>`).join("")}</div>`);
+  // everyone's notes: yours, plus teammates' (live or merged from a crawl file)
+  const all = [...Object.entries(DOC.notes.k).map(([target, text]) => ({ kind: "k", target, text, by: "" })), ...Object.entries(DOC.notes.s).map(([target, text]) => ({ kind: "s", target, text, by: "" })),
+    ...(COLLAB ? COLLAB.notes.map(n => ({ kind: n.kind, target: n.target, text: n.text, by: personName(n.by) })) : []), ...(DOC.extNotes || []).map(n => ({ kind: n.kind, target: n.target, text: n.text, by: n.by || "Someone" }))]
+    .filter(n => n.kind === "s" || DOC.kw.has(n.target));
+  const who = n => n.by ? `<b>${esc(n.by)}</b>: ` : "";
+  if (all.length) parts.push(`<div><h3>${all.some(n => n.by) ? "Notes" : "Your notes"}</h3>${all.map(n => n.kind === "k"
+    ? `<p class="quote"><button type="button" class="linkish" data-key="${esc(n.target)}">${esc(DOC.kw.get(n.target).label)}</button>: ${who(n)}${esc(n.text)}</p>`
+    : `<p class="quote"><span class="loc">${esc(sentLoc(+n.target))}</span>“${esc(trunc(DOC.sents[+n.target] || "", 140))}” <br>✎ ${who(n)}${esc(n.text)} <button type="button" class="linkish" data-jump="${n.target}">show</button></p>`).join("")}</div>`);
   if (multiSource()) {
     const shared = [...DOC.kw.values()].filter(k => k.srcs && k.srcs.size > 1).sort((a, b) => b.srcs.size - a.srcs.size || b.count - a.count).slice(0, 30);
     if (shared.length) parts.push(`<div><h3>Where sources agree</h3><p class="meta" style="margin-bottom:8px">Keywords that come up in more than one source.</p><div class="list">${shared.map(kwChip).join("")}</div></div>`);
@@ -3108,6 +3217,51 @@ gcv.addEventListener("pointerup", () => {
   } else if (!n && !panned && WV.sel) { WV.sel = null; renderSide(); }
 });
 gcv.addEventListener("pointerleave", () => { WV.hover = null; });
+function describeKw(k) {
+  const nb = [...k.nb].sort((a, b) => b[1] - a[1]).map(([key]) => WV.byKey.get(key)).filter(Boolean).slice(0, 4).map(n => n.k.label);
+  return `${k.label}. ${DOC.cats[k.cat].name}. In ${plural(k.count, "sentence")}${k.crawled ? "" : ", not crawled yet"}.${nb.length ? " Connected to " + nb.join(", ") + "." : ""}`;
+}
+function selectGraphNode(n) { if (!n) return; WV.sel = n.k.key; renderSide(); announce(describeKw(n.k)); }
+gcv.addEventListener("keydown", e => {
+  const N = WV.nodes; if (!N.length) return;
+  const cur = WV.sel && WV.byKey.get(WV.sel);
+  const dirs = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] };
+  if (dirs[e.key]) {
+    e.preventDefault();
+    if (!cur) { selectGraphNode([...N].sort((a, b) => b.k.count - a.k.count)[0]); return; }
+    // the nearest keyword roughly in that direction
+    const [dx, dy] = dirs[e.key]; let best = null, bs = Infinity;
+    for (const n of N) {
+      if (n === cur) continue;
+      const vx = n.sx - cur.sx, vy = n.sy - cur.sy, along = vx * dx + vy * dy; if (along <= 0) continue;
+      const across = Math.abs(vx * dy - vy * dx), sc = along + across * 2.2;
+      if (sc < bs) { bs = sc; best = n; }
+    }
+    if (best) selectGraphNode(best); else announce("No more keywords that way.");
+  } else if (e.key === "Enter" && cur) { e.preventDefault(); const t = $("wvSide").querySelector(".term"); if (t) { t.tabIndex = -1; t.focus(); } }
+  else if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomBy(1.3); }
+  else if (e.key === "-") { e.preventDefault(); zoomBy(1 / 1.3); }
+  else if (e.key === "0") { e.preventDefault(); $("gFit").click(); }
+  else if (e.key.toLowerCase() === "l") { e.preventDefault(); e.stopPropagation(); toggleGraphList(true); } // not the app-wide L (Library)
+});
+function renderGraphList() {
+  const ks = visibleKw(), el = $("gList");
+  el.innerHTML = '<p class="meta">Every keyword in the web, grouped by topic. Choose one to see its connections and where it appears.</p>' + DOC.cats.map((c, i) => {
+    const list = ks.filter(k => k.cat === i).sort((a, b) => b.count - a.count); if (!list.length) return "";
+    return `<h3>${esc(c.name)} <span class="meta">(${plural(list.length, "keyword")})</span></h3><ul>${list.map(k => {
+      const nb = [...k.nb].sort((a, b) => b[1] - a[1]).map(([key]) => DOC.kw.get(key)).filter(x => x && ks.includes(x)).slice(0, 3).map(x => x.label);
+      return `<li><button type="button" class="linkish term-btn" data-key="${esc(k.key)}">${esc(k.label)}</button> <span class="meta">${plural(k.count, "sentence")}${nb.length ? " · connected to " + esc(nb.join(", ")) : ""}</span></li>`;
+    }).join("")}</ul>`;
+  }).join("");
+}
+function toggleGraphList(on) {
+  const show = on == null ? $("gList").hidden : on;
+  $("gList").hidden = !show; $("gListBtn").setAttribute("aria-pressed", String(show));
+  $("gListBtn").textContent = show ? "Graph view" : "List view";
+  if (show) { renderGraphList(); const b = $("gList").querySelector("button"); if (b) b.focus(); } else gcv.focus();
+}
+$("gListBtn").onclick = () => toggleGraphList();
+$("gList").addEventListener("click", e => { const b = e.target.closest("[data-key]"); if (b) { WV.sel = b.dataset.key; renderSide(); $("wvSide").scrollTop = 0; } });
 function zoomBy(f, cx, cy) {
   const w = gcv.clientWidth, h = gcv.clientHeight, z = clamp(WV.zoom * f, 0.4, 5), k = z / WV.zoom;
   const px = (cx == null ? w / 2 : cx) - w / 2, py = (cy == null ? h / 2 : cy) - h / 2;
@@ -3187,6 +3341,9 @@ function drawTimeline() {
     g.globalAlpha = 1; g.strokeStyle = C.rule; g.beginPath(); g.moveTo(left, y + rowH - 0.5); g.lineTo(left + tw, y + rowH - 0.5); g.stroke();
   });
   WV.tl = { left, tw, N, rows: rows.map(r => r.idx), top, rowH };
+  const third = ["the beginning", "the middle", "the end"];
+  $("tlText").innerHTML = "<ul>" + rows.map(r => { const c = [0, 0, 0]; for (const i of r.idx) c[Math.min(2, Math.floor(i / N * 3))]++; const m = c.indexOf(Math.max(...c));
+    return `<li>${esc(r.label)}: ${plural(r.idx.length, "mention")}, most in ${third[m]}.</li>`; }).join("") + "</ul>";
 }
 $("tlCanvas").addEventListener("click", e => {
   const t = WV.tl; if (!t) return;
@@ -3244,8 +3401,12 @@ function renderCompare() {
 }
 $("pCompare").addEventListener("click", e => { const k = e.target.closest("[data-key]"); if (k) setTab("graph"); });
 
-// flashcards
-const FC = { i: 0, flip: false, order: [], known: new Set() };
+// flashcards: a study session with spaced repetition (SM-2), or browse them all
+const FC = { mode: "study", i: 0, flip: false, order: [], known: new Set(), cur: null, done: 0 };
+const DAY = 86400000;
+const srsKey = () => "cak3d-srs:" + (DOC.title + "|" + DOC.words).slice(0, 180);
+function loadSrs() { DOC.srs = DOC.srs || store.get(srsKey()) || {}; }
+function saveSrs() { store.set(srsKey(), DOC.srs); }
 function cardKeys() {
   let ks = [...DOC.kw.values()].filter(k => k.crawled);
   if (!ks.length) ks = [...DOC.kw.values()].filter(k => k.rel > 0);
@@ -3253,25 +3414,65 @@ function cardKeys() {
 }
 function cardBack(k) {
   const re = focusRe();
-  let si = k.si; if (re) { const h = si.filter(i => re.test(DOC.sents[i])); if (h.length) si = h; }
+  let si = k.si.filter(i => !isHeadingSent(i)); if (!si.length) si = k.si;
+  if (re) { const h = si.filter(i => re.test(DOC.sents[i])); if (h.length) si = h; }
   return si.length ? DOC.sents[si[0]] : "";
 }
+// q: 0 again, 1 hard, 2 good, 3 easy
+function schedule(prev, q) {
+  const st = Object.assign({ ef: 2.5, n: 0, iv: 0, lapses: 0 }, prev || {});
+  if (q === 0) { st.n = 0; st.iv = 0; st.lapses++; st.due = Date.now() + 10 * 60000; return st; }
+  st.n++;
+  st.iv = st.n === 1 ? (q === 3 ? 4 : 1) : st.n === 2 ? (q === 1 ? 3 : q === 3 ? 8 : 6) : Math.max(1, Math.round(st.iv * st.ef * (q === 1 ? 0.75 : q === 3 ? 1.3 : 1)));
+  st.ef = Math.max(1.3, st.ef + (q === 1 ? -0.15 : q === 3 ? 0.15 : 0));
+  st.due = Date.now() + st.iv * DAY;
+  return st;
+}
+const whenLabel = ms => ms < 3600000 ? `${Math.max(1, Math.round(ms / 60000))} min` : ms < 1.5 * DAY ? "1 day" : ms < 60 * DAY ? `${Math.round(ms / DAY)} days` : `${Math.round(ms / (30 * DAY))} months`;
+function srsCounts() {
+  const now = Date.now(); let due = 0, fresh = 0, learned = 0, next = Infinity;
+  for (const k of cardKeys()) { const st = DOC.srs[k]; if (!st) fresh++; else if (st.due <= now) due++; else { learned++; next = Math.min(next, st.due); } }
+  return { due, fresh, learned, next };
+}
+function nextStudyCard() {
+  const now = Date.now(), keys = cardKeys();
+  const reviews = keys.filter(k => DOC.srs[k] && DOC.srs[k].due <= now).sort((a, b) => DOC.srs[a].due - DOC.srs[b].due);
+  return reviews[0] || keys.find(k => !DOC.srs[k]) || null;
+}
+function cardFace(k, flip) {
+  const back = cardBack(k), rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
+  return flip
+    ? `<span class="tag">${esc(k.label)}</span><p class="back">${back ? hiKey(back, k, null) : "No sentence recorded."}</p>${rel.length ? `<p class="meta">Related: ${esc(rel.join(", "))}</p>` : ""}${noteHTML("k", k.key)}`
+    : `<span class="tag">${esc(DOC.cats[k.cat].name)}</span><span class="big">${esc(k.label)}</span><span class="meta">What does the text say about this?</span>`;
+}
 function renderCards() {
-  const keys = cardKeys();
-  if (FC.order.length !== keys.length || FC.order.some(k => !DOC.kw.has(k))) { FC.order = keys; FC.i = 0; FC.flip = false; }
-  const el = $("pCards");
-  if (!FC.order.length) { el.innerHTML = '<p class="meta">Flashcards are made from the keywords the spider crawls. Start the crawl, then come back.</p>'; return; }
+  loadSrs();
+  const el = $("pCards"), keys = cardKeys();
+  if (!keys.length) { el.innerHTML = '<p class="meta">Flashcards are made from the keywords the spider crawls. Start the crawl, then come back.</p>'; return; }
+  const modes = `<div class="tabs" role="tablist" aria-label="Flashcard mode"><button type="button" role="tab" data-fcmode="study" aria-selected="${FC.mode === "study"}">Study session</button><button type="button" role="tab" data-fcmode="browse" aria-selected="${FC.mode === "browse"}">Browse all</button></div>`;
+  if (FC.mode === "study") {
+    if (!FC.cur || !DOC.kw.has(FC.cur)) { FC.cur = nextStudyCard(); FC.flip = false; }
+    const c = srsCounts();
+    const head = `<p class="meta">${c.due} due · ${c.fresh} new · ${c.learned} learned${FC.done ? ` · ${FC.done} reviewed this session` : ""}</p>`;
+    if (!FC.cur) {
+      el.innerHTML = `<div class="cards">${modes}${head}<div class="card done-card"><span class="big">All caught up</span><span class="meta">${c.next < Infinity ? `The next card is due in ${whenLabel(c.next - Date.now())}.` : "Crawl more keywords to get more cards."} Come back then, or browse all the cards.</span></div></div>`;
+      return;
+    }
+    const k = DOC.kw.get(FC.cur), st = DOC.srs[FC.cur];
+    const grades = [["Again", 0], ["Hard", 1], ["Good", 2], ["Easy", 3]].map(([l, q], n) =>
+      `<button class="btn${q === 2 ? " primary" : ""}" type="button" data-grade="${q}" aria-keyshortcuts="${n + 1}">${l} <span class="cnt">${q === 0 ? "10 min" : whenLabel(schedule(st, q).due - Date.now())}</span></button>`).join("");
+    el.innerHTML = `<div class="cards">${modes}${head}
+      <div class="card" id="card" tabindex="0" role="button" aria-label="${FC.flip ? "Answer shown" : "Show the answer"}" style="--dot:${catColorVar(k.cat)}">${cardFace(k, FC.flip)}</div>
+      <div class="card-nav">${FC.flip ? grades : `<button class="btn primary" type="button" data-fc="flip">Show answer</button>`}</div>
+      <p class="meta">${FC.flip ? "How well did you know it? Keys 1 to 4." : "Press Space to show the answer."}${st ? ` Reviewed ${plural(st.n, "time")} in a row.` : " New card."}</p></div>`;
+    return;
+  }
+  if (FC.order.length !== keys.length || FC.order.some(key => !DOC.kw.has(key))) { FC.order = keys; FC.i = 0; FC.flip = false; }
   FC.i = clamp(FC.i, 0, FC.order.length - 1);
   const k = DOC.kw.get(FC.order[FC.i]);
-  const back = cardBack(k);
-  const rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
-  el.innerHTML = `<div class="cards">
+  el.innerHTML = `<div class="cards">${modes}
     <p class="meta">Card ${FC.i + 1} of ${FC.order.length} · ${FC.known.size} known · click the card or press Space to flip</p>
-    <div class="card" id="card" tabindex="0" role="button" aria-label="Flip card" style="--dot:${catColorVar(k.cat)}">
-      ${FC.flip
-        ? `<span class="tag">${esc(k.label)}</span><p class="back">${back ? hiKey(back, k, null) : "No sentence recorded."}</p>${rel.length ? `<p class="meta">Related: ${esc(rel.join(", "))}</p>` : ""}`
-        : `<span class="tag">${esc(DOC.cats[k.cat].name)}</span><span class="big">${esc(k.label)}</span><span class="meta">What does the text say about this?</span>`}
-    </div>
+    <div class="card" id="card" tabindex="0" role="button" aria-label="Flip card" style="--dot:${catColorVar(k.cat)}">${cardFace(k, FC.flip)}</div>
     <div class="card-nav">
       <button class="btn" type="button" data-fc="prev">← Back</button>
       <button class="btn" type="button" data-fc="flip">Flip</button>
@@ -3281,7 +3482,17 @@ function renderCards() {
       <button class="btn" type="button" data-fc="shuffle">Shuffle</button>
     </div></div>`;
 }
+function gradeCard(q) {
+  if (FC.mode !== "study" || !FC.cur || !FC.flip) return;
+  const k = DOC.kw.get(FC.cur);
+  DOC.srs[FC.cur] = schedule(DOC.srs[FC.cur], q); saveSrs();
+  FC.done++; FC.cur = null; FC.flip = false;
+  renderCards();
+  announce(`${k ? k.label : "Card"}: next review in ${whenLabel(DOC.srs[k.key].due - Date.now())}.`);
+  const c = $("card"); if (c) c.focus({ preventScroll: true });
+}
 function fcAct(a) {
+  if (FC.mode === "study") { if (a === "flip") { FC.flip = true; renderCards(); const c = $("card"); if (c) c.focus({ preventScroll: true }); } return; }
   const n = FC.order.length; if (!n) return;
   if (a === "flip") FC.flip = !FC.flip;
   else if (a === "next") { FC.i = (FC.i + 1) % n; FC.flip = false; }
@@ -3292,7 +3503,54 @@ function fcAct(a) {
   renderCards();
   const c = $("card"); if (c) c.focus({ preventScroll: true });
 }
-$("pCards").addEventListener("click", e => { const b = e.target.closest("[data-fc]"); if (b) fcAct(b.dataset.fc); else if (e.target.closest("#card")) fcAct("flip"); });
+$("pCards").addEventListener("click", e => {
+  const m = e.target.closest("[data-fcmode]"); if (m) { FC.mode = m.dataset.fcmode; FC.flip = false; FC.cur = null; renderCards(); return; }
+  const g = e.target.closest("[data-grade]"); if (g) { gradeCard(+g.dataset.grade); return; }
+  const b = e.target.closest("[data-fc]"); if (b) fcAct(b.dataset.fc); else if (e.target.closest("#card")) fcAct("flip");
+});
+
+// ---------------- Zotero and BibTeX ----------------
+function srcKeywords(i, n) { return [...DOC.kw.values()].filter(k => k.srcs && k.srcs.has(i) && k.crawled).sort((a, b) => b.count - a.count).slice(0, n).map(k => k.label); }
+function srcNotes(i) {
+  const out = [];
+  for (const [si, t] of Object.entries(DOC.notes.s)) if (srcIdx(+si) === i) out.push(`${sentLoc(+si)}: “${trunc(DOC.sents[+si] || "", 200)}” ${t}`);
+  for (const [key, t] of Object.entries(DOC.notes.k)) { const k = DOC.kw.get(key); if (k && k.srcs && k.srcs.has(i)) out.push(`${k.label}: ${t}`); }
+  return out;
+}
+const bibEsc = t => String(t || "").replace(/([{}&%$#_\\])/g, "\\$1");
+const bibAuthor = a => (a || "").split(/;|&| and /).map(x => invName(x.trim())).filter(Boolean).join(" and ");
+function toBibTeX() {
+  const used = new Set();
+  return (DOC.sources || []).map((x, i) => {
+    let key = ((lastName(x.author) || (x.title || "source").split(/\s+/)[0]).normalize("NFD").replace(/[^A-Za-z0-9]/g, "") || "source") + (x.year || "nd");
+    while (used.has(key)) key += "a"; used.add(key);
+    const url = isUrl(x.cite) ? x.cite : "", type = url ? "online" : x.site ? "misc" : "book";
+    const f = [["title", x.title], ["author", bibAuthor(x.author)], ["year", x.year], ["url", url], ["urldate", url ? x.accessed : ""],
+      ["organization", type === "online" ? x.site : ""], ["howpublished", type === "misc" ? x.site : ""], ["keywords", srcKeywords(i, 15).join(", ")],
+      ["note", srcNotes(i).join(" | ")], ["annote", x.cite && !url ? x.cite : ""]].filter(([, v]) => v);
+    return `@${type}{${key},\n${f.map(([k, v]) => `  ${k} = {${k === "url" ? v : bibEsc(v)}}`).join(",\n")}\n}`;
+  }).join("\n\n") + "\n";
+}
+function toRIS() {
+  return (DOC.sources || []).map((x, i) => {
+    const url = isUrl(x.cite) ? x.cite : "", lines = [["TY", url ? "ELEC" : x.site ? "GEN" : "BOOK"], ["TI", x.title]];
+    for (const a of (x.author || "").split(/;|&| and /).map(s => invName(s.trim())).filter(Boolean)) lines.push(["AU", a]);
+    if (x.year) lines.push(["PY", x.year]);
+    if (url) { lines.push(["UR", url]); if (x.accessed) lines.push(["Y2", x.accessed.replace(/-/g, "/")]); }
+    if (x.site) lines.push(["PB", x.site]);
+    for (const k of srcKeywords(i, 20)) lines.push(["KW", k]);
+    for (const n of srcNotes(i)) lines.push(["N1", n.replace(/\s+/g, " ")]);
+    if (x.cite && !url) lines.push(["N1", "Source: " + x.cite]);
+    lines.push(["ER", ""]);
+    return lines.map(([t, v]) => `${t}  - ${v}`).join("\r\n");
+  }).join("\r\n\r\n") + "\r\n";
+}
+function exportRefs(kind) {
+  const text = kind === "bib" ? toBibTeX() : toRIS(), name = `${slug(DOC.title)}.${kind}`;
+  // claude.ai can't save .bib/.ris files, so copy instead; Zotero imports straight from the clipboard
+  if (window.claude) copyText(text, `Copied as ${kind === "bib" ? "BibTeX" : "RIS"}. In Zotero choose File → Import from Clipboard.`);
+  else saveFile(name, text);
+}
 
 // ---------------- exports ----------------
 const slug = s => (s || "notes").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "notes";
@@ -3432,7 +3690,7 @@ $("fAsk").addEventListener("submit", async e => {
   askCtl = new AbortController();
   try {
     const { text } = await SAMPLE(prompt, { signal: askCtl.signal, onText: ({ text }) => { out.textContent = text; } });
-    entry.a = text; renderAnswer(text, si);
+    entry.a = text; renderAnswer(text, si); announce(`Answer ready, citing ${plural(si.length, "source")}.`);
   } catch (ex) {
     const msg = sampleErr(ex);
     renderAnswer((ex && ex.text ? ex.text + "\n\n" : "") + (msg || ""), si);
@@ -3455,7 +3713,7 @@ const chunkText = t => { const out = []; for (let i = 0; i < (t || "").length; i
 const LIB = {
   async list() {
     if (DBX) { const q = await DBX.collection(`data/users/${UID}`).where("kind", "==", "crawl").get(); return q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.savedAt - a.savedAt); }
-    return (store.get("silk-lib") || []).sort((a, b) => b.savedAt - a.savedAt);
+    return (store.get("cak3d-lib") || []).sort((a, b) => b.savedAt - a.savedAt);
   },
   async save(id, state, raw, craw) {
     const meta = Object.assign({}, state, { kind: "crawl", savedAt: Date.now() });
@@ -3471,10 +3729,10 @@ const LIB = {
       await ref.set(meta);
       return;
     }
-    const idx = (store.get("silk-lib") || []).filter(m => m.id !== id);
+    const idx = (store.get("cak3d-lib") || []).filter(m => m.id !== id);
     const small = Object.assign({ id }, meta); delete small.sacs; delete small.asks;
-    if (!store.set("silk-lib-" + id, { state: meta, raw, craw })) throw { code: "quota_exceeded" };
-    idx.push(small); store.set("silk-lib", idx);
+    if (!store.set("cak3d-lib-" + id, { state: meta, raw, craw })) throw { code: "quota_exceeded" };
+    idx.push(small); store.set("cak3d-lib", idx);
   },
   async load(id) {
     if (DBX) {
@@ -3485,7 +3743,7 @@ const LIB = {
       for (let i = 0; i < (st.cchunks || 0); i++) { const c = await ref.collection("cchunks").doc(String(i)).get(); craw += c.exists ? c.data().t : ""; }
       return { state: st, raw, craw };
     }
-    const e = store.get("silk-lib-" + id); if (!e) throw { code: "missing" };
+    const e = store.get("cak3d-lib-" + id); if (!e) throw { code: "missing" };
     return e;
   },
   async remove(id, meta) {
@@ -3495,7 +3753,7 @@ const LIB = {
       for (let i = 0; i < (meta.cchunks || 0); i++) await ref.collection("cchunks").doc(String(i)).delete();
       await ref.delete(); return;
     }
-    store.set("silk-lib-" + id, null); store.set("silk-lib", (store.get("silk-lib") || []).filter(m => m.id !== id));
+    store.set("cak3d-lib-" + id, null); store.set("cak3d-lib", (store.get("cak3d-lib") || []).filter(m => m.id !== id));
   }
 };
 function captureState(name) {
@@ -3508,7 +3766,7 @@ function captureState(name) {
     cite: DOC.cite || "",
     asks: DOC.asks.slice(-30).map(a => ({ q: a.q, a: trunc(a.a || "", 4000), si: a.si || [] })),
     compareTitle: DOC.compare ? DOC.compare.title : "", words: DOC.words, kwCount: DOC.kw.size,
-    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }
+    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || []
   };
 }
 function restoreState(st, raw, craw, id) {
@@ -3519,6 +3777,8 @@ function restoreState(st, raw, craw, id) {
   d.libId = id; d.asks = st.asks || []; if (st.cite) d.cite = st.cite;
   if (st.sources && st.sources.length) d.sources = st.sources;
   if (st.notes) d.notes = st.notes;
+  if (st.srs) d.srs = st.srs;
+  if (st.extNotes) d.extNotes = st.extNotes;
   if (craw) d.compare = buildCompare(craw, st.compareTitle);
   loadDoc(d);
   for (const t of st.highlights || []) addHighlight(t, null, true);
@@ -3576,7 +3836,8 @@ $("libList").addEventListener("click", async e => {
     catch (err) { $("libMsg").textContent = "Couldn't delete that crawl right now."; }
   }
 });
-function openLib() { $("libMsg").textContent = ""; if (!$("libName").value) $("libName").value = DOC.title; renderLib(); if (!$("dLib").open) $("dLib").showModal(); }
+function openLib() {
+  renderCollabBox(); $("libMsg").textContent = ""; if (!$("libName").value) $("libName").value = DOC.title; renderLib(); if (!$("dLib").open) $("dLib").showModal(); }
 $("bLib").onclick = openLib;
 
 // ---------------- shared actions: citations, notes and listening work wherever a passage is shown ----------------
@@ -3600,9 +3861,10 @@ $("fNote").addEventListener("submit", e => {
   e.preventDefault();
   const { kind, id } = noteTarget, t = $("noteText").value.trim();
   if (t) { DOC.notes[kind][id] = t; if (kind === "k") bump((DOC.kw.get(id) || {}).label, 3); } else delete DOC.notes[kind][id];
+  collabNote(kind, id, t);
   $("dNote").close(); refreshNotesViews(); flash(t ? "Note saved." : "Note removed.");
 });
-$("noteDel").onclick = () => { delete DOC.notes[noteTarget.kind][noteTarget.id]; $("dNote").close(); refreshNotesViews(); flash("Note removed."); };
+$("noteDel").onclick = () => { delete DOC.notes[noteTarget.kind][noteTarget.id]; collabNote(noteTarget.kind, noteTarget.id, ""); $("dNote").close(); refreshNotesViews(); flash("Note removed."); };
 $("noteCancel").onclick = () => $("dNote").close();
 
 // ---------------- find and contents ----------------
@@ -3679,6 +3941,8 @@ function renderSrcInfo() {
       (isUrl(x.cite) ? '<a href="' + esc(x.cite) + '" target="_blank" rel="noopener">Open ↗</a>' : "") + "</span></li>").join("") + "</ol>";
 }
 $("srcInfoList").addEventListener("click", e => { const b = e.target.closest("[data-copyref]"); if (b) copyText(formatRef(DOC.sources[+b.dataset.copyref], cfg.citeStyle), "Copied the reference."); });
+// after the settings code has saved the new style
+$("cfgCiteStyle").addEventListener("change", () => setTimeout(() => { if (!findP.hidden) renderSrcInfo(); }));
 $("copyBib").onclick = () => copyText(bibliography().join("\n\n"), "Copied the bibliography (" + STYLE_NAMES[cfg.citeStyle] + ").");
 
 // ---------------- read aloud buttons ----------------
@@ -3756,6 +4020,193 @@ function shareHtml() {
     "<footer>Made with CAK3D Crawler · https://github.com/real-CAK3D/CAK3D-Crawler</footer></main></body></html>";
 }
 $("exShare").onclick = () => saveFile(slug(DOC.title) + "-web.html", shareHtml());
+for (const [id, kind] of [["exRis", "ris"], ["exRis2", "ris"], ["exBib", "bib"], ["exBib2", "bib"]]) $(id).onclick = () => exportRefs(kind);
+
+// ---------------- working together ----------------
+// Live (inside claude.ai): a shared crawl lives at crawls/<id> in the artifact's shared storage. Everyone it's
+// shared with can join with the code; their notes and sacs are separate documents that show up for everyone, live.
+// Anywhere: a crawl file (.crawl.json) can be sent around; importing it merges the other person's notes and sacs.
+let COLLAB = null;
+const NAMES = {};
+const hashId = t => { let h = 5381; for (const c of String(t)) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h.toString(36); };
+const noteDocId = (kind, target) => `${UID}_${kind}_${hashId(target)}`;
+const personName = id => id === UID ? "You" : NAMES[id] || "Someone";
+function resolveNames(ids) {
+  const want = [...new Set(ids)].filter(id => id && id !== UID && !(id in NAMES));
+  if (!want.length || !USERCAP) return;
+  USERCAP.profiles(want).then(ps => { for (const id of want) NAMES[id] = (ps[id] && ps[id].name) || "Someone"; collabRefresh(); }).catch(() => {});
+}
+function otherNotes(kind, id) {
+  const live = COLLAB ? COLLAB.notes.filter(n => n.kind === kind && n.target === String(id)).map(n => ({ by: personName(n.by), text: n.text })) : [];
+  const file = (DOC.extNotes || []).filter(n => n.kind === kind && n.target === String(id)).map(n => ({ by: n.by || "Someone", text: n.text }));
+  return live.concat(file);
+}
+function collabPeople() {
+  if (!COLLAB) return 0;
+  return new Set([UID, ...COLLAB.notes.map(n => n.by), ...COLLAB.sacDocs.map(d => d.by)]).size;
+}
+function peopleCount() { const n = collabPeople(); return n === 1 ? "1 person" : n + " people"; }
+function collabRefresh() { refreshNotesViews(); updateStatus(); renderCollabBox(); }
+
+async function collabNote(kind, target, text) {
+  if (!COLLAB || !DBX) return;
+  const ref = DBX.collection(`crawls/${COLLAB.id}/notes`).doc(noteDocId(kind, target));
+  try { if (text) await ref.set({ kind, target: String(target), text, by: UID, at: Date.now() }); else await ref.delete(); }
+  catch (e) { flash("Couldn't share that note. You may only be able to read this crawl."); }
+}
+function sacDoc(sac) { return { keys: [...new Set(sac.keys)], label: sac.label, color: sac.color == null ? null : sac.color, summary: sac.summary || "", summarySi: sac.summarySi || [], by: sac.by || UID, at: Date.now() }; }
+async function collabSac(sac) {
+  if (!COLLAB || !DBX || !sac || sac.state === "vanish") return;
+  sac.docId = sac.docId || `${UID}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+  try { await DBX.collection(`crawls/${COLLAB.id}/sacs`).doc(sac.docId).set(sacDoc(sac)); } catch (e) { /* read-only viewer */ }
+}
+async function collabSacGone(sac) {
+  if (!COLLAB || !DBX || !sac || !sac.docId) return;
+  try { await DBX.collection(`crawls/${COLLAB.id}/sacs`).doc(sac.docId).delete(); } catch (e) { /* read-only viewer */ }
+}
+function placeSac(keys) {
+  const ns = keys.map(k => nodes.find(x => x.key === k)).filter(Boolean);
+  if (!ns.length) return null;
+  let x = ns.reduce((a, n) => a + n.cx, 0) / ns.length + 30, y = ns.reduce((a, n) => a + n.cy, 0) / ns.length + 20;
+  if (Math.max(...ns.map(n => n.cy)) - Math.min(...ns.map(n => n.cy)) > 1200) { x = ns[0].cx + 40; y = ns[0].cy + 30; }
+  return { x, y };
+}
+function addSharedSac(d, byLabel) {
+  const pos = placeSac(d.keys || []); if (!pos) return null;
+  const sac = { n: ++sacCount, x: pos.x, y: pos.y, r: 0, grow: true, wrap: 1, state: "hatched", keys: (d.keys || []).slice(), bucket: "r",
+    label: d.label || "Shared sac", color: d.color == null ? 3 : d.color, summary: d.summary || "", summarySi: d.summarySi || [], fullAt: 0, docId: d.id, by: d.by, byLabel };
+  sacs.push(sac); anchorSac(sac);
+  return sac;
+}
+function syncSacs(docs) {
+  COLLAB.sacDocs = docs;
+  const ids = new Set(docs.map(d => d.id));
+  for (const d of docs) {
+    const mine = sacs.find(x => x.docId === d.id);
+    if (mine) { if (d.by !== UID) { mine.label = d.label; mine.summary = d.summary || ""; mine.summarySi = d.summarySi || []; mine.keys = d.keys || mine.keys; } }
+    else addSharedSac(d, d.by === UID ? "" : personName(d.by));
+  }
+  for (const x of sacs) if (x.docId && !ids.has(x.docId) && x.by && x.by !== UID) x.dead = true;
+  sacs = sacs.filter(x => !x.dead);
+  resolveNames(docs.map(d => d.by));
+  updateStats();
+}
+function subscribeCollab() {
+  const id = COLLAB.id, fail = () => flash("Lost the live connection to the shared crawl. Reopen it from Library to reconnect.");
+  COLLAB.unsub = [
+    DBX.collection(`crawls/${id}/notes`).onSnapshot(snap => {
+      const docs = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      COLLAB.notes = docs.filter(n => n.by !== UID);
+      for (const n of docs) if (n.by === UID && DOC.notes[n.kind]) DOC.notes[n.kind][n.target] = n.text;
+      resolveNames(docs.map(n => n.by)); collabRefresh();
+    }, fail),
+    DBX.collection(`crawls/${id}/sacs`).onSnapshot(snap => { syncSacs(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))); collabRefresh(); }, fail)
+  ];
+}
+function leaveCollab() {
+  if (COLLAB && COLLAB.unsub) COLLAB.unsub.forEach(u => u());
+  COLLAB = null;
+  try { if (/^#collab-/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* sandboxed */ }
+  updateStatus(); renderCollabBox();
+}
+async function shareCollab() {
+  if (!DBX) return;
+  const msg = $("collabMsg"); msg.textContent = "Sharing…";
+  try {
+    const id = "c" + Math.random().toString(36).slice(2, 7) + Date.now().toString(36).slice(-4);
+    const st = captureState(DOC.title), raw = DOC.mode === "text" ? DOC.raw : "", parts = chunkText(raw);
+    st.asks = st.asks.slice(-10);
+    const ref = DBX.collection("crawls").doc(id);
+    for (let i = 0; i < parts.length; i++) await ref.collection("chunks").doc(String(i)).set({ t: parts[i] });
+    await ref.set({ kind: "shared", owner: UID, createdAt: Date.now(), chunks: parts.length, state: Object.assign({}, st, { sacs: [], notes: { k: {}, s: {} }, extNotes: [], srs: {} }) });
+    COLLAB = { id, notes: [], sacDocs: [] };
+    for (const [kind, map] of Object.entries(DOC.notes)) for (const [target, text] of Object.entries(map)) await collabNote(kind, target, text);
+    for (const sac of doneSacs()) await collabSac(sac);
+    subscribeCollab();
+    msg.textContent = "";
+    renderCollabBox(); updateStatus();
+  } catch (e) {
+    COLLAB = null;
+    msg.textContent = e && e.code === "quota_exceeded" ? "There's no room left to share this crawl. Delete an old shared crawl first." : "Couldn't share this crawl. Only people who can edit this page can share crawls.";
+  }
+}
+async function joinCollab(code) {
+  if (!DBX) return;
+  const id = String(code || "").trim().replace(/^#?collab-/i, "").toLowerCase();
+  const msg = $("collabMsg");
+  if (!/^[a-z0-9]{6,20}$/.test(id)) { msg.textContent = "That doesn't look like a crawl code."; return; }
+  msg.textContent = "Joining…";
+  try {
+    const ref = DBX.collection("crawls").doc(id), snap = await ref.get();
+    if (!snap.exists) { msg.textContent = "No shared crawl has that code, or it isn't shared with you."; return; }
+    const d = snap.data(); let raw = "";
+    for (let i = 0; i < (d.chunks || 0); i++) { const c = await ref.collection("chunks").doc(String(i)).get(); raw += c.exists ? c.data().t : ""; }
+    if (COLLAB) leaveCollab();
+    restoreState(Object.assign({}, d.state, { sacs: [], notes: { k: {}, s: {} } }), raw, "", null);
+    COLLAB = { id, notes: [], sacDocs: [] };
+    subscribeCollab();
+    msg.textContent = ""; renderCollabBox(); updateStatus();
+    log("LOAD", "Joined a shared crawl");
+    if ($("dLib").open) $("dLib").close();
+  } catch (e) { msg.textContent = "Couldn't join that crawl right now. Try again in a moment."; }
+}
+function renderCollabBox() {
+  const live = !!DBX;
+  $("collabLive").hidden = !live;
+  $("collabOffline").hidden = live;
+  if (!live) return;
+  $("collabShare").hidden = !!COLLAB; $("collabJoinRow").hidden = !!COLLAB; $("collabNow").hidden = !COLLAB;
+  if (COLLAB) $("collabNow").innerHTML = `<p>This crawl is shared. Its code is <b class="sharecode" id="collabCodeShow">${esc(COLLAB.id)}</b> · ${peopleCount()} so far.</p>
+    <p class="meta">To invite someone: open this page's <b>Share</b> menu and add them as a Contributor (so they can add notes and sacs), then send them the code. They open this page and choose Library → Join. Notes and sacs show up for everyone as they're made.</p>
+    <div class="rowi"><button class="btn" type="button" id="collabCopy">Copy the code</button><button class="btn" type="button" id="collabLeave">Stop working on it here</button></div>`;
+}
+$("collabShare").onclick = shareCollab;
+$("collabJoin").onclick = () => joinCollab($("collabCode").value);
+$("collabCode").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); joinCollab($("collabCode").value); } });
+$("collabBox").addEventListener("click", e => {
+  if (e.target.id === "collabCopy") copyText(COLLAB ? COLLAB.id : "", "Copied the crawl code.");
+  if (e.target.id === "collabLeave") leaveCollab();
+});
+
+// crawl files: send a crawl to someone, then merge their notes and sacs back in
+function crawlFile() {
+  return JSON.stringify({ app: "cak3d-crawler", v: 1, by: cfg.myName || "", at: Date.now(), state: captureState(DOC.title), raw: DOC.mode === "text" ? DOC.raw : "", craw: DOC.compare ? DOC.compare.raw : "" });
+}
+$("crawlExport").onclick = () => saveFile(`${slug(DOC.title)}.crawl.json`, crawlFile());
+$("crawlImport").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
+  const msg = $("collabMsg2");
+  try {
+    const j = JSON.parse(await file.text());
+    if (j.app !== "cak3d-crawler" || !j.state) throw new Error("bad");
+    const who = j.by || file.name.replace(/\.crawl\.json$|\.json$/i, "");
+    const same = j.state.docTitle === DOC.title && j.state.words === DOC.words;
+    if (!same) { restoreState(j.state, j.raw, j.craw, null); msg.textContent = `Opened “${j.state.title}” from ${who}.`; return; }
+    DOC.extNotes = DOC.extNotes || [];
+    let nNotes = 0, nSacs = 0;
+    for (const [kind, map] of Object.entries(j.state.notes || {})) for (const [target, text] of Object.entries(map)) {
+      if (DOC.notes[kind] && DOC.notes[kind][target] === text) continue;
+      if (DOC.extNotes.some(n => n.kind === kind && n.target === target && n.text === text)) continue;
+      DOC.extNotes.push({ kind, target, text, by: who }); nNotes++;
+    }
+    for (const n of j.state.extNotes || []) if (!DOC.extNotes.some(m => m.kind === n.kind && m.target === n.target && m.text === n.text)) { DOC.extNotes.push(n); nNotes++; }
+    const sig = x => [...new Set(x.keys)].sort().join("|") + "#" + x.label;
+    const have = new Set(doneSacs().map(sig));
+    for (const x of j.state.sacs || []) if (!have.has(sig(x))) { if (addSharedSac(x, who)) nSacs++; }
+    refreshNotesViews(); updateStats();
+    msg.textContent = `Merged ${plural(nNotes, "note")} and ${plural(nSacs, "sac")} from ${who}.`;
+  } catch (ex) { msg.textContent = "That file isn't a CAK3D Crawler crawl file."; }
+});
+
+// arrow keys, Home and End move between tabs in every tab strip
+document.addEventListener("keydown", e => {
+  const t = e.target.closest && e.target.closest('[role="tab"]'); if (!t) return;
+  const tabs = [...t.parentElement.querySelectorAll('[role="tab"]')].filter(b => !b.hidden);
+  const i = tabs.indexOf(t), go = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+  if (go == null) return;
+  e.preventDefault(); e.stopPropagation();
+  const next = tabs[(go + tabs.length) % tabs.length]; next.focus(); next.click();
+}, true);
 
 // ---------------- controls + settings ----------------
 function setFollow(v) { follow = v; $("bFollow").setAttribute("aria-pressed", String(v)); }
@@ -3772,7 +4223,7 @@ addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
 
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
   size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never",
-  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None" };
+  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}` };
 const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String], ["cfgType", "type", String], ["cfgDew", "dew", Boolean],
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgWorkers", "workers", Boolean], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
@@ -3782,7 +4233,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
   ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
-  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"]];
+  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
   $("topicsField").hidden = cfg.sort !== "topics";
@@ -3821,7 +4272,7 @@ function fillVoices() {
   sel.value = cfg.ttsVoice;
 }
 if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", fillVoices);
-$("forgetInt").onclick = () => { for (const k of Object.keys(INT)) delete INT[k]; store.set("silk-interest", null); $("intNote").textContent = "Forgotten."; };
+$("forgetInt").onclick = () => { for (const k of Object.keys(INT)) delete INT[k]; store.set("cak3d-interest", null); $("intNote").textContent = "Forgotten."; };
 for (const [id, key, parse, out] of BIND) {
   const el = $(id);
   const evt = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
@@ -3895,7 +4346,7 @@ $("aiSave").onclick = () => {
   if (s.provider === "openai" && !s.model) { note.textContent = "Type the model name your service uses (for example llama3.1)."; return; }
   if (s.provider === "anthropic" && !s.key && !s.base) { note.textContent = "Add your Anthropic API key, or the address of your own proxy."; return; }
   if (s.provider === "anthropic" && !window.AnthropicSDK) { note.textContent = "This copy of the app doesn't include the Claude library. Use the web or Android release."; return; }
-  try { localStorage.setItem("silk-ai", JSON.stringify(s)); localStorage.removeItem("silk-key"); } catch (e) { note.textContent = "This device blocked saving the settings."; return; }
+  try { localStorage.setItem("cak3d-ai", JSON.stringify(s)); localStorage.removeItem("cak3d-key"); } catch (e) { note.textContent = "This device blocked saving the settings."; return; }
   useOwnAi(); capsReady();
   note.textContent = s.provider === "none" ? "Saved. Summaries and answers show passages only." : "Saved on this device. Use Test it to check the connection.";
 };
@@ -3912,7 +4363,7 @@ $("aiTest").onclick = async () => {
   }
 };
 $("aiClear").onclick = () => {
-  try { localStorage.removeItem("silk-ai"); localStorage.removeItem("silk-key"); } catch (e) { /* nothing stored */ }
+  try { localStorage.removeItem("cak3d-ai"); localStorage.removeItem("cak3d-key"); } catch (e) { /* nothing stored */ }
   useOwnAi(); fillAiForm(); capsReady();
   $("aiNote").textContent = "Forgotten on this device.";
 };
@@ -3957,14 +4408,47 @@ async function getPdfjs() {
 }
 async function getJSZip() { if (!window.JSZip) await loadScript((VENDOR() || "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/") + "jszip.min.js"); return window.JSZip; }
 
+// ---- on-device OCR (Tesseract) for scanned PDF pages and photos of pages
+const OCR_LANG = { en: "eng", es: "spa", fr: "fra", de: "deu", it: "ita", pt: "por", nl: "nld" };
+async function getTesseract() {
+  if (!window.Tesseract) await loadScript(VENDOR() ? VENDOR() + "tesseract/tesseract.min.js" : "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
+  return window.Tesseract;
+}
+async function makeOcr(onProgress) {
+  const T = await getTesseract();
+  const opts = { logger: m => { if (m.status === "recognizing text" && onProgress) onProgress(m.progress || 0); } };
+  // full URLs: the worker loads the core relative to itself, not to the page
+  if (VENDOR()) { const v = new URL(VENDOR(), location.href).href; opts.workerPath = v + "tesseract/worker.min.js"; opts.corePath = v + "tesseract-core/"; }
+  return T.createWorker(OCR_LANG[$("srcLang").value] || "eng", 1, opts);
+}
+// OCR output keeps line breaks; join lines into paragraphs and mend words split across lines
+const ocrParagraphs = t => t.replace(/\r/g, "").split(/\n\s*\n/).map(p => p.replace(/([a-z])-\n([a-z])/g, "$1$2").replace(/\s*\n\s*/g, " ").trim()).filter(p => p.length > 1).join("\n\n");
+async function imageToText(file, onProgress) {
+  const ocr = await makeOcr(onProgress);
+  try { const { data } = await ocr.recognize(file); return ocrParagraphs(data.text || ""); } finally { ocr.terminate(); }
+}
+
 async function pdfToText(buf, onProgress) {
   const lib = await getPdfjs();
   const pdf = await lib.getDocument({ data: buf, isEvalSupported: false }).promise;
   let info = {};
   try { info = (await pdf.getMetadata()).info || {}; } catch (e) { /* no metadata */ }
-  const out = []; let total = 0;
+  const out = []; let total = 0, ocr = null, ocrPages = 0;
+  try {
   for (let p = 1; p <= pdf.numPages && total < MAX_CHARS; p++) {
-    const tc = await (await pdf.getPage(p)).getTextContent();
+    const pg = await pdf.getPage(p), tc = await pg.getTextContent();
+    if (tc.items.reduce((n, it) => n + ((it.str || "").trim().length), 0) < 25) {
+      // no text layer on this page: it's a scan, so read it with OCR
+      if (!ocr) { if (onProgress) onProgress(p, pdf.numPages, "Starting text recognition"); ocr = await makeOcr(pr => onProgress && onProgress(p, pdf.numPages, `recognizing text ${Math.round(pr * 100)}%`)); }
+      const vp = pg.getViewport({ scale: 2 }), cv = document.createElement("canvas");
+      cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
+      await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+      const { data } = await ocr.recognize(cv);
+      const txt = ocrParagraphs(data.text || "");
+      if (txt.trim()) { out.push(`⟦page ${p}⟧\n\n${txt}`); total += txt.length; ocrPages++; }
+      if (onProgress) onProgress(p, pdf.numPages);
+      continue;
+    }
     const lines = []; let line = "", lastY = null;
     for (const it of tc.items) {
       if (!("str" in it)) continue;
@@ -3989,7 +4473,8 @@ async function pdfToText(buf, onProgress) {
     if (txt.trim()) { out.push(`⟦page ${p}⟧\n\n${txt}`); total += txt.length; }
     if (onProgress) onProgress(p, pdf.numPages);
   }
-  return { title: info.Title || "", author: info.Author || "", text: out.join("\n\n"), pages: pdf.numPages };
+  } finally { if (ocr) ocr.terminate(); }
+  return { title: info.Title || "", author: info.Author || "", text: out.join("\n\n"), pages: pdf.numPages, ocrPages };
 }
 async function epubToText(buf) {
   const JSZip = await getJSZip(), zip = await JSZip.loadAsync(buf);
@@ -4016,16 +4501,26 @@ $("srcFile").addEventListener("change", async e => {
   const name = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " "), ext = ((f.name.match(/\.([^.]+)$/) || [])[1] || "").toLowerCase();
   $("srcTextR").checked = true; syncSrcMode();
   try {
+    if (/^(png|jpe?g|webp)$/.test(ext)) {
+      srcMsg(`Reading the text in ${f.name}…`, true);
+      const txt = await imageToText(f, pr => srcMsg(`Reading the text in ${f.name}: ${Math.round(pr * 100)}%…`, true));
+      if (txt.split(/\s+/).length < 5) throw new Error("noimagetext");
+      const cur = $("srcText").value.trim();
+      $("srcText").value = (cur ? cur + "\n\n" : "") + txt;
+      if (!$("srcTitle").value) $("srcTitle").value = name;
+      $("srcInfo").textContent = `Read the text from ${f.name}${cur ? " and added it below what was already here" : ""}. Open more photos to add more pages.`;
+      srcMsg(""); return;
+    }
     if (ext === "pdf" || ext === "epub") {
       srcMsg(`Reading ${f.name}…`, true);
       const buf = await f.arrayBuffer();
-      const got = ext === "pdf" ? await pdfToText(buf, (p, n) => srcMsg(`Reading ${f.name}: page ${p} of ${n}…`, true)) : await epubToText(buf);
+      const got = ext === "pdf" ? await pdfToText(buf, (p, n, extra) => srcMsg(`Reading ${f.name}: page ${p} of ${n}${extra ? " (" + extra + ")" : ""}…`, true)) : await epubToText(buf);
       if (!got.text.trim()) throw new Error(ext === "pdf" ? "scanned" : "empty");
       $("srcText").value = got.text.slice(0, MAX_CHARS);
       if (!$("srcTitle").value) $("srcTitle").value = got.title || name;
       if (!$("srcAuthor").value && got.author) $("srcAuthor").value = got.author;
       if (!$("srcYear").value && got.year) $("srcYear").value = got.year;
-      $("srcInfo").textContent = `Loaded ${f.name}${got.pages ? `: ${got.pages} pages, and citations will show page numbers` : ""}.${got.text.length > MAX_CHARS ? ` Only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : ""}`;
+      $("srcInfo").textContent = `Loaded ${f.name}${got.pages ? `: ${got.pages} pages${got.ocrPages ? `, ${got.ocrPages} of them read from scans` : ""}, and citations will show page numbers` : ""}.${got.text.length > MAX_CHARS ? ` Only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : ""}`;
       srcMsg(""); return;
     }
     const t = await f.text();
@@ -4034,14 +4529,16 @@ $("srcFile").addEventListener("change", async e => {
     if (!$("srcTitle").value) $("srcTitle").value = name;
     srcMsg("");
   } catch (ex) {
-    srcMsg(ex && ex.message === "scanned" ? "That PDF has no text layer (it's probably scanned pages). Try a PDF whose text you can select."
-      : ex && ex.message === "load" ? "Couldn't load the PDF or EPUB reader. Check your connection and try again."
+    srcMsg(ex && ex.message === "scanned" ? "No text could be read from that PDF, even with text recognition. Try a clearer scan."
+      : ex && ex.message === "noimagetext" ? "No text could be read from that picture. Try a sharper, well-lit photo of the page."
+      : ex && ex.message === "load" ? (IN_CLAUDE ? "Inside claude.ai the PDF, EPUB and text-recognition readers can't always load. The web and Android versions include them." : "Couldn't load the file reader. Check your connection and try again.")
+      : IN_CLAUDE && /\.(png|jpe?g|webp|pdf)$/i.test(f.name) ? "Text recognition for scans and photos needs the web or Android version; claude.ai blocks the files it downloads."
       : "That file couldn't be read. Try a PDF, EPUB or plain-text file.");
   }
 });
 // ---- loading a web page by link (web and Android versions; claude.ai blocks other sites)
 const IN_CLAUDE = !!window.claude;
-if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of Silk Crawler to load pages by link, or copy the page's text into “My own text”.";
+if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of CAK3D Crawler to load pages by link, or copy the page's text into “My own text”.";
 $("srcUrl").addEventListener("input", () => { $("srcUrlR").checked = true; });
 function mdToText(md) {
   return md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
@@ -4077,7 +4574,10 @@ async function fetchPage(url) {
     text = text.split(/\n\s*\n(?:See also|References|External links|Further reading|Notes|Bibliography|Citations|Sources)\s*\n/)[0];
     const low = text.toLowerCase();
     // Wikipedia lists links alphabetically, so rank them by how often the linked article's title appears in this one
-    const links = (p.links || []).map(l => ({ text: l.title, url: `https://${u.hostname}/wiki/${encodeURIComponent(l.title.replace(/ /g, "_"))}`, score: low.split(l.title.toLowerCase()).length - 1 }))
+    // count whole-word mentions only, so short titles like "Ant" don't match inside "important"
+    const mentions = t => (low.match(new RegExp(`${WB}${reEsc(t.toLowerCase())}${WE}`, "gu")) || []).length;
+    const links = (p.links || []).filter(l => l.title.length >= 3 && !/^(List|Category|Template|Help|Portal) of|:/.test(l.title))
+      .map(l => ({ text: l.title, url: `https://${u.hostname}/wiki/${encodeURIComponent(l.title.replace(/ /g, "_"))}`, score: mentions(l.title) }))
       .filter(l => l.score >= 2).sort((a, b) => b.score - a.score);
     return { title: p.title, text, url: `https://${u.hostname}/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}`, site: "Wikipedia", links };
   }
@@ -4161,12 +4661,31 @@ async function currentSources() {
     let main;
     try { main = await pageSource(url, meta.title ? { title: meta.title, author: meta.author, year: meta.year } : { author: meta.author, year: meta.year }); }
     catch (ex) { throw new Error(IN_CLAUDE ? blockedMsg : ex.message === "short" ? "That page didn't have enough readable text to crawl." : "Couldn't load that page. Check the link, or copy the page's text into “My own text”."); }
+    main.depth = 0; main.parent = -1;
     const out = [main];
-    const follow = main.links.slice(0, cfg.follow * 2);
-    for (const l of follow) {
-      if (out.length > cfg.follow) break;
-      srcMsg(`Following link ${out.length} of ${cfg.follow}: ${trunc(l.text, 50)}…`, true);
-      try { out.push(await pageSource(l.url)); } catch (e) { /* skip unreadable pages */ }
+    if (cfg.follow > 0) {
+      // breadth-first, one level at a time; each page on a level gets a turn so one page can't use up the limit
+      SRC.stop = false; $("srcStop").hidden = false;
+      const host = new URL(main.cite).hostname, seen = new Set([main.cite.replace(/#.*$/, "")]);
+      let frontier = [{ idx: 0, links: main.links }];
+      try {
+        for (let d = 1; d <= cfg.depth && out.length <= cfg.follow && !SRC.stop; d++) {
+          const next = [], queues = frontier.map(fr => fr.links.filter(l => { try { return !cfg.sameSite || new URL(l.url).hostname === host; } catch (e) { return false; } }));
+          // share the page limit across the levels still to go, so deeper levels get pages too
+          const levelCap = out.length + Math.ceil((cfg.follow + 1 - out.length) / (cfg.depth - d + 1));
+          let more = true;
+          while (more && out.length < levelCap && !SRC.stop) {
+            more = false;
+            for (let k = 0; k < frontier.length && out.length < levelCap && !SRC.stop; k++) {
+              const l = queues[k].shift(); if (!l) continue; more = true;
+              const u = l.url.replace(/#.*$/, ""); if (seen.has(u)) continue; seen.add(u);
+              srcMsg(`Level ${d}, page ${out.length} of ${cfg.follow}: ${trunc(l.text, 50)}…`, true);
+              try { const pg = await pageSource(u); pg.depth = d; pg.parent = frontier[k].idx; out.push(pg); next.push({ idx: out.length - 1, links: pg.links }); } catch (e) { /* skip unreadable pages */ }
+            }
+          }
+          frontier = next;
+        }
+      } finally { $("srcStop").hidden = true; }
     }
     return out;
   }
@@ -4185,6 +4704,7 @@ function renderSrcList() {
   $("srcListWrap").hidden = !SRC.list.length;
   $("srcList").innerHTML = SRC.list.map((s, i) => `<li><div><b>${esc(s.title)}</b><p class="meta">${esc([s.author, s.year, s.site].filter(Boolean).join(" · ") || "Your text")} · ${s.text.split(/\s+/).length.toLocaleString()} words</p></div><button class="btn" type="button" data-rm="${i}">Remove</button></li>`).join("");
 }
+$("srcStop").onclick = () => { SRC.stop = true; srcMsg("Stopping after this page…", true); };
 $("srcList").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (b) { SRC.list.splice(+b.dataset.rm, 1); renderSrcList(); } });
 $("srcAdd").onclick = async () => {
   if ($("srcSample").checked) { srcMsg("The sample can't be combined with other sources."); return; }
@@ -4202,13 +4722,13 @@ function crawlSources(list) {
   if (!d) throw new Error("No repeated keywords were found. Try longer texts.");
   d.sources = list.map(({ text, links, ...m }) => m);
   d.cite = multi ? "" : list[0].cite;
-  store.set("silk-src", raw.length < 1500000 ? { raw, title, cite: d.cite, sources: d.sources, lang: d.lang } : null);
+  store.set("cak3d-src", raw.length < 1500000 ? { raw, title, cite: d.cite, sources: d.sources, lang: d.lang } : null);
   loadDoc(d);
   if (multi) log("LOAD", `${list.length} sources crawled together`);
 }
 $("fSource").addEventListener("submit", async e => {
   e.preventDefault();
-  if ($("srcSample").checked && !SRC.list.length) { loadDoc(buildSample()); store.set("silk-src", null); dSource.close(); return; }
+  if ($("srcSample").checked && !SRC.list.length) { loadDoc(buildSample()); store.set("cak3d-src", null); dSource.close(); return; }
   $("srcGo").disabled = true;
   try {
     const list = SRC.list.slice();
@@ -4228,6 +4748,7 @@ addEventListener("keydown", e => {
   const t = e.target; if (t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
   if (WV.open && WV.tab === "cards") {
     if (e.key === " ") { e.preventDefault(); fcAct("flip"); return; }
+    if (FC.mode === "study" && FC.flip && /^[1-4]$/.test(e.key)) { gradeCard(+e.key - 1); return; }
     if (e.key === "ArrowRight") { fcAct("next"); return; }
     if (e.key === "ArrowLeft") { fcAct("prev"); return; }
   }
@@ -4257,7 +4778,7 @@ function frame(now) {
 }
 setFollow(follow);
 resize();
-const saved = store.get("silk-src");
+const saved = store.get("cak3d-src");
 let first = null;
 if (saved && saved.raw) {
   try { first = buildText(saved.raw, saved.title, cfg.k, saved.lang); } catch (e) { first = null; }

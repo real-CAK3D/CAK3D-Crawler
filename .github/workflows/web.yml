@@ -15,7 +15,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -27,7 +31,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run icons
       - run: npm run build
         env:
           CRAWLER_AI_PROVIDER: ${{ vars.CRAWLER_AI_PROVIDER }}
