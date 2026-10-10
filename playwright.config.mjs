@@ -12,7 +12,7 @@ export default defineConfig({
   use: { baseURL: "http://127.0.0.1:4173", trace: "retain-on-failure" },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "phone", use: { ...devices["Pixel 7"] }, testMatch: /smoke/ }
+    { name: "phone", use: { ...devices["Pixel 7"] }, testMatch: /smoke|corner/ }
   ],
   webServer: { command: "npx http-server www -p 4173 -a 127.0.0.1 -c-1 -s", url: "http://127.0.0.1:4173", reuseExistingServer: !process.env.CI }
 });
