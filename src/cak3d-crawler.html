@@ -308,7 +308,16 @@ span.chip { cursor: default; }
 .card-nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* sacs, ask, library */
-#dSac, #dAsk, #dLib { width: min(46rem, calc(100vw - 32px)); }
+#dSac, #dAsk, #dLib, #dGuide { width: min(46rem, calc(100vw - 32px)); }
+.guide section { border-top: 1px solid var(--rule); padding: 14px 0 6px; }
+.guide h3 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; }
+.guide h4 { margin: 12px 0 4px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.guide p { margin: 4px 0; }
+.guide ul, .guide ol { margin: 4px 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+.g-terms { margin: 0; display: grid; grid-template-columns: minmax(6rem, max-content) 1fr; gap: 4px 14px; }
+.g-terms dt { font-weight: 600; } .g-terms dd { margin: 0; }
+.g-q details { margin-top: 2px; } .g-q summary { font-size: 12px; }
+@media (max-width: 560px) { .g-terms { grid-template-columns: 1fr; } .g-terms dd { margin-bottom: 8px; } }
 .head { display: flex; align-items: flex-start; gap: 12px; }
 .head > div { flex: 1; min-width: 0; }
 .titleinput { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; border: 1px solid transparent; border-radius: 4px; background: none; padding: 2px 6px; margin-left: -6px; width: 100%; }
@@ -376,6 +385,11 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
   .focus { max-width: none; }
   .sac-actions .merge { margin-left: 0; }
 }
+/* the toolbar can be hidden; a small tab brings it back */
+body.bar-off .bar { display: none; }
+.barshow { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 6px); right: 10px; z-index: 32; font-family: var(--mono); font-size: 12px; padding: 5px 10px;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--panel); color: var(--ink); box-shadow: 0 4px 14px rgba(0,0,0,.16); cursor: pointer; opacity: .92; }
+.barshow:hover, .barshow:focus-visible { opacity: 1; }
 .wv-more { display: flex; flex-direction: column; gap: 10px; }
 .wv-more > summary { display: none; }
 .wv-more:not([open]) { gap: 0; }
@@ -419,6 +433,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
 </style>
 
 <a class="skip" href="#page">Skip to the text</a>
+<button class="barshow" id="bShowBar" type="button" hidden aria-label="Show the toolbar" title="Show the toolbar (H)">▼ Toolbar</button>
 <header class="bar" id="bar">
   <div class="brand">CAK3D Crawler<small id="docTitle">Spider</small></div>
   <label class="focus"><span>Focus</span><input id="focus" type="search" placeholder="research topic, e.g. silk" autocomplete="off"></label>
@@ -433,6 +448,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <button class="btn" id="bFollow" type="button" aria-pressed="true">Follow</button>
     <button class="btn primary" id="bWeb" type="button">Web view</button>
     <button class="btn" id="bAsk" type="button">Ask</button>
+    <button class="btn" id="bGuide" type="button">Study guide</button>
     <button class="btn" id="bFind" type="button">Find</button>
     <button class="btn" id="bLib" type="button">Library</button>
     <button class="btn" id="bSource" type="button">Source</button>
@@ -440,6 +456,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <button class="btn" id="bStats" type="button" aria-pressed="false" aria-controls="statsPanel">Stats</button>
     <button class="btn" id="bSettings" type="button">Settings</button>
     <button class="btn" id="bHelp" type="button" aria-label="Keyboard shortcuts and tips">?</button>
+    <button class="btn" id="bHideBar" type="button" aria-label="Hide the toolbar" title="Hide the toolbar (H)">▲ Hide</button>
   </div>
   <div class="status" id="status" aria-live="off"></div>
 </header>
@@ -560,6 +577,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <button class="btn" id="exRis" type="button">Zotero (RIS)</button>
       <button class="btn" id="exBib" type="button">BibTeX</button>
       <button class="btn" id="wvCopy" type="button">Copy notes</button>
+      <button class="btn" id="wvGuide" type="button">Study guide</button>
     </div>
     </details>
   </div>
@@ -603,6 +621,26 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
     <section><h3 class="sub">Sources</h3><div id="sacSrc"></div></section>
     <section id="sacBridgeWrap" hidden><h3 class="sub">Connected sacs</h3><div id="sacBridges"></div></section>
     <section><h3 class="sub">Keyword tree</h3><ul class="tree" id="sacTree"></ul></section>
+  </div>
+</dialog>
+
+<!-- Study guide -->
+<dialog id="dGuide" aria-labelledby="guideH">
+  <div class="body">
+    <div class="head">
+      <div><h2 id="guideH">Study guide</h2><p class="meta" id="guideMeta"></p></div>
+      <button class="btn" type="button" id="guideClose">Close</button>
+    </div>
+    <div class="sac-actions">
+      <button class="btn primary" type="button" id="guideAi" hidden>Write summaries with AI</button>
+      <button class="btn" type="button" id="guideStop" hidden>Stop</button>
+      <button class="btn" type="button" id="guideMd">Save .md</button>
+      <button class="btn" type="button" id="guideHtml">Save as web page</button>
+      <button class="btn" type="button" id="guideCopy">Copy</button>
+      <button class="btn" type="button" id="guideCards">Study the flashcards</button>
+    </div>
+    <p class="meta" id="guideNote" aria-live="polite"></p>
+    <div id="guideBody" class="guide"></div>
   </div>
 </dialog>
 
@@ -975,6 +1013,8 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
       <dt>Web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
       <dt>S</dt><dd>Show or hide the live crawl stats.</dd>
+      <dt>H</dt><dd>Hide or show the toolbar. When it's hidden, the Toolbar tab in the top corner brings it back.</dd>
+      <dt>G</dt><dd>Make a study guide. Select a paragraph or more first for a guide to just that part.</dd>
       <dt>Esc</dt><dd>Close whatever is open.</dd>
     </dl>
     <p class="meta" id="helpLegal">© 2026 CAK3D. All rights reserved.<span id="privacyLink" hidden> · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></span></p>
@@ -1067,7 +1107,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false, purpose: "keywords" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2285,7 +2325,7 @@ function renderFound() {
   else if (p === "study") {
     const ks = sure.filter(k => defSent(k) >= 0).slice(-8).reverse();
     html = ks.length ? "<ul>" + ks.map(k => `<li><b>${esc(k.label)}</b>: ${esc(trunc(DOC.sents[defSent(k)], 150))}${cite(defSent(k))}</li>`).join("") + "</ul>" +
-      `<p><button class="btn" type="button" data-study>Study these as flashcards</button></p>` : "";
+      `<p><button class="btn" type="button" data-study>Study these as flashcards</button> <button class="btn" type="button" data-guide>Make a study guide</button></p>` : "";
   }
   else if (p === "interests") { const ks = sure.filter(k => interestOf(k) > 0); html = ks.length ? chips(ks) : `<p class="meta">Open, pick, note or ask about keywords and it learns what you're interested in${cfg.learn ? "" : " (turn on learning in Settings → Research)"}.</p>`; }
   else if (p === "grabber") {
@@ -2297,6 +2337,7 @@ function renderFound() {
 }
 $("spFound").addEventListener("click", e => {
   const c = e.target.closest("[data-si]"); if (c) { jumpToSentence(+c.dataset.si); return; }
+  if (e.target.closest("[data-guide]")) { openGuide(); return; }
   if (e.target.closest("[data-study]")) { openWeb(); const t = document.querySelector('#wvTabs [data-tab="cards"]'); if (t) t.click(); return; }
   if (e.target.closest("[data-grabcopy]")) {
     const lines = DEC.list.filter(d => !d.open || d.ans === "yes").map(d => DOC.kw.get(d.key)).filter(k => k && factSent(k) >= 0)
@@ -3450,17 +3491,23 @@ document.addEventListener("selectionchange", () => {
   selTimer = setTimeout(() => {
     const sel = getSelection(), btn = $("hlBtn");
     const t = sel ? sel.toString().replace(/\s+/g, " ").trim() : "";
-    if (!sel || sel.isCollapsed || t.length < 2 || t.length > 60 || !page.contains(sel.anchorNode) || !page.contains(sel.focusNode)) { btn.hidden = true; return; }
-    HL.text = t; HL.range = sel.getRangeAt(0).cloneRange();
+    if (!sel || sel.isCollapsed || t.length < 2 || !page.contains(sel.anchorNode) || !page.contains(sel.focusNode)) { btn.hidden = true; return; }
+    HL.text = t; HL.range = sel.getRangeAt(0).cloneRange(); HL.guide = null;
+    if (t.length > 60) { // a sentence or more: offer a study guide for just this part
+      const low = t.toLowerCase(), list = [];
+      DOC.sents.forEach((x, i) => { const w = x.replace(/\s+/g, " ").trim().toLowerCase().slice(0, 50); if (w.length > 8 && low.includes(w)) list.push(i); });
+      if (!list.length) { btn.hidden = true; return; }
+      HL.guide = list;
+    }
     const r = HL.range.getBoundingClientRect();
-    btn.textContent = `Add “${trunc(t, 30)}” as a keyword`;
+    btn.textContent = HL.guide ? `Study guide for this selection (${plural(HL.guide.length, "sentence")})` : `Add “${trunc(t, 30)}” as a keyword`;
     btn.hidden = false;
     btn.style.left = clamp(r.left, 8, innerWidth - btn.offsetWidth - 8) + "px";
     btn.style.top = (r.bottom + 40 > innerHeight ? r.top - 36 : r.bottom + 8) + "px";
   }, 250);
 });
 $("hlBtn").addEventListener("pointerdown", e => e.preventDefault());
-$("hlBtn").addEventListener("click", () => { addHighlight(HL.text, HL.range, false); $("hlBtn").hidden = true; });
+$("hlBtn").addEventListener("click", () => { if (HL.guide) openGuide(HL.guide); else addHighlight(HL.text, HL.range, false); $("hlBtn").hidden = true; });
 
 function wrapFirst(label) {
   const lo = label.toLowerCase();
@@ -5082,6 +5129,143 @@ document.addEventListener("keydown", e => {
   const next = tabs[(go + tabs.length) % tabs.length]; next.focus(); next.click();
 }, true);
 
+// ---------------- study guide: for each chapter or part, a summary, key terms and facts; then a glossary and
+// practice questions. It works from the text alone; with an AI set up it can also write the summaries and questions.
+const GUIDE = { secs: [], si: [], ai: null, ctl: null, sel: null, overview: [], glossary: [], questions: [] };
+const STRONG_FACT = /\d[\d,.]*\s*(%|percent|km|kilomet|met|cm|mm|kg|grams?|years?|species|times|people|miles?)|\b(1[5-9]|20)\d\d\b|\b\d{1,3}(,\d{3})+\b/i;
+function sentKeywords() {
+  if (DOC._sk) return DOC._sk;
+  const sk = DOC.sents.map(() => []);
+  for (const k of DOC.kw.values()) for (const i of new Set(k.si)) if (sk[i]) sk[i].push(k);
+  return (DOC._sk = sk);
+}
+function guideSections(only) {
+  if (only) return [{ label: "Your selection", list: only }];
+  const n = DOC.sents.length, marks = (DOC.marks || []).filter(m => m.i < n).sort((a, b) => a.i - b.i);
+  let secs = marks.map((m, k) => ({ label: m.label, a: m.i, b: k + 1 < marks.length ? marks[k + 1].i : n }));
+  if (secs.length && secs[0].a > 3) secs.unshift({ label: "Introduction", a: 0, b: secs[0].a });
+  if (!secs.length) { const size = Math.max(20, Math.ceil(n / 10)); for (let a = 0; a < n; a += size) secs.push({ label: `Part ${secs.length + 1}`, a, b: Math.min(n, a + size) }); }
+  const out = []; // fold a heading with only a line or two under it into the part before
+  for (const x of secs) { if (out.length && x.b - x.a < 3) { const o = out[out.length - 1]; o.b = x.b; if (!o.label.includes(x.label)) o.label += " · " + x.label; } else out.push({ ...x }); }
+  while (out.length > 40) { // a long book with many short chapters: join the smallest neighbours
+    let m = 1, best = Infinity;
+    for (let i = 1; i < out.length; i++) { const sz = out[i].b - out[i - 1].a; if (sz < best) { best = sz; m = i; } }
+    out[m - 1].b = out[m].b; out[m - 1].label = out[m - 1].label + " · " + out[m].label; out.splice(m, 1);
+  }
+  return out.map(x => ({ label: x.label, list: Array.from({ length: x.b - x.a }, (_, j) => x.a + j) }));
+}
+// the sentences that tie the most keywords together, the terms mentioned most, and sentences with numbers
+function sectionInfo(list) {
+  const sk = sentKeywords(), count = new Map();
+  for (const i of list) for (const k of sk[i] || []) count.set(k, (count.get(k) || 0) + 1);
+  const score = i => { const ks = sk[i] || [], words = (DOC.sents[i] || "").split(/\s+/).length; return words < 6 ? 0 : new Set(ks).size + ks.reduce((t, k) => t + Math.min(3, count.get(k) || 0), 0) * 0.3; };
+  const ranked = list.filter(i => score(i) > 0).sort((a, b) => score(b) - score(a));
+  return {
+    key: ranked.slice(0, list.length > 60 ? 4 : 3).sort((a, b) => a - b), ranked,
+    terms: [...count].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k]) => k),
+    facts: list.filter(i => STRONG_FACT.test(DOC.sents[i] || "") && (sk[i] || []).length).slice(0, 3)
+  };
+}
+// the sentence that best explains a term: its definition, or where this part first mentions it
+function guideDef(k, list) { const d = defSent(k); if (d >= 0) return d; const sk = sentKeywords(); return (list && list.find(j => (sk[j] || []).includes(k))) ?? k.si[0]; }
+function practiceQuestions(ks, max = 12) {
+  const qs = [];
+  for (const k of ks) {
+    const d = defSent(k); if (d < 0) continue;
+    const q = DOC.sents[d].replace(new RegExp(reEsc(k.label), "ig"), "_____"); if (q === DOC.sents[d]) continue;
+    qs.push({ q: "Fill in the blank: " + q, a: k.label, si: d }); if (qs.length >= max) return qs;
+  }
+  for (const k of ks) { if (qs.length >= max) break; if (defSent(k) >= 0 || !k.si.length) continue; qs.push({ q: `What does the text say about ${k.label}?`, a: trunc(DOC.sents[k.si[0]] || "", 240), si: k.si[0] }); }
+  return qs;
+}
+function buildGuide(only) {
+  const G = GUIDE; G.sel = only || null; G.ai = null; G.si = []; DOC._sk = null; // keywords may have been added since
+  G.secs = guideSections(only).map(x => ({ ...x, ...sectionInfo(x.list) }));
+  const terms = [...new Set(G.secs.flatMap(x => x.terms))], pool = only ? terms : [...DOC.kw.values()].sort((a, b) => b.count - a.count);
+  G.glossary = pool.filter(k => defSent(k) >= 0).sort((a, b) => a.label.localeCompare(b.label));
+  G.questions = practiceQuestions(pool);
+  G.overview = only ? [] : sectionInfo(G.secs.flatMap(x => x.list)).ranked.slice(0, 5).sort((a, b) => a - b);
+}
+function renderGuide() {
+  const G = GUIDE, A = G.ai || {};
+  const cite = i => ` <button type="button" class="cite" data-si="${i}" title="${esc(sentLoc(i))}">${esc(inText(srcOf(i), cfg.citeStyle, pageOf(i)))}</button>`;
+  const quote = i => `<li>${esc(trunc(DOC.sents[i] || "", 320))}${cite(i)}</li>`;
+  $("guideH").textContent = G.sel ? "Study guide: your selection" : "Study guide";
+  $("guideMeta").textContent = `${DOC.title} · ${G.sel ? plural(G.sel.length, "sentence") : plural(G.secs.length, "part")}${A.overview ? ` · summaries by ${aiName()}` : ""}`;
+  if (!SAMPLE && !$("guideNote").textContent) $("guideNote").textContent = "Built from the text itself. Set up an AI in Settings → Research and it can write the summaries and questions too.";
+  let h = "";
+  if (!G.sel) h += `<section><h3>Overview</h3>${A.overview ? `<p>${citedHTML(A.overview, G.si)}</p>` : `<ul>${G.overview.map(quote).join("")}</ul>`}<p class="meta">Topics: ${DOC.cats.map(c => esc(c.name)).join(" · ")}</p></section>`;
+  G.secs.forEach((x, n) => {
+    const S = (A.sections || [])[n];
+    h += `<section><h3>${esc(trunc(x.label, 100))}</h3>` +
+      (S && S.summary ? `<p>${citedHTML(S.summary, G.si)}</p>` + ((S.points || []).length ? `<ul>${S.points.map(p => `<li>${citedHTML(p, G.si)}</li>`).join("")}</ul>` : "")
+        : x.key.length ? `<h4>Key passages</h4><ul>${x.key.map(quote).join("")}</ul>` : "") +
+      (x.terms.length ? `<h4>Key terms</h4><dl class="g-terms">${x.terms.map(k => { const i = guideDef(k, x.list); return `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[i] || "", 240))}${cite(i)}</dd>`; }).join("")}</dl>` : "") +
+      (x.facts.length ? `<h4>Facts and figures</h4><ul>${x.facts.map(quote).join("")}</ul>` : "") + "</section>";
+  });
+  if (G.glossary.length) h += `<section><h3>Glossary</h3><dl class="g-terms">${G.glossary.slice(0, 120).map(k => `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[defSent(k)], 240))}${cite(defSent(k))}</dd>`).join("")}</dl></section>`;
+  const Q = (A.questions || []).length ? A.questions.map(q => ({ q: q.q, a: citedHTML(q.a || "", G.si) })) : G.questions.map(q => ({ q: q.q, a: esc(q.a) + cite(q.si) }));
+  if (Q.length) h += `<section><h3>Practice questions</h3><ol class="g-q">${Q.map(q => `<li>${esc(q.q)}<details><summary>Show the answer</summary><p>${q.a}</p></details></li>`).join("")}</ol></section>`;
+  $("guideBody").innerHTML = h;
+  $("guideAi").hidden = !SAMPLE; $("guideAi").textContent = A.overview || (A.sections || []).length ? `Write it again with ${aiName()}` : `Write summaries with ${aiName()}`;
+}
+function openGuide(only) {
+  if (!DOC) return;
+  $("guideNote").textContent = ""; buildGuide(only); renderGuide();
+  if (!$("dGuide").open) $("dGuide").showModal();
+  $("dGuide").querySelector(".body").scrollTop = 0;
+}
+async function guideWithAi() {
+  const G = GUIDE; if (!SAMPLE) return;
+  G.si = [];
+  const num = i => { G.si.push(i); return G.si.length; };
+  const parts = G.secs.map((x, n) => `## Part ${n + 1}: ${x.label}\n` + x.ranked.slice(0, G.sel ? 14 : 8).sort((a, b) => a - b).map(i => `[${num(i)}] ${trunc(DOC.sents[i], 320)}`).join("\n")).join("\n\n");
+  const prompt = `You are writing a study guide for "${DOC.title}"${G.sel ? " (one passage the reader selected)" : ""}. Below are numbered key passages from each part.\n\n${parts}\n\nReturn only JSON in this shape:\n{"overview": "3 to 5 sentences on what it covers", "sections": [{"summary": "2 to 4 sentences summarizing that part", "points": ["key point", "key point", "key point"]}], "questions": [{"q": "a practice question", "a": "its answer"}]}\nGive one entry in "sections" for each part, in order (${G.secs.length} in all). Write ${G.sel ? "4 to 6" : "6 to 10"} questions that test understanding rather than trivia. After every sentence, point and answer, cite the passage numbers it relies on in square brackets, like [3] or [2][5]. Use only the passages. Plain text inside the strings, no markdown.`;
+  $("guideAi").disabled = true; $("guideStop").hidden = false; $("guideNote").textContent = `${aiName()} is writing the guide…`;
+  G.ctl = new AbortController();
+  try {
+    const { text } = await SAMPLE(prompt, { signal: G.ctl.signal, onText: ({ text }) => { $("guideNote").textContent = `${aiName()} is writing the guide… ${text.length.toLocaleString()} characters`; } });
+    const m = text.match(/\{[\s\S]*\}/); G.ai = m ? JSON.parse(m[0]) : null;
+    $("guideNote").textContent = G.ai ? "" : "The AI's answer couldn't be read. Try again.";
+    renderGuide();
+  } catch (e) { $("guideNote").textContent = sampleErr(e) || (e && e.name === "AbortError" ? "Stopped." : "The AI couldn't write the guide this time."); }
+  finally { $("guideAi").disabled = false; $("guideStop").hidden = true; G.ctl = null; }
+}
+function guideMarkdown() {
+  const G = GUIDE, A = G.ai || {}, c = i => inText(srcOf(i), cfg.citeStyle, pageOf(i));
+  const ai = t => (t || "").replace(/\[(\d+)\]/g, (m, n) => G.si[n - 1] != null ? " " + c(G.si[n - 1]) : m);
+  const line = i => `- ${DOC.sents[i]} ${c(i)}`;
+  let md = `# Study guide: ${DOC.title}${G.sel ? " (selection)" : ""}\n\n`;
+  if (!G.sel) md += `## Overview\n\n${A.overview ? ai(A.overview) : G.overview.map(line).join("\n")}\n\nTopics: ${DOC.cats.map(x => x.name).join(", ")}\n\n`;
+  G.secs.forEach((x, n) => {
+    const S = (A.sections || [])[n];
+    md += `## ${x.label}\n\n` + (S && S.summary ? ai(S.summary) + "\n\n" + (S.points || []).map(p => "- " + ai(p)).join("\n") : x.key.map(line).join("\n")) + "\n\n";
+    if (x.terms.length) md += "**Key terms**\n\n" + x.terms.map(k => { const i = guideDef(k, x.list); return `- **${k.label}**: ${DOC.sents[i]} ${c(i)}`; }).join("\n") + "\n\n";
+    if (x.facts.length) md += "**Facts and figures**\n\n" + x.facts.map(line).join("\n") + "\n\n";
+  });
+  if (G.glossary.length) md += "## Glossary\n\n" + G.glossary.map(k => `- **${k.label}**: ${DOC.sents[defSent(k)]} ${c(defSent(k))}`).join("\n") + "\n\n";
+  const Q = (A.questions || []).length ? A.questions.map(q => [q.q, ai(q.a)]) : G.questions.map(q => [q.q, `${q.a} ${c(q.si)}`]);
+  if (Q.length) md += "## Practice questions\n\n" + Q.map(([q, a], n) => `${n + 1}. ${q}\n   - Answer: ${a}`).join("\n") + "\n\n";
+  return md + `## Sources\n\n${bibliography().map(b => "- " + b).join("\n")}\n`;
+}
+function guideHtml() {
+  const body = $("guideBody").innerHTML.replace(/<button type="button" class="cite"[^>]*>([\s\S]*?)<\/button>/g, '<span class="cite">$1</span>');
+  return `<!doctype html><html lang="${esc(DOC.lang || "en")}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Study guide: ${esc(DOC.title)}</title>
+<style>body{max-width:46rem;margin:0 auto;padding:24px 16px 60px;font:17px/1.6 Georgia,serif;color:#1c211f;background:#fff}h1{font-size:1.9rem;line-height:1.2}h3{font-size:1.25rem;margin:0 0 6px}h4{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#5b6560;margin:12px 0 4px}section{border-top:1px solid #d5d9d3;padding:14px 0 6px}.cite{font:12px ui-monospace,monospace;color:#2a57a3}dl{display:grid;grid-template-columns:minmax(6rem,max-content) 1fr;gap:4px 14px}dt{font-weight:600}dd{margin:0}.meta{color:#5b6560;font-size:.9rem}summary{cursor:pointer;font:12px ui-monospace,monospace;color:#5b6560}@media print{details{display:block}details>*{display:block}}@media (max-width:560px){dl{grid-template-columns:1fr}}</style></head><body>
+<h1>${esc($("guideH").textContent)}: ${esc(DOC.title)}</h1><p class="meta">Made with CAK3D Crawler</p>${body}<section><h3>Sources</h3><ul>${bibliography().map(b => `<li>${esc(b)}</li>`).join("")}</ul></section></body></html>`;
+}
+$("bGuide").onclick = () => openGuide();
+$("wvGuide").onclick = () => openGuide();
+$("guideClose").onclick = () => $("dGuide").close();
+$("dGuide").addEventListener("close", () => { if (GUIDE.ctl) GUIDE.ctl.abort(); });
+$("guideAi").onclick = guideWithAi;
+$("guideStop").onclick = () => GUIDE.ctl && GUIDE.ctl.abort();
+$("guideMd").onclick = () => saveFile(`${slug(DOC.title)}-study-guide.md`, guideMarkdown());
+$("guideHtml").onclick = () => saveFile(`${slug(DOC.title)}-study-guide.html`, guideHtml());
+$("guideCopy").onclick = () => copyText(guideMarkdown(), "Copied the study guide.");
+$("guideCards").onclick = () => { $("dGuide").close(); openWeb(); const t = document.querySelector('#wvTabs [data-tab="cards"]'); if (t) t.click(); };
+$("dGuide").addEventListener("click", e => { const c = e.target.closest("[data-si]"); if (c) jumpToSentence(+c.dataset.si); });
+
 // phones: slide the toolbar away while you scroll down through the text, bring it back when you scroll up.
 // Only your own scrolling counts, not the page following the spider.
 {
@@ -5098,6 +5282,14 @@ document.addEventListener("keydown", e => {
   $("bar").addEventListener("focusin", () => document.body.classList.remove("bar-away"));
 }
 // web view: on phones the topics and export tools start folded away
+function setBar(off) {
+  document.body.classList.toggle("bar-off", off); document.body.classList.remove("bar-away");
+  $("bShowBar").hidden = !off;
+  if (cfg.barOff !== off) { cfg.barOff = off; saveCfg(); }
+}
+$("bHideBar").onclick = () => { setBar(true); $("bShowBar").focus(); };
+$("bShowBar").onclick = () => { setBar(false); $("bHideBar").focus(); };
+setBar(!!cfg.barOff);
 function fitWebHeader() { $("wvMore").open = innerWidth > 640; }
 addEventListener("resize", () => { if (innerWidth > 640) $("wvMore").open = true; });
 
@@ -5758,6 +5950,8 @@ addEventListener("keydown", e => {
   else if (k === "r") { paused = false; restart(); }
   else if (k === "t") cycleTheme();
   else if (k === "s") toggleStats();
+  else if (k === "h") setBar(!cfg.barOff);
+  else if (k === "g") { const g = getSelection(); openGuide(HL.guide && g && !g.isCollapsed ? HL.guide : undefined); }
   else if (e.key === "/") { e.preventDefault(); openFind("search"); }
   else if (k === "c") openFind("contents");
   else if (e.key === "?") $("dHelp").showModal();
