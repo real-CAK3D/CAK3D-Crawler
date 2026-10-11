@@ -376,7 +376,46 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
   .focus { max-width: none; }
   .sac-actions .merge { margin-left: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .btn.ready, .kw.flash, .flash-block { animation: none; } }
+.wv-more { display: flex; flex-direction: column; gap: 10px; }
+.wv-more > summary { display: none; }
+.wv-more:not([open]) { gap: 0; }
+/* ---- phones: give the text, the graph and the cards the screen */
+@media (max-width: 640px) {
+  .bar { gap: 6px 10px; padding: 8px 12px; transition: transform .22s ease; }
+  body.bar-away .bar { transform: translateY(calc(-100% - 2px)); }
+  .brand small { display: none; }
+  .focus { flex: 1 1 8rem; }
+  .focus span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .stats { gap: 10px; font-size: 11.5px; }
+  .stats span:nth-child(2), .stats span:nth-child(4) { display: none; }
+  .controls { flex-wrap: nowrap; overflow-x: auto; margin: 0 -12px; padding: 0 12px 2px; width: calc(100% + 24px); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .controls::-webkit-scrollbar { display: none; }
+  .controls .btn { flex: none; }
+  .bar .status { width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wv-top { padding: 8px 12px; gap: 8px; }
+  .wv-row { flex-wrap: nowrap; gap: 8px; }
+  .wv-row h2, .wv-row .wv-sum { display: none; }
+  .wv-row .tabs { flex: 1 1 auto; min-width: 0; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .wv-row .tabs::-webkit-scrollbar { display: none; }
+  .wv-row .tabs button { flex: none; }
+  .wv-row #wvClose { flex: none; padding-left: 10px; padding-right: 10px; }
+  .wv-more > summary { display: list-item; padding: 2px 0; }
+  .wv-body { grid-template-rows: 58vh minmax(0, 1fr); }
+  body.sp-open { padding-bottom: 56vh; }
+  .sp { max-height: 56vh; }
+  .sp-head { padding: 6px 12px; gap: 6px 10px; }
+  .sp-head h2 { font-size: 12px; }
+  #spMode { display: none; }
+  .sp-head h2 { order: 1; } #spClose { order: 2; margin-left: auto; } .sp-purpose { order: 3; width: 100%; } .sp-purpose select { flex: 1; }
+  .sp-count { order: 5; width: 100%; margin: 0; justify-content: space-between; gap: 6px; }
+  .sp-count dd { font-size: 15px; }
+  .sp-grid { padding: 8px 12px 12px; grid-template-columns: minmax(0, 1fr); }
+  .sp-stream, .sp-found, .sp-review { grid-column: auto; }
+  .sp-stream { overflow-x: auto; }
+  .sp-stream th:first-child, .sp-stream td:first-child { display: none; }
+  .sp-stream td { max-width: 9.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .btn.ready, .kw.flash, .flash-block { animation: none; } .bar { transition: none; } }
 </style>
 
 <a class="skip" href="#page">Skip to the text</a>
@@ -507,6 +546,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <span id="wvSum" class="wv-sum"></span>
       <button class="btn primary" id="wvClose" type="button">Back to page</button>
     </div>
+    <details id="wvMore" class="wv-more" open><summary>Topics &amp; export</summary>
     <div id="wvCats" class="chips" aria-label="Filter by topic"></div>
     <div class="wv-tools">
       <label class="chk"><input type="checkbox" id="wvAll"> Include keywords not crawled yet</label>
@@ -521,6 +561,7 @@ details summary { cursor: pointer; font-family: var(--mono); font-size: 12px; co
       <button class="btn" id="exBib" type="button">BibTeX</button>
       <button class="btn" id="wvCopy" type="button">Copy notes</button>
     </div>
+    </details>
   </div>
   <div class="wv-body">
     <div class="wv-main">
@@ -1946,7 +1987,7 @@ function rayTri(h, a, T) {
   return best;
 }
 function cornerFrame() {
-  const pr = pageBox(), vw = document.documentElement.clientWidth, top = Math.max(0, $("bar").getBoundingClientRect().bottom);
+  const pr = pageBox(), vw = document.documentElement.clientWidth, top = $("bar").offsetHeight;
   return { pr, vw, top };
 }
 // corner coordinates → page coordinates, and back
@@ -3833,6 +3874,7 @@ $("pSite").addEventListener("click", e => {
 });
 
 function openWeb(sel) {
+  if (!WV.open) fitWebHeader();
   $("tabSite").hidden = !hasSiteMap(); if (WV.tab === "site" && !hasSiteMap()) WV.tab = "graph";
   hidePop();
   WV.open = true; if (sel) WV.sel = sel;
@@ -5040,6 +5082,25 @@ document.addEventListener("keydown", e => {
   const next = tabs[(go + tabs.length) % tabs.length]; next.focus(); next.click();
 }, true);
 
+// phones: slide the toolbar away while you scroll down through the text, bring it back when you scroll up.
+// Only your own scrolling counts, not the page following the spider.
+{
+  let lastY = scrollY, touchedAt = 0;
+  const touched = () => { touchedAt = performance.now(); };
+  addEventListener("touchmove", touched, { passive: true }); addEventListener("wheel", touched, { passive: true });
+  addEventListener("keydown", e => { if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "Home", "End"].includes(e.key)) touched(); });
+  addEventListener("scroll", () => {
+    const y = scrollY, phone = innerWidth <= 640;
+    if (!phone || y < 80 || document.querySelector(".bar :focus")) document.body.classList.remove("bar-away");
+    else if (performance.now() - touchedAt < 700 && Math.abs(y - lastY) > 6) document.body.classList.toggle("bar-away", y > lastY);
+    lastY = y;
+  }, { passive: true });
+  $("bar").addEventListener("focusin", () => document.body.classList.remove("bar-away"));
+}
+// web view: on phones the topics and export tools start folded away
+function fitWebHeader() { $("wvMore").open = innerWidth > 640; }
+addEventListener("resize", () => { if (innerWidth > 640) $("wvMore").open = true; });
+
 // ---------------- controls + settings ----------------
 function setFollow(v) { follow = v; $("bFollow").setAttribute("aria-pressed", String(v)); }
 const togglePause = () => { paused = !paused; updateStatus(); };
@@ -5471,10 +5532,13 @@ $("srcFile").addEventListener("change", async e => {
 const IN_CLAUDE = !!window.claude;
 if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of CAK3D Crawler to load pages by link, or copy the page's text into “My own text”.";
 $("srcUrl").addEventListener("input", () => { $("srcUrlR").checked = true; });
+// short paragraphs from cookie and consent banners aren't part of the page
+const CONSENT = /\b(we use cookies|this (site|website) uses cookies|cookie (policy|settings|preferences)|accept all( cookies)?|reject all|allow all cookies|consent preferences|privacy preferences|we value your privacy|manage (cookies|consent|preferences))\b/i;
+const dropConsent = t => t.split(/\n{2,}/).filter(p => !(p.length < 500 && CONSENT.test(p))).join("\n\n");
 function mdToText(md) {
-  return md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+  return dropConsent(md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/^#{1,6}\s*(.+)$/gm, "\n$1\n").replace(/^\s*[-*+]\s+/gm, "").replace(/[*_`>|]+/g, "")
-    .replace(/\n{3,}/g, "\n\n").trim();
+    .replace(/\n{3,}/g, "\n\n").trim()).trim();
 }
 const SKIP_LINK = /(log ?in|sign ?(in|up)|register|privacy|cookie|terms|subscribe|newsletter|donate|advertis|facebook|twitter|instagram|linkedin|youtube|tiktok|share|contact|about us|careers|help)/i;
 function htmlToText(html, url) {
@@ -5483,14 +5547,15 @@ function htmlToText(html, url) {
   const root = d.querySelector("article, main") || d.body, parts = [], links = [];
   root.querySelectorAll("h1, h2, h3, p, li").forEach(e => { const t = e.textContent.replace(/\s+/g, " ").trim(); if (t.length > 1) parts.push(t); });
   root.querySelectorAll("a[href]").forEach(a => { try { links.push({ text: a.textContent.trim(), url: new URL(a.getAttribute("href"), url).href }); } catch (e) { /* bad link */ } });
-  return { title: (d.title || new URL(url).hostname).trim(), text: parts.join("\n\n"), url, links };
+  return { title: (d.title || hostOf(url)).trim(), text: dropConsent(parts.join("\n\n")), url, links };
 }
 // rank a page's links for "follow links": same site first, words that matter on the page, no navigation clutter
+const hostOf = u => { try { return new URL(u).hostname; } catch (e) { return ""; } }; // "" for broken links like https:///
 function rankLinks(links, pageUrl, text) {
-  const host = new URL(pageUrl).hostname, seen = new Set([pageUrl.replace(/#.*$/, "")]), low = text.toLowerCase();
+  const host = hostOf(pageUrl), seen = new Set([pageUrl.replace(/#.*$/, "")]), low = text.toLowerCase();
   return links.map(l => ({ ...l, url: l.url.replace(/#.*$/, "") }))
-    .filter(l => /^https?:/.test(l.url) && l.text.length >= 3 && l.text.length < 100 && !SKIP_LINK.test(l.text) && !/\.(png|jpe?g|gif|svg|webp|zip|mp4|mp3)$/i.test(l.url) && !seen.has(l.url) && seen.add(l.url))
-    .map(l => ({ ...l, score: (new URL(l.url).hostname === host ? 3 : 0) + Math.min(5, low.split(l.text.toLowerCase()).length - 1) }))
+    .filter(l => /^https?:/.test(l.url) && hostOf(l.url) && l.text.length >= 3 && l.text.length < 100 && !SKIP_LINK.test(l.text) && !/\.(png|jpe?g|gif|svg|webp|zip|mp4|mp3)$/i.test(l.url) && !seen.has(l.url) && seen.add(l.url))
+    .map(l => ({ ...l, score: (hostOf(l.url) === host ? 3 : 0) + Math.min(5, low.split(l.text.toLowerCase()).length - 1) }))
     .sort((a, b) => b.score - a.score);
 }
 async function fetchPage(url) {
@@ -5519,7 +5584,8 @@ async function fetchPage(url) {
       if (got.text.length > 200) return { ...got, links: rankLinks(got.links, url, got.text) };
     }
   } catch (e) { /* most sites block direct reads; use the reader service */ }
-  const r = await fetch("https://r.jina.ai/" + url);
+  // ask the reader to leave out cookie and consent pop-ups, which many sites put before the article
+  const r = await fetch("https://r.jina.ai/" + url, { headers: { "X-Remove-Selector": '[id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [class*="cky-" i], #onetrust-consent-sdk, .cc-window, [aria-label*="cookie" i]' } });
   if (!r.ok) throw new Error("fetch");
   const t = await r.text(), body = t.split(/^Markdown Content:\s*$/m)[1] || t;
   const title = ((t.match(/^Title:\s*(.+)$/m) || [])[1] || u.hostname).trim();
