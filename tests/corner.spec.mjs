@@ -6,7 +6,7 @@ test("the spider builds a web in the screen corner", async ({ page }) => {
   test.setTimeout(180_000);
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
-  await openApp(page, { flies: 3, exit: "stay" });
+  await openApp(page, { flies: 3, exit: "stay", bored: "web" });
   await crawlDone(page);
   await expect(page.locator("#log")).toContainText(/spinning a web in the top (left|right) corner of the screen/, { timeout: 40_000 });
   await expect(page.locator("#log")).toContainText("The web is done", { timeout: 90_000 });

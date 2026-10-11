@@ -107,7 +107,13 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 .sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
 #weaveOut { width: 100%; font-family: var(--mono); font-size: 11px; resize: vertical; }
 #spiderPop .who { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); margin: 6px 0 12px; }
+.packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin: 6px 0 12px; }
+#storeList > h3 { margin: 18px 0 4px; font-size: 1.05rem; }
+#storeList > h3:first-child { margin-top: 4px; }
+.pack .worth { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.pack.small { padding: 10px 12px; gap: 4px; } .pack.small h3 { font-size: .98rem; }
+.packs.tight { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.packs.tight .pack p:not(.worth) { font-size: .92rem; }
 .pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
 .pack.focus { outline: 2px solid var(--link); outline-offset: 2px; }
 .pack h3 { margin: 0; font-size: 1.05rem; }
@@ -648,14 +654,103 @@ body.bar-off .bar { display: none; }
   </div>
 </dialog>
 
-<!-- Store: paid packs -->
+<!-- The store's catalog: every paid item, preset and bundle. scripts/play-products.mjs turns this same list into the
+     Google Play Console import file, so the product ids here and in Play always match. -->
+<script type="application/json" id="storeCatalog">
+{
+  "groups": [
+    { "key": "kinds", "name": "Spider kinds", "items": [
+      { "id": "kind_orb", "field": "type", "values": ["orb"], "name": "Orb weaver", "desc": "Builds wheel webs.", "price": "0.99" },
+      { "id": "kind_jumping", "field": "type", "values": ["jumping"], "name": "Jumping spider", "desc": "Hops between words.", "price": "0.99" },
+      { "id": "kind_wolf", "field": "type", "values": ["wolf"], "name": "Wolf spider", "desc": "A fast runner.", "price": "0.99" },
+      { "id": "kind_huntsman", "field": "type", "values": ["huntsman"], "name": "Huntsman", "desc": "Long legs, very fast.", "price": "0.99" },
+      { "id": "kind_trapdoor", "field": "type", "values": ["trapdoor"], "name": "Trapdoor spider", "desc": "Waits, then pounces.", "price": "0.99" },
+      { "id": "kind_cellar", "field": "type", "values": ["cellar"], "name": "Cellar spider", "desc": "Tiny body, very long legs.", "price": "0.99" },
+      { "id": "kind_widow", "field": "type", "values": ["widow"], "name": "Widow", "desc": "Glossy, with a red hourglass.", "price": "0.99" } ] },
+    { "key": "looks", "name": "Spider looks", "items": [
+      { "id": "look_cartoon", "field": "look", "values": ["cartoon"], "name": "Cartoon", "desc": "With googly eyes.", "price": "0.99" },
+      { "id": "look_neon", "field": "look", "values": ["neon"], "name": "Neon outline", "desc": "A glowing outline.", "price": "0.99" },
+      { "id": "look_robot", "field": "look", "values": ["robot"], "name": "Robot", "desc": "With blinking LED eyes.", "price": "0.99" },
+      { "id": "look_tarantula", "field": "look", "values": ["tarantula"], "name": "Hairy tarantula", "desc": "Big and fuzzy.", "price": "0.99" },
+      { "id": "look_peacock", "field": "look", "values": ["peacock"], "name": "Peacock spider", "desc": "Fans out its colors on a catch.", "price": "0.99" },
+      { "id": "look_ghost", "field": "look", "values": ["ghost"], "name": "Ghost", "desc": "See-through and spooky.", "price": "0.99" },
+      { "id": "look_pixel", "field": "look", "values": ["pixel"], "name": "Pixel art", "desc": "An 8-bit spider.", "price": "0.99" },
+      { "id": "look_crystal", "field": "look", "values": ["crystal"], "name": "Crystal", "desc": "Faceted and twinkling.", "price": "0.99" } ] },
+    { "key": "premium", "name": "Premium looks", "items": [
+      { "id": "look_realistic", "field": "look", "values": ["realistic"], "name": "Realistic", "desc": "Shaded body, banded legs, eight eyes.", "price": "1.99" },
+      { "id": "look_skeleton", "field": "look", "values": ["skeleton"], "name": "Skeleton", "desc": "Ribs, skull and bony legs.", "price": "1.99" },
+      { "id": "look_hero", "field": "look", "values": ["hero"], "name": "Web-slinger hero (red and blue)", "desc": "A suited hero with web lines and big white eyes.", "price": "1.99" },
+      { "id": "look_hero_yellow", "field": "look", "values": ["heroyb"], "name": "Web-slinger hero (yellow and blue)", "desc": "The hero suit in yellow and blue.", "price": "1.99" },
+      { "id": "look_hero_black", "field": "look", "values": ["herork"], "name": "Web-slinger hero (red and black)", "desc": "The hero suit in red and black.", "price": "1.99" },
+      { "id": "look_caped_flyer", "field": "look", "values": ["flyer"], "name": "Caped flyer (blue and red)", "desc": "A blue suit and a red cape that waves as it crawls.", "price": "1.99" } ] },
+    { "key": "colors", "name": "Colors", "items": [
+      { "id": "color_blue", "field": "tint", "values": ["c0"], "name": "Blue", "price": "0.99" },
+      { "id": "color_rust", "field": "tint", "values": ["c1"], "name": "Rust", "price": "0.99" },
+      { "id": "color_green", "field": "tint", "values": ["c2"], "name": "Green", "price": "0.99" },
+      { "id": "color_purple", "field": "tint", "values": ["c3"], "name": "Purple", "price": "0.99" },
+      { "id": "color_gold", "field": "tint", "values": ["c4"], "name": "Gold", "price": "0.99" },
+      { "id": "color_teal", "field": "tint", "values": ["c5"], "name": "Teal", "price": "0.99" },
+      { "id": "color_pink", "field": "tint", "values": ["c6"], "name": "Pink", "price": "0.99" },
+      { "id": "color_hero", "field": "tint", "values": ["hero"], "name": "Hero red and blue", "price": "0.99" },
+      { "id": "color_onyx", "field": "tint", "values": ["onyx"], "name": "Onyx and red", "price": "0.99" },
+      { "id": "color_metal", "field": "tint", "values": ["metal"], "name": "Metallic gold", "price": "0.99" },
+      { "id": "color_rainbow", "field": "tint", "values": ["rainbow"], "name": "Rainbow", "price": "0.99" },
+      { "id": "color_pearl", "field": "tint", "values": ["pearl"], "name": "Pearl", "price": "0.99" } ] },
+    { "key": "extras", "name": "More spiders, flies and speed", "items": [
+      { "id": "extra_spiders", "field": "spiders", "values": ["topics"], "name": "A spider for each topic", "desc": "Up to 6 extra spiders, each hunting one topic in its color.", "price": "0.99" },
+      { "id": "extra_flies", "field": "flies", "values": ["on"], "name": "Flies", "desc": "Up to 6 flies for the spider to hunt, catch in its web and eat.", "price": "0.99" },
+      { "id": "extra_speed", "field": "speed", "values": ["2", "4"], "name": "Faster speeds", "desc": "Fast (2×) and very fast (4×).", "price": "0.99" } ] },
+    { "key": "seasons", "name": "Seasonal looks", "items": [
+      { "id": "season_spring", "field": "season", "values": ["spring"], "name": "Spring flower crown", "price": "0.99" },
+      { "id": "season_summer", "field": "season", "values": ["summer"], "name": "Summer sunglasses", "price": "0.99" },
+      { "id": "season_autumn", "field": "season", "values": ["autumn"], "name": "Autumn leaf", "price": "0.99" },
+      { "id": "season_halloween", "field": "season", "values": ["halloween"], "name": "Halloween witch hat", "price": "0.99" },
+      { "id": "season_winter", "field": "season", "values": ["winter"], "name": "Winter hat", "price": "0.99" } ] },
+    { "key": "weather", "name": "Weather", "items": [
+      { "id": "weather_fireflies", "field": "ambient", "values": ["fireflies"], "name": "Fireflies", "price": "0.99" },
+      { "id": "weather_storm", "field": "ambient", "values": ["storm"], "name": "Thunderstorm", "price": "0.99" },
+      { "id": "weather_snow", "field": "ambient", "values": ["snow"], "name": "Snow", "price": "0.99" },
+      { "id": "weather_blossoms", "field": "ambient", "values": ["blossoms"], "name": "Cherry blossoms", "price": "0.99" },
+      { "id": "weather_fog", "field": "ambient", "values": ["fog"], "name": "Fog", "price": "0.99" },
+      { "id": "weather_stars", "field": "ambient", "values": ["stars"], "name": "Starry night", "price": "0.99" },
+      { "id": "weather_season", "field": "ambient", "values": ["season"], "name": "Weather that matches the season", "price": "0.99" } ] },
+    { "key": "bored", "name": "When it's bored", "items": [
+      { "id": "bored_web", "field": "bored", "values": ["web"], "name": "Spins a corner web", "desc": "Spins an orb web in a corner of the screen and catches flies in it.", "price": "0.99" },
+      { "id": "bored_edges", "field": "bored", "values": ["edges"], "name": "Walks the screen edges", "desc": "Crawls up the sides and along the top and bottom of the screen.", "price": "0.99" },
+      { "id": "bored_both", "field": "bored", "values": ["both"], "name": "Web and walks, taking turns", "desc": "Spins its corner web, then goes for walks around the screen.", "price": "0.99" } ] },
+    { "key": "themes", "name": "Page themes", "items": [
+      { "id": "theme_sepia", "field": "skin", "values": ["sepia"], "name": "Sepia", "price": "0.99" },
+      { "id": "theme_blueprint", "field": "skin", "values": ["blueprint"], "name": "Blueprint", "price": "0.99" },
+      { "id": "theme_forest", "field": "skin", "values": ["forest"], "name": "Forest", "price": "0.99" },
+      { "id": "theme_spooky", "field": "skin", "values": ["spooky"], "name": "Spooky", "price": "0.99" },
+      { "id": "theme_neon", "field": "skin", "values": ["neon"], "name": "Neon", "price": "0.99" } ] }
+  ],
+  "presets": [
+    { "id": "preset_spooky", "preset": "spooky", "name": "Spooky night preset", "price": "1.99" },
+    { "id": "preset_cyber", "preset": "cyber", "name": "Cyber preset", "price": "1.99" },
+    { "id": "preset_cozy", "preset": "cozy", "name": "Cozy reading preset", "price": "1.99" },
+    { "id": "preset_forest", "preset": "forest", "name": "Forest preset", "price": "1.99" },
+    { "id": "preset_blueprint", "preset": "blueprint", "name": "Blueprint preset", "price": "1.99" },
+    { "id": "preset_party", "preset": "party", "name": "Party preset", "price": "1.99" },
+    { "id": "preset_pixel", "preset": "pixel", "name": "Pixel preset", "price": "1.99" }
+  ],
+  "bundles": [
+    { "id": "bundle_starter", "name": "Starter bundle", "price": "4.99", "groups": ["kinds", "colors", "extras"], "desc": "Every spider kind, every color, a spider for each topic, flies and faster speeds." },
+    { "id": "bundle_collector", "name": "Collector bundle", "price": "9.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "weather", "bored", "themes"], "desc": "The Starter bundle, plus every $0.99 look, the seasonal looks, all the weather, the bored modes and the page themes." },
+    { "id": "bundle_deluxe", "name": "Deluxe bundle", "price": "14.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "weather", "bored", "themes", "premium"], "desc": "The Collector bundle, plus the premium looks: realistic, skeleton and all four heroes." },
+    { "id": "bundle_everything", "name": "Everything", "price": "19.99", "all": true, "desc": "Every item and every preset, and everything added later." }
+  ]
+}
+</script>
+
+<!-- Store: paid items -->
 <dialog id="dStore" aria-labelledby="storeH">
   <div class="body">
     <div class="head">
       <div><h2 id="storeH">Unlock more</h2><p class="meta" id="storeNote"></p></div>
       <button class="btn" type="button" id="storeClose">Close</button>
     </div>
-    <div id="storeList" class="packs"></div>
+    <div id="storeList"></div>
     <div class="rowi"><button class="btn" type="button" id="storeRestore" hidden>Restore purchases</button></div>
   </div>
 </dialog>
@@ -819,7 +914,10 @@ body.bar-off .bar { display: none; }
               <option value="ghost">Ghost</option>
               <option value="pixel">Pixel art</option>
               <option value="realistic">Realistic</option>
-              <option value="hero">Web-slinger hero (red and blue suit)</option>
+              <option value="hero">Web-slinger hero (red and blue)</option>
+              <option value="heroyb">Web-slinger hero (yellow and blue)</option>
+              <option value="herork">Web-slinger hero (red and black)</option>
+              <option value="flyer">Caped flyer (blue and red, with a waving cape)</option>
               <option value="crystal">Crystal</option>
               <option value="skeleton">Skeleton</option>
             </select></label>
@@ -843,11 +941,11 @@ body.bar-off .bar { display: none; }
               <option value="winter">Winter hat</option></select></label>
         </div>
         <label class="field"><span>Flies to hunt</span>
-          <div class="range"><input type="range" id="cfgFlies" min="0" max="5" step="1"><output id="oFlies"></output></div>
+          <div class="range"><input type="range" id="cfgFlies" min="0" max="6" step="1"><output id="oFlies"></output></div>
           <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
         <div class="row2">
           <label class="field"><span>When it's bored</span>
-            <select id="cfgBored"><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option><option value="rest">Just rests</option></select></label>
+            <select id="cfgBored"><option value="rest">Just rests</option><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option></select></label>
           <label class="field"><span>When the crawl is done</span>
             <select id="cfgDetach"><option value="detach">The web lets go of the words and floats away</option><option value="stay">The web stays on the page</option></select></label>
         </div>
@@ -1143,7 +1241,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false, bored: "both", detach: "detach" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2060,7 +2158,7 @@ function startExit() {
   if (e === "left" || e === "right") { S.mode = "exit"; S.exitPt = { x: e === "left" ? -pr.left - 110 : vw - pr.left + 110, y: S.y }; }
   else if (e === "up") S.mode = "exitUp";
   else if (e === "balloon") S.mode = "exitBalloon";
-  else if (e === "burrow") { S.mode = "exitBurrow"; S.appear = { t: 1, how: "burrow" }; }
+  else if (e === "burrow") { S.mode = "exitBurrow"; S.appear = { t: 1, how: "burrow" }; S.hole = { x: S.x, y: S.y, born: performance.now(), r: Array.from({ length: 18 }, () => 0.72 + Math.random() * 0.55), closeAt: 0 }; }
   else { S.mode = "done"; S.wanderT = 2; return; }
   log("OUT", `${spiderName()} ${EXIT_TEXT[e]}`);
   sfx("exit");
@@ -2732,7 +2830,7 @@ function update(dt, now) {
     S.a += clamp(wrapA(-Math.PI / 2 - S.a), -4 * dt, 4 * dt); S.v = 0; tuckFeet();
     if (S.y < -pageBox().top - 120) S.mode = "gone";
   } else if (S.mode === "exitBurrow") {
-    S.appear.t -= dt * Math.min(sp, 2) * 0.7; S.v = 0;
+    S.appear.t -= dt * Math.min(sp, 2) * 0.7; S.v = 0; S.a += Math.sin(now * 0.05) * 0.04;
     if (Math.random() < 0.5) fluff.push({ x: S.x + (Math.random() - 0.5) * 30, y: S.y + 8, vx: (Math.random() - 0.5) * 40, vy: -20 - Math.random() * 30, life: 0.6 });
     if (S.appear.t <= 0) { S.appear = null; S.mode = "gone"; }
   }
@@ -3018,6 +3116,9 @@ function spiderColor() { return /^c\d$/.test(cfg.tint) ? C.cats[+cfg.tint.slice(
 function spiderPalette(now) {
   const t = cfg.tint;
   if (t === "hero" || (t === "auto" && cfg.look === "hero")) return { body: "#d3212c", legs: "#2152c4", trim: "#101014" };
+  if (t === "auto" && cfg.look === "heroyb") return { body: "#f2c230", legs: "#1f4aa8", trim: "#101014" };
+  if (t === "auto" && cfg.look === "herork") return { body: "#c8102e", legs: "#1b1b20", trim: "#101014" };
+  if (t === "auto" && cfg.look === "flyer") return { body: "#2257c9", legs: "#2257c9", trim: "#d3212c" };
   if (t === "onyx") return { body: "#151518", legs: "#232329", trim: "#d0182f" };
   if (t === "metal") return { body: "#c99a2e", legs: "#a8801f", trim: "#fff1bf", shine: true };
   if (t === "rainbow") { const h = (now * 0.04) % 360; return { body: `hsl(${h} 78% 52%)`, legs: `hsl(${(h + 50) % 360} 78% 52%)`, trim: "#ffffff" }; }
@@ -3033,6 +3134,8 @@ const LEG_STYLE = {
   cartoon: () => ({ w: [3, 2.2], outline: true }), neon: () => ({ w: [1.6, 1.2] }), robot: () => ({ w: [2.8, 2], joints: true }),
   tarantula: () => ({ w: [3.2, 2.4], hairs: true }), peacock: () => ({ w: [1.8, 1.3] }), ghost: () => ({ w: [2, 1.4] }), pixel: () => ({ pixel: true }),
   realistic: () => ({ w: [2.8, 1.6], bands: true, fine: true }), hero: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
+  heroyb: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }), herork: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
+  flyer: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
   crystal: () => ({ w: [2, 1.4], glow: true }), skeleton: () => ({ w: [1.7, 1.2], bones: true })
 };
 function drawSpider(now) {
@@ -3064,7 +3167,7 @@ function drawSpider(now) {
   ctx.lineCap = look === "pixel" ? "butt" : "round"; ctx.lineJoin = "round";
   if (look === "neon" || look === "crystal") { ctx.shadowColor = col; ctx.shadowBlur = look === "crystal" ? 7 : 10; }
   if (look === "ghost") ctx.globalAlpha *= 0.7;
-  drawLegs(legCol, Object.assign((LEG_STYLE[look] || LEG_STYLE.classic)(), { tipCol: P.body }));
+  drawLegs(legCol, Object.assign((LEG_STYLE[look] || LEG_STYLE.classic)(), { tipCol: look === "flyer" ? P.trim : P.body }));
   if (look === "ghost") ctx.globalAlpha /= 0.7;
   if (look === "crystal") ctx.shadowBlur = 0;
   ctx.translate(S.x, S.y);
@@ -3123,7 +3226,8 @@ function drawSpider(now) {
     for (let gy = -2; gy <= 2; gy++) for (let gx = 0; gx <= 3; gx++) if ((gx - 1.5) * (gx - 1.5) / 4.5 + gy * gy / 5 <= 1) ctx.fillRect(gx * 3, gy * 3 - 1.5, 3, 3);
     ctx.fillStyle = C.paper; ctx.fillRect(7.5, -6, 3, 3); ctx.fillRect(7.5, 3, 3, 3);
   } else if (look === "realistic") drawRealBody(type, P, now);
-  else if (look === "hero") drawHeroBody(P);
+  else if (look === "hero" || look === "heroyb" || look === "herork") drawHeroBody(P);
+  else if (look === "flyer") drawFlyerBody(P, now);
   else if (look === "crystal") drawCrystalBody(P, now);
   else if (look === "skeleton") drawSkeletonBody(P);
   else drawClassicBody(type, col);
@@ -3223,6 +3327,49 @@ function drawHeroBody(P) {
     ctx.fillStyle = "#fff"; ell(0, 0, Math.max(1.5, trx * 0.26), Math.max(1, try_ * 0.18)); ctx.fill();
     ctx.restore();
   }
+}
+// the caped flyer: a blue suit, a red belt, and a red cape over its back whose hem ripples as it crawls
+// burrowing: the page tears open, the torn paper curls back, the spider crawls in, and the page closes after it
+function drawHole(now) {
+  const h = S.hole; if (!h) return;
+  if (S.mode !== "exitBurrow" && S.mode !== "gone") { S.hole = null; return; }
+  if (S.mode === "gone" && !h.closeAt) h.closeAt = now + 1500;
+  const open = clamp((now - h.born) / 650, 0, 1), close = h.closeAt ? clamp((now - h.closeAt) / 900, 0, 1) : 0;
+  if (close >= 1) { S.hole = null; return; }
+  const R = 26 * cfg.size * ease(open) * (1 - ease(close)); if (R < 0.6) return;
+  const N = h.r.length, pt = (i, k) => { const an = (i % N) / N * Math.PI * 2; return [h.x + Math.cos(an) * R * h.r[i % N] * k, h.y + Math.sin(an) * R * h.r[i % N] * k * 0.78]; };
+  ctx.save();
+  ctx.fillStyle = "#050506"; ctx.beginPath();
+  for (let i = 0; i < N; i++) { const [x, y] = pt(i, 1); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.fill();
+  const g = ctx.createRadialGradient(h.x, h.y + R * 0.2, R * 0.1, h.x, h.y, R * 1.1);
+  g.addColorStop(0, "rgba(40,30,25,.55)"); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fill();
+  for (let i = 0; i < N; i += 2) { // torn flaps of paper, folded back out of the hole
+    const [x1, y1] = pt(i, 1), [x2, y2] = pt(i + 1, 1), [x3, y3] = pt(i + 2, 1), [fx, fy] = pt(i + 1, 1.5 + (h.r[(i + 5) % N] - 0.95) * 0.6);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(fx, fy); ctx.lineTo(x3, y3); ctx.closePath();
+    ctx.fillStyle = C.paper; ctx.fill();
+    ctx.fillStyle = C.dark ? "rgba(255,255,255,.13)" : "rgba(0,0,0,.05)"; ctx.fill(); // the back of the paper catches the light
+    ctx.strokeStyle = C.muted; ctx.globalAlpha = 0.8; ctx.lineWidth = 0.9; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = "rgba(0,0,0,.14)"; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(fx, fy); ctx.lineTo(x2, y2); ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 0.6; // torn paper fibres
+  for (let i = 1; i < N; i += 2) { const [x, y] = pt(i, 1), [x2, y2] = pt(i, 1.14); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke(); }
+  ctx.restore();
+}
+function drawFlyerBody(P, now) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t, A0 = ctx.globalAlpha;
+  ctx.strokeStyle = "#0b0b10"; ctx.lineWidth = 1;
+  ctx.fillStyle = P.body; ell(ax, 0, arx, ary); ctx.fill(); ctx.stroke();
+  const w = now * (0.006 + Math.min(1, (S.v || 0) / 120) * 0.01), sx = tx - trx * 0.55, hem = ax - arx - 12, half = ary * 1.75;
+  ctx.fillStyle = P.trim; ctx.beginPath(); ctx.moveTo(sx, -try_ * 0.85);
+  ctx.quadraticCurveTo(ax + arx * 0.3, -half * 1.05 + Math.sin(w) * 2, hem + Math.sin(w * 1.3) * 3, -half + Math.sin(w + 1) * 3);
+  for (let i = 1; i <= 7; i++) { const t = i / 7; ctx.lineTo(hem + Math.sin(w * 1.7 + i * 1.4) * 4 - (i % 2) * 3, -half + half * 2 * t + Math.sin(w + i) * 1.6); }
+  ctx.quadraticCurveTo(ax + arx * 0.3, half * 1.05 + Math.sin(w + 2) * 2, sx, try_ * 0.85); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,.28)"; ctx.lineWidth = 1;
+  for (const y of [-0.55, 0, 0.55]) { ctx.beginPath(); ctx.moveTo(sx - 3, y * try_); ctx.quadraticCurveTo(ax, y * half + Math.sin(w + y * 4) * 3, hem + 4, y * half * 1.1); ctx.stroke(); }
+  ctx.fillStyle = P.body; ctx.strokeStyle = "#0b0b10"; ell(tx, 0, trx, try_); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = P.trim; ctx.fillRect(tx - trx * 0.75, -try_ * 0.7, 2.2, try_ * 1.4);
+  for (const y of [-1, 1]) { ctx.fillStyle = "#fff"; ell(tx + trx * 0.5, y * try_ * 0.35, 1.5, 1.2); ctx.fill(); ctx.fillStyle = "#0b0b10"; ell(tx + trx * 0.6, y * try_ * 0.35, 0.7, 0.7); ctx.fill(); }
+  ctx.globalAlpha = A0;
 }
 function drawCrystalBody(P, now) {
   const B = bodyOf(), A0 = ctx.globalAlpha;
@@ -3479,6 +3626,7 @@ function draw(now) {
   for (const r of rings) { const p = (now - r.born) / 700; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(r.x, r.y, 4 + p * 22, 0, 7); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const h of helpers) if (vis(h.y, h.y)) drawHelper(h);
+  drawHole(now);
   drawSpider(now);
 }
 function threadStyle(t, i, A, B) {
@@ -5594,37 +5742,46 @@ addEventListener("wheel", () => { if (!WV.open) stopFollow(); }, { passive: true
 addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: true });
 addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
 
-// ---------------- add-ons: paid packs (sold through Google Play) ----------------
-// Each pack unlocks the setting values listed in its items. Anything not listed here is free.
-// Edit this list to change what's paid; the product ids must match the in-app products in the Play Console.
-const PACKS = [
-  { id: "pack_spiders", name: "Spider kinds", desc: "Huntsman, trapdoor, cellar spider and widow, each with its own body and way of moving.", items: { type: ["huntsman", "trapdoor", "cellar", "widow"] } },
-  { id: "pack_looks", name: "Spider looks", desc: "Realistic, web-slinger hero, crystal, skeleton, hairy tarantula, peacock, robot, ghost, neon and pixel art.",
-    items: { look: ["realistic", "hero", "crystal", "skeleton", "tarantula", "peacock", "robot", "ghost", "neon", "pixel"] } },
-  { id: "pack_colors", name: "Colors", desc: "Hero red and blue, onyx and red, metallic gold, rainbow and pearl.", items: { tint: ["hero", "onyx", "metal", "rainbow", "pearl"] } },
-  { id: "pack_seasons", name: "Seasons and weather", desc: "Seasonal outfits, plus snow, rain, thunderstorms, falling leaves, blossoms, fog, fireflies, dust and starry nights.",
-    items: { season: ["auto", "spring", "summer", "autumn", "halloween", "winter"], ambient: ["season", "dust", "fireflies", "rain", "storm", "snow", "leaves", "blossoms", "fog", "stars"] } },
-  { id: "pack_themes", name: "Page themes", desc: "Sepia, blueprint, forest, spooky and neon.", items: { skin: ["sepia", "blueprint", "forest", "spooky", "neon"] } },
-  { id: "pack_babies", name: "Spiderling styles", desc: "Mini copies of the parent, glowing fireflies and rainbow spiderlings.", items: { babyLook: ["clones", "fireflies"], babyColor: ["rainbow"] } },
-  { id: "pack_all", name: "Everything", desc: "Every pack above, and every pack added later.", items: {}, all: true }
-];
-const FREE_FALLBACK = { type: "cobweb", look: "classic", tint: "auto", season: "off", ambient: "none", skin: "auto", babyLook: "spiderlings", babyColor: "topic" };
+// ---------------- the store: paid items, presets and bundles (sold through Google Play) ----------------
+// The catalog is the #storeCatalog block above. Anything not in it is free. Product ids must match the Play Console.
+const CATALOG = JSON.parse($("storeCatalog").textContent);
+const ITEMS = CATALOG.groups.flatMap(g => g.items.map(it => ({ ...it, group: g.key })));
+const PRODUCTS = [...ITEMS, ...CATALOG.presets, ...CATALOG.bundles];
+const FREE_FALLBACK = { type: "cobweb", look: "classic", tint: "auto", season: "off", ambient: "none", skin: "auto", spiders: "one", speed: 1, bored: "rest", flies: 0 };
 // While the app is in development everything stays unlocked. Set lockPaid: true in config.js to switch the locks on.
 const DEV_UNLOCK = !(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.lockPaid);
 const OWNED = new Set(store.get("cak3d-owned") || []);
-const owns = id => DEV_UNLOCK || OWNED.has("pack_all") || OWNED.has(id);
-const packFor = (field, value) => PACKS.find(p => (p.items[field] || []).includes(value)) || null;
-function locked(field, value) { const p = packFor(field, value); return p && !owns(p.id) ? p : null; }
+// the items a preset uses: buying the preset unlocks them all, to use on their own too
+function presetItems(pr) { const vals = PRESETS[pr.preset] || {}; return ITEMS.filter(it => vals[it.field] != null && it.values.includes(String(vals[it.field]))).map(it => it.id); }
+function unlocked(id) {
+  if (DEV_UNLOCK || OWNED.has(id) || OWNED.has("bundle_everything")) return true;
+  const it = ITEMS.find(x => x.id === id); if (!it) return false;
+  return CATALOG.bundles.some(bd => OWNED.has(bd.id) && (bd.all || (bd.groups || []).includes(it.group)))
+    || CATALOG.presets.some(pr => OWNED.has(pr.id) && presetItems(pr).includes(id));
+}
+const owns = unlocked;
+const itemFor = (field, value) => ITEMS.find(it => it.field === field && it.values.includes(String(value))) || null;
+// the item you'd need to buy to use this setting value, or null when it's free or already yours
+function locked(field, value) {
+  if (field === "flies") return +value > 0 && !unlocked("extra_flies") ? itemFor("flies", "on") : null;
+  if (field === "season" && value === "auto") return ITEMS.find(it => it.group === "seasons" && !unlocked(it.id)) || null; // needs all five seasons
+  const it = itemFor(field, value); return it && !unlocked(it.id) ? it : null;
+}
+const presetProduct = name => CATALOG.presets.find(pr => pr.preset === name) || null;
 const freeOnly = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, locked(k, v) ? FREE_FALLBACK[k] : v]));
-// mark paid options with ✦, and 🔒 when they're still locked
+const money = p => BILLING.prices[p.id] || "$" + p.price;
+// paid options show ✦ once they're yours, and 🔒 with the price while they're locked
 function markPaid() {
+  const mark = (o, lk, paid, lockText) => { o.textContent = o.textContent.replace(/ (✦|🔒).*$/u, "") + (lk ? " 🔒 " + lockText : paid ? " ✦" : ""); };
   for (const [id, key] of BIND) {
     const el = $(id); if (el.tagName !== "SELECT") continue;
     for (const o of el.options) {
-      const p = packFor(key, o.value); if (!p) continue;
-      o.textContent = o.textContent.replace(/ [✦🔒]+$/u, "") + (owns(p.id) ? " ✦" : " 🔒");
+      if (key === "season" && o.value === "auto") { const lk = locked(key, o.value); mark(o, lk, ITEMS.some(it => it.group === "seasons"), "needs all five seasons"); continue; }
+      const lk = locked(key, o.value); mark(o, lk, !!itemFor(key, o.value), lk ? money(lk) : "");
     }
   }
+  for (const o of $("preset").options) { const pr = presetProduct(o.value); if (pr) mark(o, !unlocked(pr.id), true, money(pr)); }
+  $("cfgFlies").closest("label").querySelector("span").textContent = "Flies to hunt" + (locked("flies", 1) ? " 🔒 " + money(itemFor("flies", "on")) : "");
 }
 // Google Play billing, through cordova-plugin-purchase (CdvPurchase) in the Android app
 const BILLING = {
@@ -5633,8 +5790,8 @@ const BILLING = {
     const P = window.CdvPurchase;
     if (!P || !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
     const st = P.store;
-    st.register(PACKS.map(p => ({ id: p.id, type: P.ProductType.NON_CONSUMABLE, platform: P.Platform.GOOGLE_PLAY })));
-    st.when().productUpdated(p => { if (p.pricing) BILLING.prices[p.id] = p.pricing.price; if (p.owned) grant(p.id, true); if ($("dStore").open) renderStore(); })
+    st.register(PRODUCTS.map(p => ({ id: p.id, type: P.ProductType.NON_CONSUMABLE, platform: P.Platform.GOOGLE_PLAY })));
+    st.when().productUpdated(p => { if (p.pricing) BILLING.prices[p.id] = p.pricing.price; if (p.owned) grant(p.id, true); if ($("dStore").open) renderStore(); markPaid(); })
       .approved(t => t.verify()).verified(r => r.finish()).finished(t => { for (const p of t.products) grant(p.id); });
     await st.initialize([P.Platform.GOOGLE_PLAY]);
     BILLING.store = st; BILLING.ready = true;
@@ -5642,7 +5799,7 @@ const BILLING = {
   },
   async buy(id) {
     const p = BILLING.store.get(id, window.CdvPurchase.Platform.GOOGLE_PLAY), offer = p && p.getOffer();
-    if (!offer) throw new Error("That pack isn't available in the store yet.");
+    if (!offer) throw new Error("That item isn't available in the store yet.");
     const err = await offer.order(); if (err && err.code !== window.CdvPurchase.ErrorCode.PAYMENT_CANCELLED) throw new Error(err.message || "The purchase didn't go through.");
   },
   restore() { return BILLING.store.restorePurchases(); }
@@ -5650,33 +5807,38 @@ const BILLING = {
 function grant(id, quiet) {
   if (OWNED.has(id)) return;
   OWNED.add(id); store.set("cak3d-owned", [...OWNED]); markPaid();
-  if (!quiet) { const p = PACKS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
+  if (!quiet) { const p = PRODUCTS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
   if ($("dStore").open) renderStore();
 }
 let storeFocus = null;
 function renderStore() {
   const native = BILLING.ready, play = window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.playUrl;
-  $("storeNote").textContent = DEV_UNLOCK ? "Everything is unlocked while the app is in development. Options marked ✦ will be paid packs."
+  $("storeNote").textContent = DEV_UNLOCK ? "Everything is unlocked while the app is in development. Options marked ✦ will be paid items."
     : native ? "Purchases belong to your Google account and unlock on every Android device you use it on."
-    : "Packs are sold in the Android app on Google Play. Options marked 🔒 unlock there.";
+    : "Items are sold in the Android app on Google Play. Options marked 🔒 unlock there.";
   $("storeRestore").hidden = !native;
-  $("storeList").innerHTML = PACKS.map(p => {
-    const n = Object.values(p.items).reduce((t, v) => t + v.length, 0), have = owns(p.id);
-    const price = BILLING.prices[p.id];
-    const action = have ? `<span class="state">${DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked for development" : "Unlocked"}</span>`
-      : native ? `<button class="btn primary" type="button" data-buy="${p.id}">Buy${price ? " · " + esc(price) : ""}</button>`
-      : play ? `<a class="btn" href="${esc(play)}" target="_blank" rel="noopener">Get the Android app</a>` : `<span class="state">In the Android app</span>`;
-    return `<div class="pack${storeFocus === p.id ? " focus" : ""}"><h3>${esc(p.name)}</h3><p>${esc(p.desc)}</p><p class="meta">${p.all ? "All packs" : plural(n, "item")}</p>${action}</div>`;
-  }).join("");
+  const action = p => unlocked(p.id) ? `<span class="state">${DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked for development" : "Unlocked"}</span>`
+    : native ? `<button class="btn primary" type="button" data-buy="${p.id}">Buy · ${esc(money(p))}</button>`
+    : play ? `<a class="btn" href="${esc(play)}" target="_blank" rel="noopener">${esc(money(p))} in the Android app</a>` : `<span class="state">${esc(money(p))} in the Android app</span>`;
+  const card = (p, extra, small) => `<div class="pack${small ? " small" : ""}${storeFocus === p.id ? " focus" : ""}" data-product="${p.id}"><h3>${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${extra || ""}${action(p)}</div>`;
+  const worth = ids => { const t = ITEMS.filter(it => ids.includes(it.id)).reduce((sum, it) => sum + +it.price, 0); return t ? `<p class="worth">$${t.toFixed(2)} if bought one by one</p>` : ""; };
+  const inBundle = bd => bd.all ? PRODUCTS.filter(p => p !== bd && !p.all).map(p => p.id) : ITEMS.filter(it => bd.groups.includes(it.group)).map(it => it.id);
+  let html = `<h3>Bundles</h3><div class="packs">${CATALOG.bundles.map(bd => card(bd, bd.all ? `<p class="worth">$${(ITEMS.reduce((t, it) => t + +it.price, 0) + CATALOG.presets.reduce((t, pr) => t + +pr.price, 0)).toFixed(2)} if bought one by one</p>` : worth(inBundle(bd)))).join("")}</div>`;
+  html += `<h3>Presets</h3><p class="meta">A whole style in one tap. A preset also unlocks every item it uses, to mix with anything else.</p><div class="packs tight">${CATALOG.presets.map(pr => card(pr, worth(presetItems(pr)), true)).join("")}</div>`;
+  for (const g of CATALOG.groups) html += `<h3>${esc(g.name)}</h3><div class="packs tight">${g.items.map(it => card(it, "", true)).join("")}</div>`;
+  $("storeList").innerHTML = html;
 }
-function openStore(focus) { storeFocus = focus || null; renderStore(); if (!$("dStore").open) $("dStore").showModal(); const el = $("storeList").querySelector(".focus"); if (el) el.scrollIntoView({ block: "nearest" }); }
+function openStore(focus) {
+  storeFocus = focus || null; renderStore(); if (!$("dStore").open) $("dStore").showModal();
+  const el = $("storeList").querySelector(".focus"); if (el) el.scrollIntoView({ block: "center" });
+}
 $("bStore").onclick = () => openStore();
 $("storeClose").onclick = () => $("dStore").close();
 $("storeRestore").onclick = async () => { try { await BILLING.restore(); flash("Checked Google Play for your purchases."); } catch (e) { flash("Couldn't reach Google Play. Try again later."); } };
 $("storeList").addEventListener("click", async e => {
-  const b = e.target.closest("[data-buy]"); if (!b) return;
-  b.disabled = true;
-  try { await BILLING.buy(b.dataset.buy); } catch (err) { flash(err.message); } finally { b.disabled = false; }
+  const bt = e.target.closest("[data-buy]"); if (!bt) return;
+  bt.disabled = true;
+  try { await BILLING.buy(bt.dataset.buy); } catch (err) { flash(err.message); } finally { bt.disabled = false; }
 });
 
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
@@ -5739,7 +5901,7 @@ for (const [id, key, parse, out] of BIND) {
   const evt = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
   el.addEventListener(evt, () => {
     // a paid option that isn't unlocked yet: put the old choice back and show the pack
-    const lock = el.tagName === "SELECT" && locked(key, el.value);
+    const lock = (el.tagName === "SELECT" || key === "flies") && locked(key, el.value);
     if (lock) { el.value = cfg[key]; openStore(lock.id); return; }
     cfg[key] = el.type === "checkbox" ? el.checked : parse(el.value);
     if (out) $(out).textContent = fmt[key](cfg[key]);
@@ -5774,7 +5936,9 @@ function applyAll() {
 }
 $("preset").addEventListener("change", e => {
   const p = PRESETS[e.target.value]; if (!p) return;
-  Object.assign(cfg, freeOnly(p)); applyAll(); flash(`Applied the ${e.target.selectedOptions[0].textContent.split(":")[0]} style.`);
+  const pr = presetProduct(e.target.value);
+  if (pr && !unlocked(pr.id)) { e.target.value = ""; openStore(pr.id); return; }
+  Object.assign(cfg, p); applyAll(); flash(`Applied the ${e.target.selectedOptions[0].textContent.split(":")[0]} style.`);
   e.target.value = "";
 });
 $("surprise").onclick = () => {
