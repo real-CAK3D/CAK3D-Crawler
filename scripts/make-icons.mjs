@@ -33,16 +33,29 @@ function shapes({ web }) {
     for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + Math.PI / 8; s.push({ seg: [0.5, 0.5, 0.5 + Math.cos(a) * 0.47, 0.5 + Math.sin(a) * 0.47], r: 0.004, c: SILK, a: 0.45 }); }
     for (const r of [0.17, 0.29, 0.41]) { const p = ring(r); for (let i = 0; i < 8; i++) { const q = p[(i + 1) % 8]; s.push({ seg: [p[i][0], p[i][1], q[0], q[1]], r: 0.004, c: SILK, a: 0.45 }); } }
   }
-  const knees = [0.29, 0.40, 0.52, 0.63], feet = [[0.27, 0.15], [0.33, 0.36], [0.31, 0.61], [0.25, 0.83]];
+  // the cobweb weaver, the app's default spider, built from the app's own measurements (drawClassicBody and
+  // buildLegs in src/cak3d-crawler.html). App units point forward along x; here the head points up.
+  const S = 0.0108, P = (f, l) => [0.5 + l * S, 0.52 - f * S];
+  const FWD = [30, 13, -7, -24], LAT = [30, 37, 37, 31], HIPF = [5, 2, -1, -4];
   for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
-    const hx = 0.5 + side * 0.035, hy = 0.44 + i * 0.03, kx = 0.5 + side * 0.2, ky = knees[i], fx = 0.5 + side * feet[i][0], fy = feet[i][1];
-    s.push({ seg: [hx, hy, kx, ky], r: 0.022, c: BODY, a: 1 });
-    s.push({ seg: [kx, ky, fx, fy], r: 0.016, c: BODY, a: 1 });
+    const hip = [HIPF[i], side * 5], foot = [FWD[i], side * LAT[i]];
+    const dx = foot[0] - hip[0], dy = foot[1] - hip[1], d = Math.hypot(dx, dy), L1 = d * 0.66, L2 = d * 0.7;
+    const cosA = Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d)));
+    const ang = Math.atan2(dy, dx) - side * Math.acos(cosA); // the knee bends outward, as in the app
+    const knee = [hip[0] + Math.cos(ang) * L1, hip[1] + Math.sin(ang) * L1];
+    s.push({ seg: [...P(...hip), ...P(...knee)], r: 1.8 * S, c: BODY, a: 1 });
+    s.push({ seg: [...P(...knee), ...P(...foot)], r: 1.2 * S, c: BODY, a: 1 });
+    s.push({ circ: [...P(...foot), 1.6 * S], c: BODY, a: 1 });
   }
-  s.push({ circ: [0.5, 0.6, 0.135], c: BODY, a: 1 });
-  s.push({ circ: [0.5, 0.415, 0.085], c: BODY, a: 1 });
-  s.push({ seg: [0.5, 0.53, 0.5, 0.69], r: 0.012, c: ACCENT, a: 0.9 });
-  for (const ex of [0.47, 0.53]) s.push({ circ: [ex, 0.385, 0.017], c: BG, a: 1 });
+  s.push({ ell: [...P(-14, 0), 8.5 * S, 12 * S], c: BODY, a: 1 });  // abdomen
+  s.push({ ell: [...P(2, 0), 6 * S, 7.5 * S], c: BODY, a: 1 });     // head
+  for (const x of [-9, -14, -19]) for (const side of [-1, 1])        // the three chevrons down its back
+    s.push({ seg: [...P(x - 3, side * 4), ...P(x, 0)], r: 0.75 * S, c: BG, a: 0.5 });
+  for (const side of [-1, 1]) {                                       // palps
+    s.push({ seg: [...P(8, side * 2.5), ...P(12, side * 4.5)], r: 0.8 * S, c: BODY, a: 1 });
+    s.push({ seg: [...P(12, side * 4.5), ...P(14, side * 3)], r: 0.8 * S, c: BODY, a: 1 });
+  }
+  for (const [f, l, r] of [[7, -1.8, 1.25], [7, 1.8, 1.25], [5.5, -3.4, 0.8], [5.5, 3.4, 0.8]]) s.push({ circ: [...P(f, l), r * S], c: BG, a: 1 }); // eyes
   return s;
 }
 
@@ -56,6 +69,10 @@ function render(size, { bg = true, web = true, scale = 1 }) {
       const [ax, ay, bx, by] = sh.seg.map(T), r = sh.r * scale;
       x0 = Math.min(ax, bx) - r; x1 = Math.max(ax, bx) + r; y0 = Math.min(ay, by) - r; y1 = Math.max(ay, by) + r;
       dist = (x, y) => segDist(x, y, ax, ay, bx, by) - r;
+    } else if (sh.ell) {
+      const cx = T(sh.ell[0]), cy = T(sh.ell[1]), rx = sh.ell[2] * scale, ry = sh.ell[3] * scale;
+      x0 = cx - rx; x1 = cx + rx; y0 = cy - ry; y1 = cy + ry;
+      dist = (x, y) => (Math.hypot((x - cx) / rx, (y - cy) / ry) - 1) * Math.min(rx, ry);
     } else {
       const cx = T(sh.circ[0]), cy = T(sh.circ[1]), r = sh.circ[2] * scale;
       x0 = cx - r; x1 = cx + r; y0 = cy - r; y1 = cy + r;

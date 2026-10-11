@@ -105,6 +105,8 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 .sp-review li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
 .sp-review .btn { padding: 2px 8px; font-size: 12px; }
 .sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
+#weaveOut { width: 100%; font-family: var(--mono); font-size: 11px; resize: vertical; }
+#spiderPop .who { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
 .packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); margin: 6px 0 12px; }
 .pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
 .pack.focus { outline: 2px solid var(--link); outline-offset: 2px; }
@@ -441,7 +443,7 @@ body.bar-off .bar { display: none; }
     <span>crawled <b id="sCrawled">0</b>/<b id="sTotal">0</b></span>
     <span>threads <b id="sThreads">0</b></span>
     <span>sacs <b id="sSacs">0</b></span>
-    <span>gripped <b id="sGrips">0</b></span>
+    <span>topics <b id="sGrips">0</b></span>
   </div>
   <div class="controls">
     <button class="btn" id="bPause" type="button">Pause</button>
@@ -452,6 +454,7 @@ body.bar-off .bar { display: none; }
     <button class="btn" id="bFind" type="button">Find</button>
     <button class="btn" id="bLib" type="button">Library</button>
     <button class="btn" id="bSource" type="button">Source</button>
+    <button class="btn" id="bMore" type="button" title="Search the web for more pages on this and add them to the crawl">More pages</button>
     <button class="btn" id="bTheme" type="button" title="Switch between light, dark and your device's setting">Light</button>
     <button class="btn" id="bStats" type="button" aria-pressed="false" aria-controls="statsPanel">Stats</button>
     <button class="btn" id="bSettings" type="button">Settings</button>
@@ -547,6 +550,7 @@ body.bar-off .bar { display: none; }
 <canvas id="mini" title="Minimap: click to jump" aria-hidden="true"></canvas>
 <div id="pop" class="pop" hidden></div>
 <button id="hlBtn" class="hlbtn" type="button" hidden></button>
+<div id="spiderPop" class="pop" role="dialog" aria-label="The spider" hidden></div>
 
 <!-- Web view -->
 <section id="wv" class="wv" hidden aria-label="Web of words">
@@ -690,6 +694,16 @@ body.bar-off .bar { display: none; }
       </div>
       <p class="meta" id="collabOffline">Live sharing works in the claude.ai version. Here, send a crawl file instead: the other person imports it, adds notes and sacs, and sends theirs back for you to merge.</p>
       <label class="field"><span>Your name on notes you send</span><input type="text" id="cfgMyName" placeholder="e.g. Sam" autocomplete="off"></label>
+      <h3 class="sub">Weave codes: move a crawl to another device or person</h3>
+      <p class="meta">A weave code holds this crawl with its notes, sacs and study progress. Send it any way you like, then paste it into Open a weave code on the other device. Very long books are better sent as a crawl file.</p>
+      <div class="rowi"><button class="btn primary" type="button" id="weaveMake">Make a weave code</button><button class="btn" type="button" id="weaveShare" hidden>Share it</button><button class="btn" type="button" id="weaveCopy" hidden>Copy it</button></div>
+      <textarea id="weaveOut" class="inp" rows="3" readonly hidden aria-label="Weave code for this crawl"></textarea>
+      <div class="rowi"><input class="inp" id="weaveIn" type="text" placeholder="Paste a weave code here" autocomplete="off" spellcheck="false" aria-label="Weave code to open"><button class="btn" type="button" id="weaveOpen">Open a weave code</button></div>
+      <p class="meta" id="weaveMsg" aria-live="polite"></p>
+      <h3 class="sub">Move everything to a new device</h3>
+      <p class="meta">A backup holds your whole library, settings, study progress and what it has learned about your interests (not your AI keys). Open it on the other device to pick up where you left off.</p>
+      <div class="rowi"><button class="btn" type="button" id="backupMake">Back up everything</button><label class="btn" for="backupIn">Restore a backup</label><input type="file" id="backupIn" accept=".json,application/json" class="sr-only"></div>
+      <p class="meta" id="backupMsg" aria-live="polite"></p>
       <div class="rowi"><button class="btn" type="button" id="crawlExport">Export crawl file</button><label class="btn" for="crawlImport">Import or merge a crawl file</label><input type="file" id="crawlImport" accept=".json,application/json" class="sr-only"></div>
       <p class="meta" id="collabMsg2" aria-live="polite"></p>
     </fieldset>
@@ -711,6 +725,7 @@ body.bar-off .bar { display: none; }
     <div class="field" id="searchField" hidden><span>Search the web</span>
       <div class="rowi"><input class="inp" type="search" id="webQ" placeholder="e.g. how do spiders make silk" autocomplete="off"><button class="btn" type="button" id="webGo">Search</button></div>
       <ul class="lib" id="webResults"></ul>
+      <label class="chk" id="srcKeepRow" hidden><input type="checkbox" id="srcKeep" checked> Add these pages to what's crawled now, instead of starting over</label>
       <small id="webHint">Results come from Wikipedia and DuckDuckGo. Tick the ones to crawl; each becomes a source.</small></div>
     <label class="field" id="urlField"><span>Web page link</span><input type="url" id="srcUrl" placeholder="https://en.wikipedia.org/wiki/Spider" autocomplete="off">
       <small id="urlHint">Wikipedia articles load directly. Other sites are read through the free r.jina.ai reader service. Citations link back to the exact passage on the page.</small></label>
@@ -830,7 +845,12 @@ body.bar-off .bar { display: none; }
         <label class="field"><span>Flies to hunt</span>
           <div class="range"><input type="range" id="cfgFlies" min="0" max="5" step="1"><output id="oFlies"></output></div>
           <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
-        <label class="chk"><input type="checkbox" id="cfgCornerWeb"> Builds a web in a corner of the page when it sits still, and catches flies in it</label>
+        <div class="row2">
+          <label class="field"><span>When it's bored</span>
+            <select id="cfgBored"><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option><option value="rest">Just rests</option></select></label>
+          <label class="field"><span>When the crawl is done</span>
+            <select id="cfgDetach"><option value="detach">The web lets go of the words and floats away</option><option value="stay">The web stays on the page</option></select></label>
+        </div>
         <p class="hintline">Extra spiders each hunt one topic and spin it in that topic's color.</p>
       </section>
       <section data-g="moves" hidden>
@@ -1123,7 +1143,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 2, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false, bored: "both", detach: "detach" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1291,6 +1311,7 @@ async function listModels(sv, base, key) {
   const ids = ((await r.json()).data || []).map(m => String(m.id).replace(/^models\//, ""));
   return ids.filter(id => !/embed|tts|whisper|dall-e|image|audio|moderation|realtime|transcribe|speech|rerank|guard/i.test(id)).sort();
 }
+if (/^#weave-/.test(location.hash)) setTimeout(() => { openLib(); $("weaveIn").value = WEAVE + location.hash.slice(7); openWeave($("weaveIn").value); history.replaceState(null, "", location.pathname); }, 600);
 function capsReady() {
   if (DBX && !COLLAB && /^#collab-[a-z0-9]+$/i.test(location.hash)) joinCollab(location.hash.slice(8));
   if (!window.claude) { $("keyField").hidden = false; if (!SAMPLE) useOwnAi(); }
@@ -1392,10 +1413,31 @@ function tokens(chunk) {
   return out;
 }
 
+// nouns that show up in every kind of text and say nothing about its subject
+const GENERIC = new Set(("word words saying sayings note notes point points place places way ways thing things part parts case cases kind kinds sort sorts " +
+  "number numbers fact facts mean means time times use uses form forms matter matters example examples instance instances end ends side sides sense " +
+  "manner respect regard lot lots bit bits piece pieces item items aspect aspects area areas level levels type types reason reasons result results " +
+  "question questions answer answers page pages chapter chapters section sections text texts book books line lines paragraph paragraphs reader readers " +
+  "author authors edition editions footnote footnotes figure figures table tables etc thus hence hand hands called known used made given found based " +
+  "taken seen become became include includes including included shown described following followed according related certain various several").split(" "));
+const IRREGULAR = [["men", "man"], ["women", "woman"], ["children", "child"], ["feet", "foot"], ["teeth", "tooth"], ["mice", "mouse"], ["geese", "goose"],
+  ["lives", "life"], ["wives", "wife"], ["knives", "knife"], ["wolves", "wolf"], ["halves", "half"], ["selves", "self"], ["oxen", "ox"], ["analyses", "analysis"],
+  ["theses", "thesis"], ["hypotheses", "hypothesis"], ["phenomena", "phenomenon"], ["criteria", "criterion"], ["bacteria", "bacterium"], ["fungi", "fungus"],
+  ["nuclei", "nucleus"], ["stimuli", "stimulus"], ["larvae", "larva"], ["algae", "alga"], ["data", "datum"]].filter(([, sg]) => sg !== "datum");
+// e-book wrappers (Project Gutenberg's license, Standard Ebooks' colophon) aren't part of the book
+function stripBoilerplate(raw) {
+  const start = raw.search(/\*{3}\s*START OF (THE|THIS) PROJECT GUTENBERG E-?BOOK[^*]*\*{3}/i);
+  if (start >= 0) {
+    const from = raw.indexOf("***", raw.indexOf("***", start) + 3) + 3;
+    const end = raw.search(/\*{3}\s*END OF (THE|THIS) PROJECT GUTENBERG E-?BOOK/i);
+    raw = raw.slice(from, end > from ? end : undefined);
+  }
+  return raw.replace(/^\s*(Produced by|This e-?book was produced by|Transcriber['’]s notes?:)[^\n]*\n/gim, "").trim();
+}
 function extract(raw, K, lang) {
   const STOPW = STOPS[lang] || STOP;
   const blocks = splitBlocks(raw), sents = [], toks = [], marks = [], sentPara = [], sentPage = [], sentSrc = [];
-  const uni = new Map(), bi = new Map(), caps = new Map();
+  const uni = new Map(), bi = new Map(), caps = new Map(), lower = new Map();
   const inc = (m, k, n = 1) => m.set(k, (m.get(k) || 0) + n);
   let words = 0, para = 0, page = 0, src = 0;
   for (const b of blocks) {
@@ -1411,7 +1453,7 @@ function extract(raw, K, lang) {
         for (const w0 of tokens(chunk)) {
           const w = w0.toLowerCase(); words++;
           const stop = w.length < 3 || STOPW.has(w) || STOP.has(w);
-          if (!stop) { inc(uni, w); u.add(w); if (!first && /^\p{Lu}/u.test(w0)) inc(caps, w); }
+          if (!stop) { inc(uni, w); u.add(w); if (!first && /^\p{Lu}/u.test(w0)) inc(caps, w); if (/^\p{Ll}/u.test(w0)) inc(lower, w); }
           if (prev && !stop) { const k = prev + " " + w; inc(bi, k); g.add(k); }
           prev = stop ? null : w; first = false;
         }
@@ -1420,16 +1462,19 @@ function extract(raw, K, lang) {
     }
   }
   const fold = new Map();
-  for (const w of uni.keys()) for (const suf of ["es", "s"]) {
-    if (w.length > suf.length + 2 && w.endsWith(suf) && !w.endsWith("ss")) {
-      const base = w.slice(0, -suf.length);
-      if (uni.has(base)) { fold.set(w, base); break; }
-    }
+  for (const w of uni.keys()) {
+    if (w.length < 4 || !w.endsWith("s") || w.endsWith("ss")) continue;
+    const s1 = w.slice(0, -1), s2 = w.slice(0, -2);
+    if (uni.has(s1)) fold.set(w, s1);                                                   // changes → change, words → word
+    else if (w.endsWith("es") && /(s|x|z|ch|sh|o)$/.test(s2) && uni.has(s2)) fold.set(w, s2); // boxes → box, churches → church
+    else if (w.endsWith("ies") && uni.has(w.slice(0, -3) + "y")) fold.set(w, w.slice(0, -3) + "y"); // colonies → colony
   }
+  if (lang === "en" || !STOPS[lang]) for (const [pl, sg] of IRREGULAR) if (uni.has(pl)) { fold.set(pl, sg); if (!uni.has(sg)) uni.set(sg, 0); }
   const f = w => fold.get(w) || w, fg = k => k.split(" ").map(f).join(" ");
-  const U = new Map(), B = new Map(), CAP = new Map();
+  const U = new Map(), B = new Map(), CAP = new Map(), LOW = new Map();
   for (const [w, c] of uni) inc(U, f(w), c);
   for (const [w, c] of caps) inc(CAP, f(w), c);
+  for (const [w, c] of lower) inc(LOW, f(w), c);
   for (const [k, c] of bi) { const [a, b] = k.split(" "); if (f(a) !== f(b)) inc(B, fg(k), c); }
 
   // words seen only once are noise unless the text is too short to offer enough repeated ones
@@ -1437,13 +1482,16 @@ function extract(raw, K, lang) {
   const bis = [...B].filter(([, c]) => c >= 2).map(([key, c]) => ({ key, c, score: c * 2.5 }))
     .sort((a, b) => b.score - a.score).slice(0, Math.ceil(K / 3));
   const dom = new Set();
-  for (const b of bis) for (const p of b.key.split(" ")) if ((U.get(p) || 0) <= b.c * 1.3) dom.add(p);
-  const unis = [...U].filter(([k, c]) => c >= minC && !dom.has(k)).map(([key, c]) => ({ key, c, score: c }));
+  for (const b of bis) for (const p of b.key.split(" ")) if ((U.get(p) || 0) <= b.c * 1.6) dom.add(p);
+  const vague = lang === "en" || !STOPS[lang] ? GENERIC : new Set();
+  const unis = [...U].filter(([k, c]) => c >= minC && !dom.has(k) && !vague.has(k)).map(([key, c]) => ({ key, c, score: c }));
   const pick = [...bis, ...unis].sort((a, b) => b.score - a.score).slice(0, K);
 
   const kw = new Map();
   for (const p of pick) {
-    const label = p.key.split(" ").map(w => (CAP.get(w) || 0) > (U.get(w) || 1) * 0.6 ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
+    // a name: capitalized mid-sentence, or almost never written in lowercase (names that usually start sentences)
+    const name = w => (CAP.get(w) || 0) > (U.get(w) || 1) * 0.6 || ((U.get(w) || 0) >= 2 && (LOW.get(w) || 0) <= (U.get(w) || 0) * 0.1);
+    const label = p.key.split(" ").map(w => name(w) ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
     kw.set(p.key, mkKw(p.key, label, -1));
   }
   toks.forEach((t, i) => {
@@ -1502,6 +1550,7 @@ function cluster(kw) {
 function keyPattern(k) { return k.split(" ").map(w => reEsc(w) + "(?:e?s)?").join("\\s+"); }
 
 function buildText(raw, title, K, lang) {
+  raw = stripBoilerplate(raw);
   if (!lang || lang === "auto") lang = detectLang(raw);
   const ex = extract(raw, K, lang);
   if (!ex.kw.size) return null;
@@ -1657,7 +1706,7 @@ const tuckFeet = () => { for (const g of legs) { g.foot = toWorld({ f: g.rest.f 
 const kwOf = n => DOC.kw.get(n.key);
 const relevant = n => kwOf(n).rel > 0;
 const limitReached = () => cfg.stop > 0 && crawled >= cfg.stop;
-const wake = () => { if (S.mode === "done" || S.mode === "sit" || S.mode === "build" || S.mode === "toWeb") S.mode = "walk"; else if (S.mode === "gone") enter(); };
+const wake = () => { if (["done", "sit", "build", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; else if (S.mode === "gone") enter(); };
 function nextTarget() {
   while (S.manual.length && S.manual[0].caught) S.manual.shift();
   if (S.manual.length) return S.manual[0];
@@ -1717,7 +1766,7 @@ function updateStats() {
   $("sTotal").textContent = cfg.stop ? Math.min(rel, cfg.stop) : rel;
   $("sThreads").textContent = spun;
   $("sSacs").textContent = doneSacs().length;
-  $("sGrips").textContent = grips;
+  $("sGrips").textContent = DOC && DOC.cats ? DOC.cats.filter(c => [...DOC.kw.values()].some(k => k.cat === DOC.cats.indexOf(c) && relevant({ key: k.key }))).length : 0;
 }
 const focusTerms = () => $("focus").value.toLowerCase().split(/[,\s]+/).filter(t => t.length >= 2);
 const focusRe = () => { const t = focusTerms(); return t.length ? new RegExp(`${WB}(?:${t.map(reEsc).join("|")})`, "iu") : null; };
@@ -1875,6 +1924,14 @@ function beginFinish() {
   if (S.sacQueue.length) S.finishing = true; else finish();
 }
 function finish() {
+  if (cfg.detach === "detach" && !reduce) {
+    const now = performance.now(); let n = 0;
+    for (const t of threads) if (!t.detach && !(t.sac && t.sac.state === "spinning")) t.detach = now + (n++ % 40) * 45;
+    // the line it trails back to its last catch lets go too, so it doesn't drag silk around the screen
+    const tp = tiePos();
+    if (tp) { strands.push({ ax: tp.x, ay: tp.y, bx: S.x, by: S.y, born: now, life: 2600 }); tie = null; n++; }
+    if (n) log("WEB", "The web lets go of the words and floats away. The sacs keep everything it caught");
+  }
   announce(`Crawl complete: ${plural(crawled, "keyword")} collected.`);
   S.mode = "done"; S.target = null; S.finishing = false;
   if (S.doneAt !== crawled) { S.doneAt = crawled; log("DONE", plural(crawled, "keyword") + " collected"); }
@@ -2130,18 +2187,36 @@ function inCornerWeb(p) {
   return l.x > 0 && l.y > 0 && Math.hypot(l.x - CW.hub.x, l.y - CW.hub.y) < CW.R * Math.min(1, spiral + 0.35);
 }
 const freeWork = () => !limitReached() && nodes.some(n => !n.caught && relevant(n) && !n.claim);
-const inWebMode = () => ["build", "sit", "toWeb"].includes(S.mode) || ((S.mode === "hunt" || S.mode === "eat") && S.huntFrom === "sit");
+const inWebMode = () => ["build", "sit", "toWeb", "patrol"].includes(S.mode) || ((S.mode === "hunt" || S.mode === "eat") && S.huntFrom === "sit");
+// the corners of the screen (under the toolbar, above the stats panel), in page coordinates
+function patrolPoint(i) {
+  const F = cornerFrame(), sp = $("statsPanel"), bottomGap = sp.hidden ? 0 : sp.getBoundingClientRect().height;
+  const m = 16 * clamp(cfg.size, 0.8, 1.6), top = F.top + m, bot = innerHeight - bottomGap - m, L = m, R = F.vw - m;
+  const P = [[L, top], [R, top], [R, bot], [L, bot]][((i % 4) + 4) % 4];
+  return { x: P[0] - F.pr.left, y: P[1] - F.pr.top };
+}
+function startPatrol() {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < 4; i++) { const p = patrolPoint(i), d = Math.hypot(p.x - S.x, p.y - S.y); if (d < bd) { bd = d; best = i; } }
+  S.patrol = { i: best, left: 5, dir: Math.random() < 0.5 ? 1 : -1 }; S.mode = "patrol"; S.sitT = 0;
+  log("WALK", `${spiderName()} is bored and goes for a walk around the screen`);
+}
 function updateCornerWeb(dt) {
   const idle = S.mode === "done" || (S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && !S.manual.length);
-  if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat"].includes(S.mode)) S.idleT = 0;
+  if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat", "patrol"].includes(S.mode)) S.idleT = 0;
   // flies stuck in the web move with it when you scroll
   if (CW) for (const fl of flies) if (fl.state === "stuck" && fl.web) { const p = cwPage(fl.web); fl.x = p.x; fl.y = p.y; }
-  if (["build", "sit", "toWeb"].includes(S.mode)) {
+  if (S.mode === "sit") S.sitT = (S.sitT || 0) + dt;
+  if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) {
     S.workCheck = (S.workCheck || 0) - dt;
     if (S.workCheck <= 0) { S.workCheck = 0.5; if (freeWork() || S.sacQueue.length || [...webs.values()].some(l => cfg.sacs && l.length >= cfg.cap)) { S.mode = "walk"; return; } }
   }
-  if (!cfg.cornerWeb || reduce || paused || S.idleT < 6 || !idle) return;
+  if (reduce || paused || cfg.bored === "rest") return;
+  // taking turns: after sitting in a finished web for a while, it goes for a walk around the screen
+  if (cfg.bored === "both" && S.mode === "sit" && CW && CW.done && S.sitT > 25 && !flies.some(fl => fl.state === "stuck")) { startPatrol(); return; }
+  if (S.idleT < 6 || !idle) return;
   if (S.mode === "done" && !["stay", "wander", "sleep"].includes(cfg.exit)) return;
+  if (cfg.bored === "edges") { if (S.idleT > 8) startPatrol(); return; }
   if (!CW) planCornerWeb();
   S.mode = CW.done ? "toWeb" : "build";
 }
@@ -2626,7 +2701,7 @@ function walk(dt) {
 function update(dt, now) {
   if (paused) { S.v = 0; return; }
   const sp = speedNow();
-  if ((S.mode === "done" || S.mode === "sit" || S.mode === "build" || S.mode === "toWeb") && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
+  if (["done", "sit", "build", "toWeb", "patrol"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
   if (S.mode === "gone") { if (hasWork()) enter(); else return; }
   if (S.mode === "done" && cfg.exit === "wander" && !S.goto) {
     S.wanderT -= dt;
@@ -2692,6 +2767,16 @@ function update(dt, now) {
     const p = Math.min(1, S.spinT / dur);
     sac.wrap = p; sac.r = 12 * ease(Math.min(1, p * 1.4));
     if (p >= 1) finishSpin(sac);
+  } else if (S.mode === "patrol") {
+    const P = S.patrol, p = patrolPoint(P.i);
+    if (Math.hypot(p.x - S.x, p.y - S.y) > 600) startZip(() => patrolPoint(S.patrol.i), "patrol");
+    else {
+      const d = travel(p.x, p.y, dt);
+      if (d < 8 && !S.hop) {
+        P.i += P.dir; P.left--;
+        if (P.left <= 0) { S.patrol = null; S.idleT = 0; S.mode = CW && CW.done && cfg.bored !== "edges" ? "toWeb" : "done"; }
+      }
+    }
   } else if (S.mode === "toWeb") {
     if (!CW) S.mode = "done";
     else {
@@ -3321,14 +3406,22 @@ function draw(now) {
 
   const glow = cfg.dew && C.dark;
   if (glow) { ctx.shadowColor = C.silk; ctx.shadowBlur = 5; }
+  threads = threads.filter(t => !t.detach || now - t.detach < 2600);
   threads.forEach((t, i) => {
-    const A = anchorPos(t.a), B = anchorPos(t.b);
+    let A = anchorPos(t.a), B = anchorPos(t.b);
+    let fall = 0;
+    if (t.detach && now > t.detach) { // drift up and away like loose silk in a breeze, fading out
+      fall = (now - t.detach) / 2600;
+      const lift = fall * fall * 90, sway = Math.sin(fall * 5 + i) * 14 * fall;
+      A = { x: A.x + sway, y: A.y - lift * 0.6 }; B = { x: B.x - sway * 0.7, y: B.y - lift };
+    }
     if (!vis(A.y, B.y)) return;
     const p = clamp((now - t.born) / 550, 0, 1);
     if (p <= 0) return;
     let al = 0.85;
     if (cfg.fade > 0 && !(t.sac && t.sac.state === "spinning")) { const over = (now - t.born) / 1000 - cfg.fade; if (over > 0) al *= clamp(1 - over / 6, 0.12, 1); }
     const st = threadStyle(t, i, A, B);
+    if (fall) al *= Math.max(0, 1 - fall);
     ctx.strokeStyle = st; ctx.fillStyle = st; ctx.globalAlpha = al;
     ctx.lineWidth = cfg.threadColor === "importance" ? threadWeight(t) : 1;
     silkPath(A.x, A.y, B.x, B.y, p, cfg.dew, i + 7, cfg.breeze && !reduce ? Math.sin(now * 0.0016 + i * 1.7) * 7 : 0);
@@ -3546,6 +3639,61 @@ $("pop").addEventListener("click", e => {
 });
 function togglePick(key) { if (WV.picks.has(key)) WV.picks.delete(key); else { WV.picks.add(key); bump((DOC.kw.get(key) || {}).label, 2); } updatePickBar(); }
 
+// clicking the spider: it notices you, and offers a few things to do
+function spiderAt(e) {
+  if (S.mode === "gone" || !DOC) return false;
+  const pr = pageBox(), x = pr.left + S.x, y = pr.top + S.y - (S.hopZ || 0);
+  return Math.hypot(e.clientX - x, e.clientY - y) < 30 * cfg.size;
+}
+const MODE_TEXT = { walk: "crawling", appear: "arriving", drop: "dropping in", zip: "swinging on a thread", toSac: "heading to a sac", spin: "wrapping a sac",
+  done: "resting", hunt: "hunting a fly", eat: "eating a fly", build: "spinning a web", sit: "waiting in its web for flies", toWeb: "going back to its web",
+  patrol: "walking around the screen" };
+function showSpiderPop() {
+  hidePop();
+  const pop = $("spiderPop"), now = performance.now(), T = S.target && kwOf(S.target);
+  S.noticeAt = now; S.fanAt = now; sfx("notice");
+  fx.push({ type: "ring", x: S.x, y: S.y, born: now, col: C.link });
+  const doing = paused ? "paused" : T ? `crawling toward “${T.label}”` : MODE_TEXT[S.mode] || "resting";
+  pop.innerHTML = `<p class="who">${esc(spiderName())}</p>
+    <p>${esc(doing[0].toUpperCase() + doing.slice(1))}. ${crawled} of ${relevantCount()} keywords caught${fliesEaten ? `, ${plural(fliesEaten, "fly")} eaten` : ""}.</p>
+    <div class="pop-btns"><button class="btn primary" type="button" data-sp="pause">${paused ? "Keep crawling" : "Take a break"}</button>
+    <button class="btn" type="button" data-sp="fly">Feed it a fly</button></div>
+    <div class="pop-btns"><button class="btn" type="button" data-sp="guide">Study guide</button><button class="btn" type="button" data-sp="stats">Crawl stats</button><button class="btn" type="button" data-sp="more">More pages</button></div>`;
+  pop.hidden = false;
+  const pr = pageBox(), x = pr.left + S.x, y = pr.top + S.y, pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = clamp(x - pw / 2, 8, innerWidth - pw - 8) + "px";
+  pop.style.top = (y + 40 + ph > innerHeight ? Math.max(8, y - ph - 40) : y + 40) + "px";
+  pop.querySelector("button").focus({ preventScroll: true });
+}
+const hideSpiderPop = () => { $("spiderPop").hidden = true; };
+addEventListener("click", e => {
+  if (WV.open || document.querySelector("dialog[open]") || overUi(e) || e.target.closest("#spiderPop")) return;
+  if (spiderAt(e)) { e.preventDefault(); e.stopPropagation(); showSpiderPop(); }
+  else hideSpiderPop();
+}, true);
+addEventListener("keydown", e => { if (e.key === "Escape") hideSpiderPop(); });
+$("spiderPop").addEventListener("click", e => {
+  const b = e.target.closest("[data-sp]"); if (!b) return;
+  const act = b.dataset.sp; hideSpiderPop();
+  if (act === "pause") togglePause();
+  else if (act === "fly") { // a fly appears right next to it, and it goes after it
+    if (!flies.length) { cfg.flies = 1; saveCfg(); syncSettings(); resetFlies(); }
+    const fl = flies.find(x => x.state === "fly" || x.state === "gone") || flies[0];
+    Object.assign(fl, { x: S.x + 70, y: S.y - 30, vx: 0, vy: 0, state: "fly", hunted: false, t: 0, web: null });
+    if (S.prey) endHunt();
+    S.prey = fl; fl.hunted = true; S.huntFrom = ["sit", "done"].includes(S.mode) ? S.mode : "walk"; S.mode = "hunt"; S.huntT = 0;
+  }
+  else if (act === "guide") openGuide();
+  else if (act === "stats") toggleStats(true);
+  else if (act === "more") openMorePages();
+});
+// double-click a paragraph to select it, so you can make a study guide of just that part
+page.addEventListener("dblclick", e => {
+  if (e.target.closest(".kw, a, button, input")) return;
+  const p = e.target.closest("p, li, blockquote"); if (!p || !page.contains(p)) return;
+  e.preventDefault();
+  const r = document.createRange(); r.selectNodeContents(p); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+});
 page.addEventListener("click", e => {
   const kwEl = e.target.closest(".kw");
   if (kwEl) { e.preventDefault(); showPop(kwEl); return; }
@@ -5166,16 +5314,83 @@ $("collabBox").addEventListener("click", e => {
 function crawlFile() {
   return JSON.stringify({ app: "cak3d-crawler", v: 1, by: cfg.myName || "", at: Date.now(), state: captureState(DOC.title), raw: DOC.mode === "text" ? DOC.raw : "", craw: DOC.compare ? DOC.compare.raw : "" });
 }
+// weave codes: the crawl file, compressed and written as text you can paste anywhere
+const WEAVE = "CAK3D-WEAVE1.";
+async function packText(t) {
+  const stream = new Blob([t]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function unpackText(code) {
+  const b64 = code.replace(/-/g, "+").replace(/_/g, "/"), bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+  const bytes = Uint8Array.from(bin, ch => ch.charCodeAt(0));
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+}
+$("weaveMake").onclick = async () => {
+  const msg = $("weaveMsg");
+  if (typeof CompressionStream !== "function") { msg.textContent = "This browser can't make weave codes. Export a crawl file instead."; return; }
+  const code = WEAVE + await packText(crawlFile());
+  $("weaveOut").value = code; $("weaveOut").hidden = false; $("weaveCopy").hidden = false;
+  $("weaveShare").hidden = !(navigator.share || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share));
+  msg.textContent = code.length > 60000
+    ? `This crawl makes a long code (${Math.round(code.length / 1000)}k characters). Some messaging apps cut long messages short, so a crawl file may be easier.`
+    : `Made a code ${code.length.toLocaleString()} characters long. Send it any way you like.`;
+};
+$("weaveCopy").onclick = () => copyText($("weaveOut").value, "Copied the weave code.");
+$("weaveShare").onclick = async () => {
+  const text = $("weaveOut").value, title = `CAK3D Crawler: ${DOC.title}`;
+  try {
+    const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
+    if (P) await P.share({ title, text }); else await navigator.share({ title, text });
+  } catch (e) { /* closed the share sheet */ }
+};
+async function openWeave(code) {
+  const msg = $("weaveMsg"); code = (code || "").trim().replace(/\s+/g, "");
+  const at = code.indexOf(WEAVE); if (at < 0) { msg.textContent = "That isn't a weave code. Codes start with CAK3D-WEAVE1."; return false; }
+  try {
+    const j = JSON.parse(await unpackText(code.slice(at + WEAVE.length)));
+    msg.textContent = importCrawl(j, j.by || "someone");
+    return true;
+  } catch (e) { msg.textContent = "That weave code is incomplete. Ask for it again, or use a crawl file."; return false; }
+}
+$("weaveOpen").onclick = () => openWeave($("weaveIn").value);
+$("weaveIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); openWeave($("weaveIn").value); } });
+// a backup: everything this device keeps for the app except AI keys and purchases (those come back from Google Play)
+$("backupMake").onclick = () => {
+  const data = {};
+  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned"].includes(k)) data[k] = localStorage.getItem(k);
+  saveFile(`cak3d-crawler-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "cak3d-crawler", backup: 1, at: Date.now(), data }));
+  $("backupMsg").textContent = `Backed up ${plural(Object.keys(data).filter(k => /^cak3d-lib-/.test(k)).length, "saved crawl")} and your settings.`;
+};
+$("backupIn").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
+  try {
+    const j = JSON.parse(await file.text());
+    if (j.app !== "cak3d-crawler" || !j.backup || !j.data) throw new Error("bad");
+    // crawls merge into this device's library; settings come from the backup
+    const lib = (store.get("cak3d-lib") || []), theirs = JSON.parse(j.data["cak3d-lib"] || "[]");
+    for (const [k, v] of Object.entries(j.data)) if (k !== "cak3d-lib") localStorage.setItem(k, v);
+    const ids = new Set(lib.map(m => m.id)); store.set("cak3d-lib", lib.concat(theirs.filter(m => !ids.has(m.id))));
+    $("backupMsg").textContent = "Restored. Reloading…";
+    setTimeout(() => location.reload(), 600);
+  } catch (err) { $("backupMsg").textContent = "That file isn't a CAK3D Crawler backup."; }
+});
+
 $("crawlExport").onclick = () => saveFile(`${slug(DOC.title)}.crawl.json`, crawlFile());
 $("crawlImport").addEventListener("change", async e => {
   const file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
   const msg = $("collabMsg2");
   try {
     const j = JSON.parse(await file.text());
+    msg.textContent = importCrawl(j, j.by || file.name.replace(/\.crawl\.json$|\.json$/i, ""));
+  } catch (ex) { msg.textContent = "That file isn't a CAK3D Crawler crawl file."; }
+});
+// open a crawl someone sent (or you sent yourself from another device); if it's the crawl already open, merge their notes and sacs
+function importCrawl(j, who) {
     if (j.app !== "cak3d-crawler" || !j.state) throw new Error("bad");
-    const who = j.by || file.name.replace(/\.crawl\.json$|\.json$/i, "");
     const same = j.state.docTitle === DOC.title && j.state.words === DOC.words;
-    if (!same) { restoreState(j.state, j.raw, j.craw, null); msg.textContent = `Opened “${j.state.title}” from ${who}.`; return; }
+    if (!same) { restoreState(j.state, j.raw, j.craw, null); return `Opened “${j.state.title}”${who && who !== "someone" ? " from " + who : ""}. Save it to your library to keep it.`; }
     DOC.extNotes = DOC.extNotes || [];
     let nNotes = 0, nSacs = 0;
     for (const [kind, map] of Object.entries(j.state.notes || {})) for (const [target, text] of Object.entries(map)) {
@@ -5188,9 +5403,9 @@ $("crawlImport").addEventListener("change", async e => {
     const have = new Set(doneSacs().map(sig));
     for (const x of j.state.sacs || []) if (!have.has(sig(x))) { if (addSharedSac(x, who)) nSacs++; }
     refreshNotesViews(); updateStats();
-    msg.textContent = `Merged ${plural(nNotes, "note")} and ${plural(nSacs, "sac")} from ${who}.`;
-  } catch (ex) { msg.textContent = "That file isn't a CAK3D Crawler crawl file."; }
-});
+    if (j.state.srs) DOC.srs = Object.assign({}, j.state.srs, DOC.srs || {});
+    return `Merged ${plural(nNotes, "note")} and ${plural(nSacs, "sac")} from ${who}.`;
+}
 
 // arrow keys, Home and End move between tabs in every tab strip
 document.addEventListener("keydown", e => {
@@ -5476,7 +5691,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
   ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
-  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgCornerWeb", "cornerWeb", Boolean], ["cfgPurpose", "purpose", String]];
+  ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgPurpose", "purpose", String], ["cfgBored", "bored", String], ["cfgDetach", "detach", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
   $("topicsField").hidden = cfg.sort !== "topics";
@@ -5508,7 +5723,7 @@ function settingChanged(key) {
   if (key === "citeStyle" && WV.open) renderSide();
   if (key === "flies") resetFlies();
   if (key === "purpose") purposeChanged();
-  if (key === "cornerWeb" && !cfg.cornerWeb) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; }
+  if (key === "bored" && (cfg.bored === "rest" || cfg.bored === "edges")) { CW = null; webCatch = []; if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; }
 }
 function fillVoices() {
   const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
@@ -5709,6 +5924,7 @@ function syncSrcMode() {
   $("srcAdd").hidden = mode === "sample";
 }
 document.querySelectorAll('input[name="src"]').forEach(r => r.addEventListener("change", syncSrcMode));
+$("bSource").addEventListener("click", () => { $("srcKeepRow").hidden = true; });
 $("bSource").onclick = () => { srcMsg(""); renderSrcList(); syncSrcMode(); dSource.showModal(); };
 $("srcCancel").onclick = () => dSource.close();
 $("srcText").addEventListener("input", () => { $("srcTextR").checked = true; });
@@ -5966,6 +6182,34 @@ $("webGo").onclick = async () => {
 };
 $("webQ").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("webGo").click(); } });
 
+// the current crawl as sources, so new pages can be added to it
+function currentDocSources() {
+  const list = (DOC.sources && DOC.sources.length ? DOC.sources : [{ title: DOC.title, cite: DOC.cite || "" }]).map(x => ({ ...x }));
+  if (DOC.raw && /⟦source \d+⟧/.test(DOC.raw)) {
+    const parts = DOC.raw.split(/⟦source \d+⟧\n\n/).slice(1);
+    return parts.map((t, i) => ({ ...(list[i] || { title: `Source ${i + 1}` }), text: t.replace(/^[^\n]*\n\n/, "").trim() }));
+  }
+  const text = DOC.raw || DOC.sents.join(" ");
+  return [{ ...list[0], text }];
+}
+// a search made from what you're crawling: your focus, or the title and its strongest keywords
+function moreQuery() {
+  const f = $("focus").value.trim(); if (f) return f;
+  const title = (DOC.title || "").replace(/\s*\+\s*\d+ more$/, "");
+  const low = title.toLowerCase(), top = [...DOC.kw.values()].sort((a, b) => b.count - a.count).map(k => k.label).filter(l => !low.includes(l.toLowerCase())).slice(0, 2);
+  return DOC.mode === "sample" ? "spider " + top.join(" ") : (title + " " + top.join(" ")).trim();
+}
+function openMorePages() {
+  if (!DOC) return;
+  clearSourceInputs(); SRC.list = []; renderSrcList();
+  $("srcSearchR").checked = true; syncSrcMode();
+  $("srcKeepRow").hidden = false; $("srcKeep").checked = true;
+  $("webQ").value = moreQuery();
+  if (!dSource.open) dSource.showModal();
+  if (!IN_CLAUDE) $("webGo").click();
+}
+$("bMore").onclick = openMorePages;
+
 const blockedMsg = "Inside claude.ai this page can't reach other websites. Use the web or Android version to load pages by link, or copy the page's text into “My own text”.";
 async function pageSource(url, extra) {
   const pg = await fetchPage(url);
@@ -6065,6 +6309,8 @@ $("fSource").addEventListener("submit", async e => {
   $("srcGo").disabled = true;
   try {
     const list = SRC.list.slice();
+    // adding pages to the crawl already open: keep its sources first
+    if ($("srcSearchR").checked && !$("srcKeepRow").hidden && $("srcKeep").checked && DOC) list.unshift(...currentDocSources());
     const pending = $("srcSearchR").checked ? document.querySelector("#webResults [data-res]:checked") : $("srcUrlR").checked ? $("srcUrl").value.trim() : $("srcText").value.trim();
     if (pending || !list.length) list.push(...await currentSources());
     srcMsg("Crawling…", true);
