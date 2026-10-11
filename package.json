@@ -1,6 +1,6 @@
 {
   "name": "cak3d-crawler",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "type": "module",

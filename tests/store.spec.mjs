@@ -86,3 +86,19 @@ test("flies, presets and the new suits run without errors", async ({ page }) => 
   }
   expect(errors).toEqual([]);
 });
+
+test("every item in the store has a picture of what it gives", async ({ page }) => {
+  const errors = []; page.on("pageerror", e => errors.push(e.message));
+  await lockedApp(page);
+  await page.locator("#bStore").click();
+  const cards = await page.locator("#storeList .pack").count();
+  expect(cards).toBe(67);
+  // every thumbnail has something drawn on it (not just its background)
+  const blank = await page.locator("#storeList canvas.thumb").evaluateAll(cvs => cvs.filter(cv => {
+    const g = cv.getContext("2d"), d = g.getImageData(0, 0, cv.width, cv.height).data, first = d.slice(0, 4).join();
+    for (let i = 0; i < d.length; i += 16) if (d.slice(i, i + 4).join() !== first) return false;
+    return true;
+  }).map(cv => cv.dataset.thumb));
+  expect(blank).toEqual([]);
+  expect(errors).toEqual([]);
+});

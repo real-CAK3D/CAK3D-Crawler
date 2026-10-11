@@ -112,6 +112,8 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 #storeList > h3:first-child { margin-top: 4px; }
 .pack .worth { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .pack.small { padding: 10px 12px; gap: 4px; } .pack.small h3 { font-size: .98rem; }
+.pack canvas.thumb { width: 100%; height: 96px; border-radius: 8px; display: block; background: var(--paper); border: 1px solid var(--rule); }
+.pack:not(.small) canvas.thumb { height: 120px; }
 .packs.tight { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .packs.tight .pack p:not(.worth) { font-size: .92rem; }
 .pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
@@ -1209,7 +1211,8 @@ body.bar-off .bar { display: none; }
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
-const page = $("page"), logEl = $("log"), canvas = $("web"), ctx = canvas.getContext("2d");
+const page = $("page"), logEl = $("log"), canvas = $("web");
+let ctx = canvas.getContext("2d"); // the store points this at a thumbnail for a moment to draw item previews
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const BASE = "https://en.wikipedia.org/wiki/";
 const SAMPLE_HTML = page.innerHTML;
@@ -5820,13 +5823,130 @@ function renderStore() {
   const action = p => unlocked(p.id) ? `<span class="state">${DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked for development" : "Unlocked"}</span>`
     : native ? `<button class="btn primary" type="button" data-buy="${p.id}">Buy · ${esc(money(p))}</button>`
     : play ? `<a class="btn" href="${esc(play)}" target="_blank" rel="noopener">${esc(money(p))} in the Android app</a>` : `<span class="state">${esc(money(p))} in the Android app</span>`;
-  const card = (p, extra, small) => `<div class="pack${small ? " small" : ""}${storeFocus === p.id ? " focus" : ""}" data-product="${p.id}"><h3>${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${extra || ""}${action(p)}</div>`;
+  const card = (p, extra, small) => `<div class="pack${small ? " small" : ""}${storeFocus === p.id ? " focus" : ""}" data-product="${p.id}"><canvas class="thumb" data-thumb="${p.id}" aria-hidden="true"></canvas><h3>${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${extra || ""}${action(p)}</div>`;
   const worth = ids => { const t = ITEMS.filter(it => ids.includes(it.id)).reduce((sum, it) => sum + +it.price, 0); return t ? `<p class="worth">$${t.toFixed(2)} if bought one by one</p>` : ""; };
   const inBundle = bd => bd.all ? PRODUCTS.filter(p => p !== bd && !p.all).map(p => p.id) : ITEMS.filter(it => bd.groups.includes(it.group)).map(it => it.id);
   let html = `<h3>Bundles</h3><div class="packs">${CATALOG.bundles.map(bd => card(bd, bd.all ? `<p class="worth">$${(ITEMS.reduce((t, it) => t + +it.price, 0) + CATALOG.presets.reduce((t, pr) => t + +pr.price, 0)).toFixed(2)} if bought one by one</p>` : worth(inBundle(bd)))).join("")}</div>`;
   html += `<h3>Presets</h3><p class="meta">A whole style in one tap. A preset also unlocks every item it uses, to mix with anything else.</p><div class="packs tight">${CATALOG.presets.map(pr => card(pr, worth(presetItems(pr)), true)).join("")}</div>`;
   for (const g of CATALOG.groups) html += `<h3>${esc(g.name)}</h3><div class="packs tight">${g.items.map(it => card(it, "", true)).join("")}</div>`;
   $("storeList").innerHTML = html;
+  drawThumbs();
+}
+// ---- item previews, drawn with the same code that draws the real thing
+function themeColors(skin) {
+  const out = { paper: C.paper, ink: C.ink, link: C.link, silk: C.silk, spider: C.spider, muted: C.muted, rule: C.rule };
+  if (!skin || skin === "auto") return out;
+  for (const sheet of document.styleSheets) {
+    let rules; try { rules = sheet.cssRules; } catch (e) { continue; }
+    for (const r of rules) if (r.selectorText && r.selectorText.includes(`data-skin="${skin}"`)) for (const k of Object.keys(out)) { const v = r.style.getPropertyValue("--" + k).trim(); if (v) out[k] = v; }
+  }
+  return out;
+}
+function withCanvas(cv, draw) {
+  const d = devicePixelRatio || 1, w = cv.clientWidth || 160, h = cv.clientHeight || 96;
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0);
+  const keep = ctx; ctx = g;
+  try { draw(g, w, h); } finally { ctx = keep; }
+}
+// a spider drawn into the current thumbnail: o = { look, type, tint, season, x, y, a, scale }
+function previewSpider(o, w, h, now) {
+  const saved = { look: cfg.look, type: cfg.type, tint: cfg.tint, season: cfg.season, size: cfg.size }, savedS = { ...S }, savedLegs = legs.slice();
+  try {
+    Object.assign(cfg, { look: o.look || "classic", type: o.type || "cobweb", tint: o.tint || "auto", season: o.season || "off", size: 1 });
+    const fit = o.scale || Math.min(w, h) / (92 * Math.max(1, (TYPES[cfg.type] || TYPES.cobweb).leg));
+    ctx.save(); ctx.scale(fit, fit);
+    Object.assign(S, { x: (o.x != null ? o.x : w / 2) / fit + 6, y: (o.y != null ? o.y : h / 2) / fit, a: o.a != null ? o.a : -Math.PI / 2 + 0.25, mode: "walk", appear: null, hopZ: 0, hop: null, noticeAt: 0, fanAt: now, v: 0 });
+    buildLegs(); plantFeet(); drawSpider(now);
+    ctx.restore();
+  } finally {
+    Object.assign(cfg, saved); Object.assign(S, savedS); legs.length = 0; legs.push(...savedLegs);
+  }
+}
+function previewPage(g, w, h, col) { // a few lines of "text" so it reads as a page
+  g.fillStyle = col.paper; g.fillRect(0, 0, w, h);
+  g.fillStyle = col.ink; g.globalAlpha = 0.16;
+  for (let y = 14, i = 0; y < h - 6; y += 11, i++) g.fillRect(10, y, w - 20 - (i * 17 % 40), 3);
+  g.globalAlpha = 1;
+}
+function previewWeather(kind, w, h, now) {
+  const keep = { amb, ambKind, W, H, flashAt };
+  try {
+    W = w; H = h; ambKind = kind; amb = [];
+    const n = { dust: 14, fireflies: 9, rain: 34, storm: 40, snow: 26, leaves: 7, blossoms: 10, fog: 4, stars: 30 }[kind] || 12;
+    for (let i = 0; i < n; i++) { const p = newAmb(true); if (kind === "fog") { p.r = 30 + Math.random() * 40; p.a = 0.18; } amb.push(p); }
+    if (kind === "storm") flashAt = now - 40;
+    drawAmbient(now);
+  } finally { amb = keep.amb; ambKind = keep.ambKind; W = keep.W; H = keep.H; flashAt = keep.flashAt; }
+}
+function previewFlies(w, h, now) {
+  for (const [x, y, a] of [[w * 0.18, h * 0.3, 0.4], [w * 0.82, h * 0.25, 2.6], [w * 0.75, h * 0.78, -2.2]]) drawFly({ x, y, vx: Math.cos(a), vy: Math.sin(a), ph: x, state: "fly" }, now);
+}
+function previewCornerWeb(g, w, h) {
+  // the same shape as the real corner web: a frame across the corner, spokes, and the spiral
+  const D = Math.min(w, h) * 0.34, C0 = { x: w - 2, y: 2 }, A1 = { x: w - 2 - D * 2.8, y: 2 }, A2 = { x: w - 2, y: 2 + D * 2.8 }, hub = { x: w - 2 - D, y: 2 + D };
+  const spokes = []; for (let i = 0; i < 14; i++) { const e = rayTri(hub, i / 14 * Math.PI * 2 + 0.1, [C0, A1, A2]); if (e) spokes.push(e); }
+  g.strokeStyle = C.silk; g.lineWidth = 0.8; g.globalAlpha = 0.9;
+  g.beginPath(); g.moveTo(A1.x, A1.y); g.lineTo(C0.x, C0.y); g.lineTo(A2.x, A2.y); g.lineTo(A1.x, A1.y); g.stroke();
+  for (const e of spokes) { g.beginPath(); g.moveTo(hub.x, hub.y); g.lineTo(e.x, e.y); g.stroke(); }
+  g.lineWidth = 0.6; g.beginPath();
+  for (let r = 5; r >= 1; r--) spokes.forEach((e, i) => { const fr = (r - i / spokes.length) / 5.4 * 0.94, x = hub.x + (e.x - hub.x) * fr, y = hub.y + (e.y - hub.y) * fr; r === 5 && i === 0 ? g.moveTo(x, y) : g.lineTo(x, y); });
+  g.stroke(); g.globalAlpha = 1;
+  return [hub.x, hub.y];
+}
+const THUMB = {
+  type: (it, w, h, now) => previewSpider({ type: it.values[0] }, w, h, now),
+  look: (it, w, h, now) => previewSpider({ look: it.values[0] }, w, h, now),
+  tint: (it, w, h, now) => previewSpider({ tint: it.values[0] }, w, h, now),
+  season: (it, w, h, now) => { const fit = Math.min(w, h) / 34; previewSpider({ season: it.values[0], a: -Math.PI / 2, scale: fit, y: h / 2 + 4 * fit }, w, h, now); },
+  spiders: (it, w, h, now) => { for (const [x, t] of [[w * 0.22, "c0"], [w * 0.5, "auto"], [w * 0.78, "c2"]]) previewSpider({ tint: t, x, scale: Math.min(w, h) / 130 }, w, h, now); },
+  flies: (it, w, h, now) => { previewSpider({}, w, h, now); previewFlies(w, h, now); },
+  speed: (it, w, h, now) => {
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+    for (const [y, l] of [[h * 0.35, 30], [h * 0.5, 44], [h * 0.65, 30]]) seg(w * 0.12, y, w * 0.12 + l, y);
+    ctx.globalAlpha = 1; previewSpider({ a: 0, x: w * 0.62 }, w, h, now);
+    ctx.fillStyle = C.ink; ctx.font = "600 14px " + MONO; ctx.fillText("4×", 10, h - 10);
+  },
+  ambient: (it, w, h, now) => { previewPage(ctx, w, h, themeColors("auto")); previewWeather(it.values[0] === "season" ? SEASON_WEATHER[dateSeason()] || "leaves" : it.values[0], w, h, now); },
+  bored: (it, w, h, now) => {
+    const v = it.values[0];
+    if (v === "web" || v === "both") { const hub = previewCornerWeb(ctx, w, h); previewSpider({ x: hub[0] - 6, y: hub[1], a: Math.PI / 2, scale: Math.min(w, h) / 130 }, w, h, now); }
+    if (v === "edges" || v === "both") {
+      ctx.strokeStyle = C.link; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2; ctx.strokeRect(8, 8, w - 16, h - 16); ctx.setLineDash([]);
+      previewSpider({ x: 26, y: h * 0.62, a: -Math.PI / 2, scale: Math.min(w, h) / 150 }, w, h, now);
+    }
+  },
+  skin: (it, w, h, now) => {
+    const col = themeColors(it.values[0]); previewPage(ctx, w, h, col);
+    ctx.fillStyle = col.link; ctx.fillRect(10, 25, 46, 2); ctx.fillRect(w - 64, 47, 40, 2);
+    ctx.strokeStyle = col.silk; ctx.lineWidth = 0.8; seg(33, 26, w - 44, 48);
+  }
+};
+function drawPreset(pr, w, h, now) {
+  const p = PRESETS[pr.preset] || {}, col = themeColors(p.skin);
+  previewPage(ctx, w, h, col);
+  if (p.ambient && p.ambient !== "none") previewWeather(p.ambient === "season" ? "leaves" : p.ambient, w, h, now);
+  const keepC = { ...C }; Object.assign(C, { spider: col.spider, paper: col.paper, ink: col.ink, silk: col.silk, link: col.link });
+  try { previewSpider({ look: p.look, type: p.type, tint: p.tint }, w, h, now); } finally { Object.assign(C, keepC); }
+}
+// bundles: a strip of what's in them
+const BUNDLE_SHOW = {
+  bundle_starter: [{ type: "huntsman" }, { tint: "rainbow" }, { type: "widow", tint: "c6" }],
+  bundle_collector: [{ look: "robot" }, { look: "cartoon", season: "winter" }, { look: "crystal" }],
+  bundle_deluxe: [{ look: "realistic" }, { look: "flyer" }, { look: "skeleton" }],
+  bundle_everything: [{ look: "hero" }, { look: "heroyb" }, { look: "herork" }, { look: "peacock" }]
+};
+function drawThumbs() {
+  const now = performance.now();
+  for (const cv of $("storeList").querySelectorAll("canvas[data-thumb]")) {
+    const id = cv.dataset.thumb, it = ITEMS.find(x => x.id === id), pr = CATALOG.presets.find(x => x.id === id);
+    withCanvas(cv, (g, w, h) => {
+      g.fillStyle = C.paper; g.fillRect(0, 0, w, h);
+      if (it && THUMB[it.field]) THUMB[it.field](it, w, h, now);
+      else if (pr) drawPreset(pr, w, h, now);
+      else if (BUNDLE_SHOW[id]) { const list = BUNDLE_SHOW[id], step = w / list.length; list.forEach((o, i) => previewSpider({ ...o, x: step * (i + 0.5) - 6, scale: Math.min(step, h) / 112 }, w, h, now)); }
+    });
+  }
 }
 function openStore(focus) {
   storeFocus = focus || null; renderStore(); if (!$("dStore").open) $("dStore").showModal();
