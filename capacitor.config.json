@@ -3,6 +3,11 @@
   "appName": "CAK3D Crawler",
   "webDir": "www",
   "android": {
-    "backgroundColor": "#111413"
+    "backgroundColor": "#111413",
+    "allowMixedContent": true
+  },
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
   }
 }

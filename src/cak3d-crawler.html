@@ -965,27 +965,43 @@ body.bar-off .bar { display: none; }
         <label class="chk"><input type="checkbox" id="cfgLearn"> Learn what I'm interested in, and crawl those keywords first</label>
         <div class="rowi"><button class="btn" type="button" id="forgetInt">Forget what it learned</button><span class="meta" id="intNote"></span></div>
         <fieldset id="keyField" hidden>
-          <legend>AI for summaries and answers</legend>
-          <p class="hintline" style="margin:0">Pick any AI to write the cited summaries and answers. Without one, you still get the matching passages as sources.</p>
-          <label class="field"><span>Provider</span>
-            <select id="aiProvider">
+          <legend>AI for summaries, answers and study guides</legend>
+          <p class="hintline" style="margin:0">Connect an AI with your own API key, or use a free model running on your own computer. Without one, you still get the matching passages as sources.</p>
+          <label class="field"><span>Your AI</span>
+            <select id="aiService">
               <option value="none">None: show passages only</option>
-              <option value="anthropic">Claude (Anthropic API)</option>
-              <option value="openai">OpenAI-compatible (OpenAI, OpenRouter, Groq, Ollama, LM Studio…)</option>
+              <optgroup label="With an API key">
+                <option value="anthropic">Claude (Anthropic)</option>
+                <option value="openai">ChatGPT models (OpenAI)</option>
+                <option value="gemini">Gemini (Google)</option>
+                <option value="openrouter">OpenRouter: Claude, GPT, Gemini, Llama and more with one key</option>
+                <option value="groq">Groq</option>
+                <option value="mistral">Mistral</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="xai">Grok (xAI)</option>
+                <option value="together">Together AI</option>
+              </optgroup>
+              <optgroup label="Free and private, on your own computer">
+                <option value="ollama-here">Ollama on this device</option>
+                <option value="ollama-pc">Ollama on my computer (use it from this phone or tablet)</option>
+                <option value="lmstudio">LM Studio on my computer</option>
+              </optgroup>
+              <option value="custom">Another OpenAI-compatible server</option>
             </select></label>
-          <div class="rowi" id="aiQuick"><span class="meta">Quick fill:</span>
-            <button class="btn" type="button" data-ai="ollama">Ollama (local)</button>
-            <button class="btn" type="button" data-ai="lmstudio">LM Studio (local)</button>
-            <button class="btn" type="button" data-ai="openrouter">OpenRouter</button>
-            <button class="btn" type="button" data-ai="openai">OpenAI</button>
-            <button class="btn" type="button" data-ai="groq">Groq</button></div>
-          <div class="row2">
-            <label class="field"><span>Model</span><input type="text" id="aiModel" autocomplete="off"></label>
-            <label class="field"><span>Server address (optional)</span><input type="text" id="aiBase" autocomplete="off"></label>
+          <div id="aiKeyBox" class="field">
+            <label class="field"><span id="aiKeyLabel">API key</span><input type="password" id="aiKey" autocomplete="off" spellcheck="false"></label>
+            <p class="meta" id="aiKeyHelp"></p>
           </div>
-          <label class="field"><span>API key</span><input type="password" id="aiKey" placeholder="Leave empty for local AI or your own proxy" autocomplete="off"></label>
+          <div id="aiPcBox" hidden>
+            <p class="meta" id="aiPcHelp"></p>
+            <div class="rowi"><label class="field" style="flex:1 1 12rem"><span>Your computer's address</span><input type="text" id="aiHost" placeholder="e.g. 192.168.1.20" autocomplete="off" spellcheck="false" inputmode="url"></label>
+              <button class="btn" type="button" id="aiScan">Find my computer</button><button class="btn" type="button" id="aiScanStop" hidden>Stop</button></div>
+          </div>
+          <label class="field" id="aiBaseBox"><span>Server address</span><input type="text" id="aiBase" autocomplete="off" spellcheck="false" placeholder="https://…/v1"></label>
+          <div class="rowi"><label class="field" style="flex:1 1 14rem"><span>Model</span><input type="text" id="aiModel" list="aiModels" autocomplete="off" spellcheck="false"><datalist id="aiModels"></datalist></label>
+            <button class="btn" type="button" id="aiLoad">Load models</button></div>
           <div class="rowi"><button class="btn primary" type="button" id="aiSave">Save</button><button class="btn" type="button" id="aiTest">Test it</button><button class="btn" type="button" id="aiClear">Forget</button></div>
-          <small id="aiNote">Saved only on this device. Requests go straight from this device to the server you choose, and any usage is billed to your key.</small>
+          <small id="aiNote" aria-live="polite">Saved only on this device. Requests go straight from this device to the AI you choose, and any usage is billed to your own account.</small>
         </fieldset>
       </section>
     </div>
@@ -1131,13 +1147,38 @@ let SAMPLE = null, DBX = null, UID = null, DL = null, USERCAP = null;
 // Settings come from this device (Settings → Research), or from a deployment's config.js (window.CRAWLER_CONFIG.ai).
 const DEFAULT_CLAUDE = "claude-opus-5-5";
 const aiName = () => window.claude ? "Claude" : "AI";
-const AI_QUICK = {
-  ollama: { provider: "openai", base: "http://localhost:11434/v1", model: "llama3.1" },
-  lmstudio: { provider: "openai", base: "http://localhost:1234/v1", model: "" },
-  openrouter: { provider: "openai", base: "https://openrouter.ai/api/v1", model: "anthropic/claude-opus-5.5" },
-  openai: { provider: "openai", base: "https://api.openai.com/v1", model: "" },
-  groq: { provider: "openai", base: "https://api.groq.com/openai/v1", model: "" }
+// every AI the settings offer. Subscriptions like ChatGPT Plus or Claude Pro can't be connected to other apps;
+// these services all take an API key from your account on their website instead.
+const AI_SERVICES = {
+  anthropic: { name: "Claude", provider: "anthropic", key: "https://console.anthropic.com/settings/keys", site: "console.anthropic.com", model: DEFAULT_CLAUDE },
+  openai: { name: "OpenAI", base: "https://api.openai.com/v1", key: "https://platform.openai.com/api-keys", site: "platform.openai.com" },
+  gemini: { name: "Gemini", base: "https://generativelanguage.googleapis.com/v1beta/openai", key: "https://aistudio.google.com/apikey", site: "aistudio.google.com", free: true },
+  openrouter: { name: "OpenRouter", base: "https://openrouter.ai/api/v1", key: "https://openrouter.ai/keys", site: "openrouter.ai", model: "anthropic/claude-opus-5.5" },
+  groq: { name: "Groq", base: "https://api.groq.com/openai/v1", key: "https://console.groq.com/keys", site: "console.groq.com", free: true },
+  mistral: { name: "Mistral", base: "https://api.mistral.ai/v1", key: "https://console.mistral.ai/api-keys", site: "console.mistral.ai" },
+  deepseek: { name: "DeepSeek", base: "https://api.deepseek.com/v1", key: "https://platform.deepseek.com/api_keys", site: "platform.deepseek.com" },
+  xai: { name: "Grok", base: "https://api.x.ai/v1", key: "https://console.x.ai", site: "console.x.ai" },
+  together: { name: "Together AI", base: "https://api.together.xyz/v1", key: "https://api.together.xyz/settings/api-keys", site: "api.together.xyz" },
+  "ollama-here": { name: "Ollama", base: "http://localhost:11434/v1", local: true },
+  "ollama-pc": { name: "Ollama", pc: 11434, local: true },
+  lmstudio: { name: "LM Studio", pc: 1234, local: true },
+  custom: { name: "AI", custom: true }
 };
+const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+// where people open the computer setup page (the website's /connect page)
+const SITE = ((window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.siteUrl) || "https://real-cak3d.github.io/CAK3D-Crawler/").replace(/\/?$/, "/");
+// which service saved settings belong to (older saves only had provider and address)
+function serviceOf(st) {
+  if (st.service && AI_SERVICES[st.service]) return st.service;
+  if (st.provider === "anthropic") return "anthropic";
+  if (st.provider !== "openai") return "none";
+  const b = (st.base || "").replace(/\/+$/, "");
+  for (const [id, v] of Object.entries(AI_SERVICES)) if (v.base && v.base === b) return id;
+  if (/:11434\b/.test(b)) return /\/\/(localhost|127\.0\.0\.1)\b/.test(b) ? "ollama-here" : "ollama-pc";
+  if (/:1234\b/.test(b)) return "lmstudio";
+  return "custom";
+}
+const pcBase = (host, port) => { const h = host.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, ""); return h ? `http://${/:\d+$/.test(h) ? h : h + ":" + port}/v1` : ""; };
 function aiSettings() {
   let s = null; try { s = JSON.parse(localStorage.getItem("cak3d-ai")); } catch (e) { /* storage blocked */ }
   if (!s) { try { const k = localStorage.getItem("cak3d-key"); if (k) s = { provider: "anthropic", key: k }; } catch (e) { /* none */ } }
@@ -1207,16 +1248,48 @@ function useOwnAi() {
   SAMPLE = null; return false;
 }
 function fillAiForm() {
-  const s = aiSettings();
-  $("aiProvider").value = s.provider; $("aiModel").value = s.model; $("aiBase").value = s.base; $("aiKey").value = s.key;
+  const st = aiSettings(), sv = serviceOf(st), v = AI_SERVICES[sv] || {};
+  $("aiService").value = sv; $("aiModel").value = st.model; $("aiKey").value = st.key;
+  $("aiBase").value = v.custom || sv === "anthropic" ? st.base : "";
+  $("aiHost").value = v.pc ? (st.base || "").replace(/^https?:\/\//, "").replace(/(:\d+)?\/v1\/?$/, "") : "";
+  $("aiModels").innerHTML = "";
   syncAiForm();
 }
 function syncAiForm() {
-  const p = $("aiProvider").value;
-  $("aiQuick").hidden = p !== "openai";
-  $("aiModel").placeholder = p === "anthropic" ? DEFAULT_CLAUDE : "e.g. llama3.1 or gpt-4o-mini";
-  $("aiBase").placeholder = p === "anthropic" ? "Only for your own proxy" : "https://…/v1";
-  for (const id of ["aiModel", "aiBase", "aiKey"]) $(id).disabled = p === "none";
+  const sv = $("aiService").value, v = AI_SERVICES[sv] || {}, none = sv === "none";
+  $("aiKeyBox").hidden = none || !!v.local;
+  $("aiKeyLabel").textContent = v.custom ? "API key (if the server needs one)" : `${v.name || ""} API key`;
+  $("aiKey").placeholder = v.custom ? "Leave empty if it doesn't need one" : "Paste your key here";
+  $("aiKeyHelp").innerHTML = v.key ? `Get a key at <a href="${v.key}" target="_blank" rel="noopener">${v.site}</a>${v.free ? ", which has a free tier" : ""}. Usage is billed to your ${esc(v.name)} account.` : "";
+  $("aiPcBox").hidden = !v.pc;
+  if (v.pc) $("aiPcHelp").innerHTML = NATIVE || !/^https:/.test(location.protocol)
+    ? `First, on your computer, open <b>${esc(SITE.replace(/^https?:\/\//, ""))}connect</b> and run the setup for ${esc(v.name)}. It lets your phone reach ${esc(v.name)} over your home Wi-Fi and shows the address to type below. Your phone and computer must be on the same Wi-Fi.`
+    : `A web page can't reach other computers on your network. Use the Android app, or open this page on the computer that runs ${esc(v.name)} and choose “${esc(v.name)} on this device”.`;
+  $("aiBaseBox").hidden = !(v.custom || sv === "anthropic");
+  $("aiBase").placeholder = sv === "anthropic" ? "Only if you use your own proxy" : "https://…/v1";
+  $("aiBaseBox").querySelector("span").textContent = sv === "anthropic" ? "Proxy address (optional)" : "Server address";
+  $("aiModel").placeholder = v.model || (v.local ? "Load models to pick one" : "Load models, or type a model name");
+  $("aiModel").disabled = $("aiLoad").disabled = none;
+}
+// the address this form points at, from the service, the computer address or the custom field
+function formBase(sv) { const v = AI_SERVICES[sv] || {}; return v.pc ? pcBase($("aiHost").value, v.pc) : v.custom || sv === "anthropic" ? $("aiBase").value.trim() : v.base || ""; }
+// ask the service which models this key can use
+async function listModels(sv, base, key) {
+  if (sv === "anthropic") {
+    const r = await fetch((base || "https://api.anthropic.com").replace(/\/+$/, "") + "/v1/models?limit=100", { headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" } });
+    if (!r.ok) throw { code: r.status === 401 || r.status === 403 ? "bad_key" : "http", status: r.status };
+    return (await r.json()).data.map(m => m.id);
+  }
+  if (/:11434\/v1$/.test(base)) { // Ollama: skip models that can't write text (embedding models)
+    try {
+      const j = await (await fetch(base.replace(/\/v1$/, "") + "/api/tags")).json();
+      return j.models.filter(m => !m.capabilities || m.capabilities.includes("completion")).map(m => m.name);
+    } catch (e) { /* older Ollama: use the OpenAI-style list below */ }
+  }
+  const r = await fetch(base.replace(/\/+$/, "") + "/models", { headers: key ? { Authorization: "Bearer " + key } : {} });
+  if (!r.ok) throw { code: r.status === 401 || r.status === 403 ? "bad_key" : "http", status: r.status };
+  const ids = ((await r.json()).data || []).map(m => String(m.id).replace(/^models\//, ""));
+  return ids.filter(id => !/embed|tts|whisper|dall-e|image|audio|moderation|realtime|transcribe|speech|rerank|guard/i.test(id)).sort();
 }
 function capsReady() {
   if (DBX && !COLLAB && /^#collab-[a-z0-9]+$/i.test(location.hash)) joinCollab(location.hash.slice(8));
@@ -5517,17 +5590,38 @@ $("bSettings").onclick = () => {
   $("dSettings").showModal();
 };
 $("bTheme").onclick = cycleTheme;
-$("aiProvider").addEventListener("change", syncAiForm);
-$("aiQuick").addEventListener("click", e => {
-  const b = e.target.closest("[data-ai]"); if (!b) return;
-  const q = AI_QUICK[b.dataset.ai];
-  $("aiProvider").value = q.provider; $("aiBase").value = q.base; $("aiModel").value = q.model; syncAiForm();
-  $("aiNote").textContent = q.model ? "Filled in. Add your API key if the service needs one, then Save." : "Filled in. Type the model name your service uses, add a key if it needs one, then Save.";
+$("aiService").addEventListener("change", () => {
+  if (scanCtl) scanCtl.abort();
+  const v = AI_SERVICES[$("aiService").value] || {};
+  $("aiModel").value = v.model || ""; $("aiModels").innerHTML = ""; $("aiNote").textContent = "";
+  syncAiForm();
 });
-function readAiForm() { return { provider: $("aiProvider").value, model: $("aiModel").value.trim(), base: $("aiBase").value.trim(), key: $("aiKey").value.trim() }; }
+function readAiForm() {
+  const sv = $("aiService").value, v = AI_SERVICES[sv] || {};
+  return { service: sv, provider: sv === "none" ? "none" : v.provider || "openai", model: $("aiModel").value.trim(), base: formBase(sv), key: v.local ? "" : $("aiKey").value.trim() };
+}
+$("aiLoad").onclick = async () => {
+  const st = readAiForm(), v = AI_SERVICES[st.service] || {}, note = $("aiNote");
+  if (v.key && !st.key) { note.textContent = `Paste your ${v.name} API key first.`; return; }
+  if (!st.base && st.service !== "anthropic") { note.textContent = v.pc ? "Type your computer's address first, or use Find my computer." : "Type the server address first."; return; }
+  note.textContent = "Loading models…";
+  try {
+    const ids = await listModels(st.service, st.base, st.key);
+    $("aiModels").innerHTML = ids.map(id => `<option value="${esc(id)}"></option>`).join("");
+    if (ids.length && !ids.includes($("aiModel").value)) $("aiModel").value = ids.includes(v.model) ? v.model : ids[0];
+    note.textContent = ids.length ? `Found ${plural(ids.length, "model")}. Tap the Model box to pick another, then Save.` : v.local ? `No models yet. On the computer, run “ollama pull qwen3” (or another model), then try again.` : "The account has no models it can use for this.";
+    if (ids.length) $("aiModel").focus();
+  } catch (e) {
+    note.textContent = e && e.code === "bad_key" ? `${v.name || "The server"} rejected the key. Check that you pasted all of it.`
+      : v.local ? `Couldn't reach ${v.name}. ${v.pc ? "Check the address, that both devices are on the same Wi-Fi, and that you ran the setup on the computer." : "Make sure it's running."}`
+      : "Couldn't reach the server. Check your connection and the address.";
+  }
+};
 $("aiSave").onclick = () => {
-  const s = readAiForm(), note = $("aiNote");
-  if (s.provider === "openai" && !s.model) { note.textContent = "Type the model name your service uses (for example llama3.1)."; return; }
+  const s = readAiForm(), note = $("aiNote"), v = AI_SERVICES[s.service] || {};
+  if (v.key && !s.key) { note.textContent = `Paste your ${v.name} API key first. Get one at ${v.site}.`; return; }
+  if (v.pc && !s.base) { note.textContent = "Type your computer's address, or use Find my computer."; return; }
+  if (s.provider === "openai" && !s.model) { note.textContent = "Pick a model: tap Load models, then choose one."; return; }
   if (s.provider === "anthropic" && !s.key && !s.base) { note.textContent = "Add your Anthropic API key, or the address of your own proxy."; return; }
   if (s.provider === "anthropic" && !window.AnthropicSDK) { note.textContent = "This copy of the app doesn't include the Claude library. Use the web or Android release."; return; }
   try { localStorage.setItem("cak3d-ai", JSON.stringify(s)); localStorage.removeItem("cak3d-key"); } catch (e) { note.textContent = "This device blocked saving the settings."; return; }
@@ -5536,16 +5630,66 @@ $("aiSave").onclick = () => {
 };
 $("aiTest").onclick = async () => {
   const s = readAiForm(), note = $("aiNote");
-  if (s.provider === "none") { note.textContent = "Pick a provider first."; return; }
+  if (s.provider === "none") { note.textContent = "Pick an AI first."; return; }
+  if (s.provider === "openai" && !s.model) { note.textContent = "Pick a model first: tap Load models."; return; }
   const fn = s.provider === "anthropic" ? (window.AnthropicSDK ? claudeSampler(s) : null) : openAiSampler(s);
   if (!fn) { note.textContent = "This copy of the app doesn't include the Claude library."; return; }
   note.textContent = "Testing…";
   try { const { text } = await fn("Reply with exactly: Connected."); note.textContent = "It works. The AI replied: " + trunc(text.trim(), 80); }
   catch (e) {
     note.textContent = e.code === "bad_key" ? "The server rejected the key." : e.code === "rate_limited" ? "The server says too many requests. Try again shortly."
-      : "Couldn't reach the AI. Check the address and model. Local servers like Ollama must allow requests from this app (for Ollama, set OLLAMA_ORIGINS=*).";
+      : (AI_SERVICES[s.service] || {}).pc ? "Couldn't reach your computer. Check the address, that both devices are on the same Wi-Fi, and that you ran the setup on the computer."
+      : (AI_SERVICES[s.service] || {}).local ? "Couldn't reach it. Make sure it's running and the model is downloaded."
+      : "Couldn't reach the AI. Check the model name and your connection.";
   }
 };
+let scanCtl = null;
+$("dSettings").addEventListener("close", () => { if (scanCtl) scanCtl.abort(); });
+$("aiScan").onclick = async () => {
+  const v = AI_SERVICES[$("aiService").value] || {}, note = $("aiNote"); if (!v.pc) return;
+  scanCtl = new AbortController(); const sig = scanCtl.signal;
+  $("aiScan").hidden = true; $("aiScanStop").hidden = false;
+  const host = $("aiHost").value.trim(), found = [];
+  const within = ms => AbortSignal.any ? AbortSignal.any([sig, AbortSignal.timeout(ms)]) : AbortSignal.timeout(ms);
+  const probe = async ip => {
+    try { const r = await fetch(`http://${ip}:${v.pc}/v1/models`, { signal: within(1500) }); if (r.ok && !found.includes(ip)) found.push(ip); } catch (e) { /* nothing there */ }
+  };
+  // a full address typed in: try it on its own first
+  const full = (host.match(/^(\d{1,3}(\.\d{1,3}){3})$/) || [])[1];
+  if (full) await probe(full);
+  // which network is this device on? A router on our own network refuses the knock at once; other networks
+  // never answer. Knocking costs one connection per network, so the search doesn't jam the phone's connections.
+  const typed = (host.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3})/) || [])[1];
+  let nets = typed ? [typed] : [];
+  if (!found.length && !nets.length) {
+    note.textContent = "Working out which network this device is on…";
+    const guesses = ["192.168.1", "192.168.0", "10.0.0", "192.168.86", "192.168.68", "10.0.1", "192.168.2", "192.168.3", "192.168.8", "192.168.50", "192.168.100", "10.1.1", "10.42.0", "172.16.0"];
+    // knock on the router's settings page (almost every home router has one at .1); any quick reply means
+    // this device is on that network. Routers on other networks never answer.
+    const knock = async n => {
+      const t = performance.now();
+      try { await fetch(`http://${n}.1/`, { mode: "no-cors", signal: within(1500) }); return n; }
+      catch (e) { return e.name !== "TimeoutError" && e.name !== "AbortError" && performance.now() - t < 1200 ? n : null; }
+    };
+    nets = (await Promise.all(guesses.map(knock))).filter(Boolean);
+  }
+  if (!found.length && nets.length && !sig.aborted) {
+    const ips = nets.flatMap(n => Array.from({ length: 254 }, (_, i) => `${n}.${i + 1}`));
+    let next = 0, done = 0;
+    const worker = async () => {
+      while (!found.length && !sig.aborted && next < ips.length) {
+        await probe(ips[next++]);
+        if (++done % 20 === 0 && !found.length && !sig.aborted) note.textContent = `Looking for ${v.name} on ${nets.map(n => n + ".x").join(" and ")}… ${Math.round(done / ips.length * 100)}%`;
+      }
+    };
+    await Promise.all(Array.from({ length: 16 }, worker));
+  }
+  $("aiScan").hidden = false; $("aiScanStop").hidden = true;
+  if (found.length) { $("aiHost").value = found[0]; note.textContent = `Found ${v.name} at ${found[0]}. Loading its models…`; $("aiLoad").click(); }
+  else if (!sig.aborted) note.textContent = `Couldn't find ${v.name}. Run the setup on the computer and type the address it shows.`;
+  else note.textContent = "Stopped.";
+};
+$("aiScanStop").onclick = () => scanCtl && scanCtl.abort();
 $("aiClear").onclick = () => {
   try { localStorage.removeItem("cak3d-ai"); localStorage.removeItem("cak3d-key"); } catch (e) { /* nothing stored */ }
   useOwnAi(); fillAiForm(); capsReady();

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connect your computer</title>
+<meta name="description" content="Use Ollama or LM Studio on your computer from CAK3D Crawler on your phone or tablet.">
+<style>
+  :root { --paper: #f6f7f4; --panel: #eceee9; --ink: #1c211f; --muted: #5b6560; --link: #2a57a3; --rule: #d5d9d3; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --paper: #111413; --panel: #181c1b; --ink: #dde3df; --muted: #8e9993; --link: #8db0ec; --rule: #2a302d; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 6px; }
+  h2 { font-size: 1.25rem; margin: 30px 0 8px; border-bottom: 1px solid var(--rule); padding-bottom: 4px; }
+  .meta { color: var(--muted); font-size: .95rem; margin: 0; }
+  a { color: var(--link); }
+  ol li, ul li { margin: 6px 0; }
+  code, pre { font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+  pre { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+  .btn { display: inline-block; font: 14px ui-monospace, Consolas, monospace; padding: 8px 14px; border-radius: 6px; background: var(--ink); color: var(--paper); text-decoration: none; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; }
+  .tabs button { font: 14px ui-monospace, Consolas, monospace; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+  .note { background: var(--panel); border-left: 3px solid var(--link); padding: 8px 12px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Use your computer's AI from your phone</h1>
+  <p class="meta">For CAK3D Crawler on Android. Free and private: your text goes to your own computer, not to an AI company.</p>
+
+  <h2>1. Get Ollama and a model</h2>
+  <ol>
+    <li>Install Ollama from <a href="https://ollama.com/download">ollama.com/download</a>.</li>
+    <li>Download a model. In a terminal (Command Prompt on Windows), run <code>ollama pull qwen3</code>. Smaller computers can use <code>ollama pull qwen3:4b</code> or <code>ollama pull gemma3</code>.</li>
+  </ol>
+
+  <h2>2. Let your phone reach it</h2>
+  <p>Out of the box, Ollama only answers the computer it runs on. The setup below lets devices on your home Wi-Fi reach it too, then shows the address to type into the app.</p>
+  <p class="meta">Using a recent Ollama app? You can also turn on <b>Expose Ollama to the network</b> in its Settings. The setup below still helps on Windows, because it also lets Ollama through the firewall.</p>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" aria-selected="true" data-os="win">Windows</button>
+    <button type="button" role="tab" aria-selected="false" data-os="mac">Mac</button>
+    <button type="button" role="tab" aria-selected="false" data-os="linux">Linux</button>
+  </div>
+  <section data-os="win">
+    <ol>
+      <li><a class="btn" href="ollama-windows.bat" download>Download the Windows setup</a></li>
+      <li>Open the downloaded file. If Windows says it protected your PC, choose <b>More info</b>, then <b>Run anyway</b>. Then choose <b>Yes</b> when it asks to make changes. It needs that to allow Ollama through the firewall.</li>
+      <li>If it says your network is set to Public, answer <b>Y</b> to mark your home Wi-Fi as Private.</li>
+      <li>It restarts Ollama and shows your computer's address, like <code>192.168.1.20</code>.</li>
+    </ol>
+    <p class="meta">To undo it later, open Command Prompt in your Downloads folder and run <code>ollama-windows.bat undo</code>.</p>
+  </section>
+  <section data-os="mac" hidden>
+    <ol>
+      <li>Open <b>Terminal</b> (in Applications → Utilities) and paste:
+        <pre>curl -fsSL __SITE__connect/ollama-mac.sh | bash</pre></li>
+      <li>If macOS asks whether Ollama may accept incoming network connections, choose <b>Allow</b>.</li>
+      <li>It shows your Mac's address, like <code>192.168.1.20</code>.</li>
+    </ol>
+    <p class="meta">To undo it: <code>curl -fsSL __SITE__connect/ollama-mac.sh | bash -s undo</code></p>
+  </section>
+  <section data-os="linux" hidden>
+    <ol>
+      <li>In a terminal, paste:
+        <pre>curl -fsSL __SITE__connect/ollama-linux.sh | sh</pre>
+        It asks for your password to update Ollama's service settings.</li>
+      <li>It shows your computer's address, like <code>192.168.1.20</code>.</li>
+    </ol>
+    <p class="meta">To undo it: <code>curl -fsSL __SITE__connect/ollama-linux.sh | sh -s undo</code></p>
+  </section>
+
+  <h2>3. Connect the app</h2>
+  <ol>
+    <li>Make sure your phone is on the same Wi-Fi as your computer.</li>
+    <li>In CAK3D Crawler, open <b>Settings → Research → Your AI</b> and choose <b>Ollama on my computer</b>.</li>
+    <li>Type the address the setup showed, or tap <b>Find my computer</b>.</li>
+    <li>Tap <b>Load models</b>, pick one, then <b>Save</b> and <b>Test it</b>.</li>
+  </ol>
+  <p class="note">Your computer needs to be on with Ollama running whenever you use the AI from your phone. Summaries and answers from a local model take longer than from an online AI, especially on a computer without a graphics card.</p>
+
+  <h2>LM Studio instead</h2>
+  <ol>
+    <li>In LM Studio, open the <b>Developer</b> tab, load a model, and start the server.</li>
+    <li>In the server settings, turn on <b>Serve on Local Network</b> and <b>Enable CORS</b>.</li>
+    <li>In the app, choose <b>LM Studio on my computer</b> and type your computer's address. You can find it in LM Studio's server panel, or tap <b>Find my computer</b>.</li>
+  </ol>
+
+  <h2>Is this safe?</h2>
+  <p>The setup lets devices on your home network use Ollama. On Windows the firewall rule covers private networks only, and on Linux it allows home network addresses only. Use it on a network you trust, not on public Wi-Fi, and use the undo steps above when you no longer need it. Ollama doesn't read your files. It only answers the requests sent to it.</p>
+</main>
+<script>
+  for (const b of document.querySelectorAll("[data-os][role=tab]")) b.addEventListener("click", () => {
+    for (const t of document.querySelectorAll("[role=tab]")) t.setAttribute("aria-selected", String(t === b));
+    for (const s of document.querySelectorAll("section[data-os]")) s.hidden = s.dataset.os !== b.dataset.os;
+  });
+  // start on the visitor's own system
+  const os = /Mac/i.test(navigator.platform) ? "mac" : /Linux/i.test(navigator.platform) && !/Android/i.test(navigator.userAgent) ? "linux" : "win";
+  document.querySelector(`[role=tab][data-os="${os}"]`).click();
+</script>
+</body>
+</html>

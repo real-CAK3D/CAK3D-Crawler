@@ -55,7 +55,19 @@ const ai = {
 // Paid packs stay unlocked until CRAWLER_LOCK_PAID=1 (turn it on for the Play release and the public website).
 // CRAWLER_PLAY_URL is the Google Play listing that the web version's store links to.
 const lockPaid = process.env.CRAWLER_LOCK_PAID === "1", playUrl = process.env.CRAWLER_PLAY_URL || "";
-writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/", lockPaid, playUrl }, null, 2)};\n`);
+// The public website: the app points people to its /connect page to set up Ollama on their computer.
+const siteUrl = (process.env.CRAWLER_SITE_URL || "https://real-cak3d.github.io/CAK3D-Crawler/").replace(/\/?$/, "/");
+writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/", lockPaid, playUrl, siteUrl }, null, 2)};\n`);
+
+// The computer setup page and scripts. Ollama always accepts the Android app (https://localhost); these
+// website origins are added so the website can use Ollama on the same computer too.
+const origins = [...new Set([new URL(siteUrl).origin, "https://real-cak3d.github.io", ...(process.env.CRAWLER_SITE_ORIGINS || "").split(",").map(x => x.trim()).filter(Boolean)])].join(",");
+mkdirSync(`${OUT}/connect`, { recursive: true });
+for (const name of readdirSync("web/connect")) {
+  let t = readFileSync(`web/connect/${name}`, "utf8").split("__SITE__").join(siteUrl).split("__ORIGINS__").join(origins).replace(/\r\n/g, "\n");
+  if (name.endsWith(".bat")) t = t.replace(/\n/g, "\r\n"); // Windows batch files need Windows line endings
+  writeFileSync(`${OUT}/connect/${name}`, t);
+}
 
 copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
 copyFileSync("web/privacy.html", `${OUT}/privacy.html`);

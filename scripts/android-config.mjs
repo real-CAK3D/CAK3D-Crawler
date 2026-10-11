@@ -31,4 +31,10 @@ android {
 }
 `;
 writeFileSync(file, g);
+
+// let the app talk plain HTTP to a computer on the home network (Ollama or LM Studio don't use HTTPS there)
+const manifest = "android/app/src/main/AndroidManifest.xml";
+let m = readFileSync(manifest, "utf8");
+if (!m.includes("usesCleartextTraffic")) m = m.replace("<application", '<application android:usesCleartextTraffic="true"');
+writeFileSync(manifest, m);
 console.log(`Android version ${versionName} (${versionCode})`);

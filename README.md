@@ -26,7 +26,15 @@ While the app is in development every pack stays unlocked. Build with `CRAWLER_L
 
 ## AI
 
-Crawling, topics, the graph and citations run entirely on the device. An AI is only used for cited summaries and answers, and the user chooses it in **Settings → Research**: Claude with an Anthropic API key (through the official Anthropic SDK), any OpenAI-compatible service, a local model (Ollama, LM Studio), or none. Keys stay on the device. Inside claude.ai the app uses the viewer's Claude account.
+Crawling, topics, the graph and citations run entirely on the device. An AI is only used for cited summaries, answers and study guides, and the user chooses it in **Settings → Research → Your AI**:
+
+- **With their own API key:** Claude (Anthropic, through the official Anthropic SDK), OpenAI, Gemini, OpenRouter, Groq, Mistral, DeepSeek, Grok (xAI) or Together AI. Each has a "get a key" link, and **Load models** lists the models that key can use.
+- **Free and private, on their own computer:** Ollama on the same device, or **Ollama / LM Studio on their computer**, used from the phone over home Wi-Fi. The website's [`/connect`](web/connect/) page has a one-step setup for Windows, Mac and Linux. It makes Ollama reachable on the home network, allows it through the firewall on private networks, and shows the address to type in. **Find my computer** in the app finds it automatically.
+- Or none, which shows the matching passages only.
+
+Keys stay on the device. Consumer subscriptions (ChatGPT Plus, Claude Pro, Gemini Advanced) can't be connected to third-party apps, so the app uses API keys instead. Inside claude.ai the app uses the viewer's Claude account.
+
+The Android app allows plain-HTTP connections (`usesCleartextTraffic`, `allowMixedContent`) so it can reach a computer on the home network. A web page can only reach Ollama on the same computer (`localhost`).
 
 A deployment can provide a default AI through the `CRAWLER_AI_*` variables and the key-holding proxy in [`proxy/`](proxy/), so no key ever reaches the page.
 
