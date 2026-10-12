@@ -712,8 +712,8 @@ body.bar-off .bar { display: none; }
       { "id": "look_realistic", "field": "look", "values": ["realistic"], "name": "Realistic", "desc": "Shaded body, banded legs, eight eyes.", "price": "1.99" },
       { "id": "look_skeleton", "field": "look", "values": ["skeleton"], "name": "Skeleton", "desc": "Ribs, skull and bony legs.", "price": "1.99" },
       { "id": "look_hero", "field": "look", "values": ["hero"], "name": "Web-slinger hero (red and blue)", "desc": "A suited hero with web lines and big white eyes.", "price": "1.99" },
-      { "id": "look_hero_yellow", "field": "look", "values": ["heroyb"], "name": "Web-slinger hero (yellow and blue)", "desc": "The hero suit in yellow and blue.", "price": "1.99" },
-      { "id": "look_hero_black", "field": "look", "values": ["herork"], "name": "Web-slinger hero (red and black)", "desc": "The hero suit in red and black.", "price": "1.99" },
+      { "id": "look_hero_yellow", "field": "look", "values": ["heroyb"], "name": "Web-slinger hero (yellow and blue)", "desc": "A yellow and blue suit with tiger stripes, claw marks on its back and a mask with swept-back points.", "price": "1.99" },
+      { "id": "look_hero_black", "field": "look", "values": ["herork"], "name": "Web-slinger hero (red and black)", "desc": "A red and black suit with crossed swords on its back and big black eye patches.", "price": "1.99" },
       { "id": "look_caped_flyer", "field": "look", "values": ["flyer"], "name": "Caped flyer (blue and red)", "desc": "A blue suit and a red cape that waves as it crawls.", "price": "1.99" } ] },
     { "key": "colors", "name": "Colors", "items": [
       { "id": "color_blue", "field": "tint", "values": ["c0"], "name": "Blue", "price": "0.99" },
@@ -737,7 +737,12 @@ body.bar-off .bar { display: none; }
       { "id": "season_summer", "field": "season", "values": ["summer"], "name": "Summer sunglasses", "price": "0.99" },
       { "id": "season_autumn", "field": "season", "values": ["autumn"], "name": "Autumn leaf", "price": "0.99" },
       { "id": "season_halloween", "field": "season", "values": ["halloween"], "name": "Halloween witch hat", "price": "0.99" },
-      { "id": "season_winter", "field": "season", "values": ["winter"], "name": "Winter hat", "price": "0.99" } ] },
+      { "id": "season_winter", "field": "season", "values": ["winter"], "name": "Winter hat", "price": "0.99" },
+      { "id": "season_valentine", "field": "season", "values": ["valentine"], "name": "Valentine's heart antennae", "price": "0.99" },
+      { "id": "season_stpatrick", "field": "season", "values": ["stpatrick"], "name": "St. Patrick's shamrock hat", "price": "0.99" },
+      { "id": "season_easter", "field": "season", "values": ["easter"], "name": "Easter bunny ears", "price": "0.99" },
+      { "id": "season_thanksgiving", "field": "season", "values": ["thanksgiving"], "name": "Thanksgiving pilgrim hat", "price": "0.99" },
+      { "id": "season_christmas", "field": "season", "values": ["christmas"], "name": "Christmas reindeer antlers", "price": "0.99" } ] },
     { "key": "weather", "name": "Weather", "items": [
       { "id": "weather_fireflies", "field": "ambient", "values": ["fireflies"], "name": "Fireflies", "price": "0.99" },
       { "id": "weather_storm", "field": "ambient", "values": ["storm"], "name": "Thunderstorm", "price": "0.99" },
@@ -977,6 +982,8 @@ body.bar-off .bar { display: none; }
           <label class="field"><span>Seasonal look</span>
             <select id="cfgSeason"><option value="off">None</option><option value="auto">Match today's date</option><option value="spring">Spring flower crown</option>
               <option value="summer">Summer sunglasses</option><option value="autumn">Autumn leaf</option><option value="halloween">Halloween witch hat</option>
+              <option value="valentine">Valentine's heart antennae</option><option value="stpatrick">St. Patrick's shamrock hat</option><option value="easter">Easter bunny ears</option>
+              <option value="thanksgiving">Thanksgiving pilgrim hat</option><option value="christmas">Christmas reindeer antlers</option>
               <option value="winter">Winter hat</option></select></label>
         </div>
         <label class="field"><span>Flies to hunt</span>
@@ -3341,6 +3348,8 @@ function drawRealBody(type, P, now) {
   if (P.shine) { ctx.globalAlpha = A0 * (0.35 + 0.25 * Math.sin(now * 0.004)); ctx.fillStyle = "#fff"; ell(ax - arx * 0.3, -ary * 0.45, arx * 0.3, ary * 0.18); ctx.fill(); ctx.globalAlpha = A0; }
 }
 function drawHeroBody(P) {
+  if (cfg.look === "heroyb") return drawClawSuit(P);
+  if (cfg.look === "herork") return drawSwordSuit(P);
   const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t;
   // abdomen: blue sides, red middle with the web pattern and a black spider emblem
   ctx.fillStyle = P.legs; ell(ax, 0, arx, ary); ctx.fill();
@@ -3365,6 +3374,66 @@ function drawHeroBody(P) {
     ctx.save(); ctx.translate(tx + trx * 0.45, y * try_ * 0.42); ctx.rotate(y * 0.5);
     ctx.fillStyle = "#0b0b10"; ell(0, 0, Math.max(2.2, trx * 0.34), Math.max(1.5, try_ * 0.26)); ctx.fill();
     ctx.fillStyle = "#fff"; ell(0, 0, Math.max(1.5, trx * 0.26), Math.max(1, try_ * 0.18)); ctx.fill();
+    ctx.restore();
+  }
+}
+// the yellow and blue suit: tiger stripes down the sides, three claw marks on the back, and a mask with swept-back points
+function drawClawSuit(P) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t, ink = "#0b0b10";
+  ctx.fillStyle = P.legs; ell(ax, 0, arx, ary); ctx.fill();
+  ctx.save(); ell(ax, 0, arx, ary); ctx.clip();
+  ctx.fillStyle = P.body; ctx.fillRect(ax - arx, -ary * 0.5, arx * 2, ary);
+  ctx.fillStyle = ink;
+  for (const y of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const x = ax - arx * 0.75 + i * arx * 0.5;
+    ctx.beginPath(); ctx.moveTo(x - 1.2, y * ary * 0.5); ctx.lineTo(x + 1.2, y * ary * 0.5); ctx.lineTo(x - 0.6, y * ary * 0.12); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.1; ell(ax, 0, arx, ary); ctx.stroke();
+  // three claw slashes
+  ctx.lineCap = "round";
+  for (const k of [-1, 0, 1]) {
+    const y0 = k * ary * 0.3;
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(ax - arx * 0.55, y0 + 1.2); ctx.quadraticCurveTo(ax, y0 - 0.2, ax + arx * 0.55, y0 - 1.2); ctx.stroke();
+    ctx.strokeStyle = "#dfe3ea"; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(ax - arx * 0.5, y0 + 1.1); ctx.quadraticCurveTo(ax, y0 - 0.2, ax + arx * 0.5, y0 - 1.1); ctx.stroke();
+  }
+  // head: yellow mask, black points sweeping back past the head, narrow white eyes
+  ctx.fillStyle = ink;
+  for (const y of [-1, 1]) { ctx.beginPath(); ctx.moveTo(tx + trx * 0.6, y * try_ * 0.15); ctx.lineTo(tx - trx * 1.05, y * try_ * 1.25); ctx.lineTo(tx - trx * 0.1, y * try_ * 0.55); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = P.body; ell(tx, 0, trx, try_); ctx.fill();
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.1; ell(tx, 0, trx, try_); ctx.stroke();
+  for (const y of [-1, 1]) {
+    ctx.fillStyle = ink; ctx.beginPath(); ctx.moveTo(tx + trx * 0.85, y * try_ * 0.12); ctx.lineTo(tx - trx * 0.55, y * try_ * 0.95); ctx.lineTo(tx - trx * 0.05, y * try_ * 0.3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(tx + trx * 0.6, y * try_ * 0.22); ctx.lineTo(tx + trx * 0.05, y * try_ * 0.62); ctx.lineTo(tx + trx * 0.2, y * try_ * 0.32); ctx.closePath(); ctx.fill();
+  }
+}
+// the red and black suit: black sides, two crossed swords on the back, and a mask with big black eye patches
+function drawSwordSuit(P) {
+  const B = bodyOf(), [ax, arx, ary] = B.a, [tx, trx, try_] = B.t, ink = "#0b0b10";
+  ctx.fillStyle = P.body; ell(ax, 0, arx, ary); ctx.fill();
+  ctx.save(); ell(ax, 0, arx, ary); ctx.clip();
+  ctx.fillStyle = P.legs; for (const y of [-1, 1]) { ell(ax, y * ary * 1.15, arx * 1.1, ary * 0.5); ctx.fill(); }
+  ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.lineWidth = 0.5; seg(ax - arx, 0, ax + arx, 0);
+  ctx.restore();
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.1; ell(ax, 0, arx, ary); ctx.stroke();
+  // crossed swords: silver blades, gold guards, black grips toward the head
+  ctx.lineCap = "round";
+  for (const k of [-1, 1]) {
+    ctx.save(); ctx.translate(ax, 0); ctx.rotate(k * 0.62);
+    const L = arx * 1.05;
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.7; seg(-L, 0, L * 0.45, 0);
+    ctx.strokeStyle = "#e4e8ee"; ctx.lineWidth = 0.9; seg(-L + 0.3, 0, L * 0.42, 0);
+    ctx.strokeStyle = "#d9a920"; ctx.lineWidth = 0.9; seg(L * 0.47, -1.3, L * 0.47, 1.3);
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.5; seg(L * 0.52, 0, L * 0.95, 0);
+    ctx.restore();
+  }
+  // head: red mask, large black eye patches, small white eyes
+  ctx.fillStyle = P.body; ell(tx, 0, trx, try_); ctx.fill();
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.1; ell(tx, 0, trx, try_); ctx.stroke();
+  for (const y of [-1, 1]) {
+    ctx.save(); ctx.translate(tx + trx * 0.3, y * try_ * 0.42); ctx.rotate(y * 0.35);
+    ctx.fillStyle = ink; ell(0, 0, Math.max(2.6, trx * 0.5), Math.max(1.9, try_ * 0.4)); ctx.fill();
+    ctx.fillStyle = "#fff"; ell(trx * 0.12, 0, Math.max(1.1, trx * 0.2), Math.max(0.8, try_ * 0.13)); ctx.fill();
     ctx.restore();
   }
 }
@@ -3686,9 +3755,23 @@ function threadWeight(t) {
 }
 
 // ---------------- seasons ----------------
-function dateSeason() {
-  const m = new Date().getMonth();
-  return m === 9 ? "halloween" : m === 11 || m <= 1 ? "winter" : m <= 4 ? "spring" : m <= 7 ? "summer" : "autumn";
+// Easter Sunday for a year (the Gregorian computus)
+function easterDay(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mo - 1, da);
+}
+function dateSeason(now = new Date()) {
+  const m = now.getMonth(), d = now.getDate(), y = now.getFullYear(), day = 864e5;
+  const toEaster = (easterDay(y) - new Date(y, m, d)) / day;
+  if (toEaster >= -1 && toEaster <= 14) return "easter";
+  if (m === 1 && d <= 14) return "valentine";
+  if (m === 2 && d >= 10 && d <= 17) return "stpatrick";
+  if (m === 9) return "halloween";
+  if (m === 10) { const first = new Date(y, 10, 1).getDay(), thanks = 1 + ((11 - first) % 7) + 21; if (d >= thanks - 14 && d <= thanks) return "thanksgiving"; }
+  if (m === 11 && d <= 26) return "christmas";
+  return m === 11 || m <= 1 ? "winter" : m <= 4 ? "spring" : m <= 7 ? "summer" : "autumn";
 }
 const seasonNow = () => cfg.season === "auto" ? dateSeason() : cfg.season;
 // a little seasonal accessory, drawn in the spider's own coordinates (head near x = 3)
@@ -3703,8 +3786,62 @@ function drawAccessory() {
     ctx.strokeStyle = "#ff9a3c"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(3, 0, 6.2, 0, 7); ctx.stroke();
     ctx.fillStyle = "#3b2352"; ell(1.5, 0, 5.4, 5.4); ctx.fill(); ell(-2, -1.5, 2.6, 2.6); ctx.fill();
   } else if (s === "spring") {
-    const cols = [C.cats[6], C.cats[4], "#ffffff", C.cats[3], C.cats[1], C.cats[6]];
-    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.3, x = 3 + Math.cos(a) * 7.5, y = Math.sin(a) * 7.5; ctx.fillStyle = cols[i]; ell(x, y, 2.4, 2.4); ctx.fill(); ctx.fillStyle = C.cats[4]; ell(x, y, 0.9, 0.9); ctx.fill(); }
+    // a ring of green vine with leaves, and six flowers: daisies, pink blossoms, violets and buttercups
+    ctx.strokeStyle = "#4f8a3a"; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(3, 0, 7.5, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#5c9b43";
+    for (let i = 0; i < 6; i++) { const a = (i + 0.5) / 6 * Math.PI * 2 + 0.3; ctx.save(); ctx.translate(3 + Math.cos(a) * 7.5, Math.sin(a) * 7.5); ctx.rotate(a + 0.9); ell(1.1, 0, 1.6, 0.75); ctx.fill(); ctx.restore(); }
+    const kinds = [["#ffffff", "#f2b705", 8], ["#f48fb1", "#fff3a0", 5], ["#a98ad8", "#ffe066", 5], ["#ffd23f", "#e07b00", 5], ["#ffffff", "#f2b705", 8], ["#ff9e80", "#fff3a0", 5]];
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2 + 0.3, [pet, mid, n] = kinds[i];
+      ctx.save(); ctx.translate(3 + Math.cos(a) * 7.5, Math.sin(a) * 7.5); ctx.rotate(a * 1.7);
+      ctx.fillStyle = pet; ctx.strokeStyle = "rgba(0,0,0,.28)"; ctx.lineWidth = 0.3;
+      for (let p = 0; p < n; p++) { ctx.save(); ctx.rotate(p / n * Math.PI * 2); ell(1.45, 0, n > 5 ? 1.45 : 1.35, n > 5 ? 0.55 : 0.95); ctx.fill(); ctx.stroke(); ctx.restore(); }
+      ctx.fillStyle = mid; ell(0, 0, 0.85, 0.85); ctx.fill();
+      ctx.restore();
+    }
+  } else if (s === "easter") {
+    // bunny ears standing up from the head: white with pink inside
+    for (const y of [-1, 1]) {
+      ctx.save(); ctx.translate(1.2, y * 2.6); ctx.rotate(y * 0.42);
+      ctx.fillStyle = "#fbfbf8"; ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.lineWidth = 0.5; ell(5, 0, 6, 2.2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#f6a8c0"; ell(5.4, 0, 4.4, 1.1); ctx.fill();
+      ctx.restore();
+    }
+    ctx.strokeStyle = "#f6a8c0"; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(0.4, 0, 3.4, -1.25, 1.25); ctx.stroke();
+  } else if (s === "thanksgiving") {
+    // a pilgrim hat seen from above: wide black brim, tall crown, a band and a gold buckle at the front
+    ctx.fillStyle = "#1d1a17"; ell(3, 0, 8.4, 8.4); ctx.fill();
+    ctx.fillStyle = "#2e2925"; ell(3, 0, 5, 5); ctx.fill();
+    ctx.strokeStyle = "#0c0a09"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(3, 0, 5, 0, 7); ctx.stroke();
+    ctx.strokeStyle = "#e0b43c"; ctx.lineWidth = 0.9; ctx.strokeRect(6.6, -1.9, 2.6, 3.8);
+    ctx.fillStyle = "#3a332d"; ell(2.4, -0.8, 2.6, 2); ctx.fill();
+  } else if (s === "valentine") {
+    // a headband with two springy antennae, each topped with a red heart
+    const heart = (x, y, r) => { ctx.beginPath(); ctx.moveTo(x - r * 1.1, y); ctx.bezierCurveTo(x + r * 0.4, y - r * 1.7, x + r * 1.6, y - r * 0.2, x + r * 0.6, y); ctx.bezierCurveTo(x + r * 1.6, y + r * 0.2, x + r * 0.4, y + r * 1.7, x - r * 1.1, y); ctx.fill(); };
+    ctx.strokeStyle = "#d81b60"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(3, 0, 4.6, -1.3, 1.3); ctx.stroke();
+    for (const y of [-1, 1]) {
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(4.5, y * 4.4);
+      for (let t = 1; t <= 6; t++) ctx.lineTo(4.5 + t * 1.05, y * (4.4 + t * 0.9) + (t % 2 ? 0.7 : -0.7)); ctx.stroke();
+      ctx.fillStyle = "#e53950"; heart(11.4, y * 10, 2.4);
+      ctx.fillStyle = "rgba(255,255,255,.55)"; ell(11.2, y * 10 - 0.9, 0.6, 0.4); ctx.fill();
+    }
+  } else if (s === "stpatrick") {
+    // a little green top hat with a gold band and a shamrock
+    ctx.fillStyle = "#1f7a3a"; ell(3, 0, 7.6, 7.6); ctx.fill();
+    ctx.fillStyle = "#2c9a4c"; ell(3, 0, 4.6, 4.6); ctx.fill();
+    ctx.strokeStyle = "#e0b43c"; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(3, 0, 4.6, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#7fd858";
+    for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2 - Math.PI / 2; ell(3 + Math.cos(a) * 1.3, Math.sin(a) * 1.3, 1.25, 1.25); ctx.fill(); }
+    ctx.strokeStyle = "#7fd858"; ctx.lineWidth = 0.6; seg(3, 0, 1, 2.2);
+  } else if (s === "christmas") {
+    // reindeer antlers branching out from the head, and a shiny red nose
+    ctx.strokeStyle = "#7a4a26"; ctx.lineCap = "round";
+    for (const y of [-1, 1]) {
+      ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(3.5, y * 2.6); ctx.quadraticCurveTo(3.5, y * 9, 10, y * 11); ctx.stroke();
+      ctx.lineWidth = 1.1; seg(4, y * 6.4, 8.4, y * 5.2); seg(6.2, y * 9.4, 10.6, y * 7.8); seg(8.4, y * 10.6, 12.2, y * 12.8);
+    }
+    ctx.fillStyle = "#e0202c"; ell(9.6, 0, 1.8, 1.8); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.7)"; ell(10, -0.6, 0.6, 0.45); ctx.fill();
   } else if (s === "summer") {
     ctx.fillStyle = "#121212"; ctx.globalAlpha = A0 * 0.95;
     ctx.beginPath(); ctx.roundRect(5.4, -5.4, 5.6, 4.4, 1.8); ctx.fill(); ctx.beginPath(); ctx.roundRect(5.4, 1, 5.6, 4.4, 1.8); ctx.fill();
@@ -3721,7 +3858,7 @@ function drawAccessory() {
 
 // ---------------- weather (drawn in screen space) ----------------
 let amb = [], ambKind = null, flashAt = 0;
-const SEASON_WEATHER = { winter: "snow", spring: "blossoms", summer: "fireflies", autumn: "leaves", halloween: "fog" };
+const SEASON_WEATHER = { winter: "snow", spring: "blossoms", summer: "fireflies", autumn: "leaves", halloween: "fog", valentine: "blossoms", stpatrick: "rain", easter: "blossoms", thanksgiving: "leaves", christmas: "snow" };
 const ambWanted = () => cfg.ambient === "season" ? SEASON_WEATHER[cfg.season === "off" ? dateSeason() : seasonNow()] || "leaves" : cfg.ambient;
 function newAmb(anywhere) {
   const k = ambKind, x = Math.random() * W, y = anywhere ? Math.random() * H : -20;
@@ -5804,7 +5941,7 @@ const itemFor = (field, value) => ITEMS.find(it => it.field === field && it.valu
 // the item you'd need to buy to use this setting value, or null when it's free or already yours
 function locked(field, value) {
   if (field === "flies") return +value > 0 && !unlocked("extra_flies") ? itemFor("flies", "on") : null;
-  if (field === "season" && value === "auto") return ITEMS.find(it => it.group === "seasons" && !unlocked(it.id)) || null; // needs all five seasons
+  if (field === "season" && value === "auto") return ITEMS.find(it => it.group === "seasons" && !unlocked(it.id)) || null; // needs every seasonal look
   const it = itemFor(field, value); return it && !unlocked(it.id) ? it : null;
 }
 const presetProduct = name => CATALOG.presets.find(pr => pr.preset === name) || null;
@@ -5816,7 +5953,7 @@ function markPaid() {
   for (const [id, key] of BIND) {
     const el = $(id); if (el.tagName !== "SELECT") continue;
     for (const o of el.options) {
-      if (key === "season" && o.value === "auto") { const lk = locked(key, o.value); mark(o, lk, ITEMS.some(it => it.group === "seasons"), "needs all five seasons"); continue; }
+      if (key === "season" && o.value === "auto") { const lk = locked(key, o.value); mark(o, lk, ITEMS.some(it => it.group === "seasons"), "needs every seasonal look"); continue; }
       const lk = locked(key, o.value); mark(o, lk, !!itemFor(key, o.value), lk ? money(lk) : "");
     }
   }

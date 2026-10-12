@@ -117,7 +117,7 @@ test("every item in the store has a picture of what it gives", async ({ page }) 
     }));
     for (const [id, empty] of res) { seen.add(id); if (empty) blank.push(id); }
   }
-  expect(seen.size).toBe(67);
+  expect(seen.size).toBe(72);
   expect(blank).toEqual([]);
   expect(errors).toEqual([]);
 });
