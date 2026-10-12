@@ -37,21 +37,36 @@ test("the free defaults, and prices on everything else", async ({ page }) => {
   await expect(page.locator('#cfgEntrance option[value="balloon"]')).not.toHaveText(/🔒/); // entrances are free
   // picking a locked item opens the store at that item and keeps the free choice
   await page.locator("#cfgLook").selectOption("skeleton");
-  await expect(page.locator("#dStore")).toBeVisible();
-  await expect(page.locator("#storeList .pack.focus h3")).toHaveText("Skeleton");
-  await expect(page.locator("#storeList .pack.focus")).toContainText("$1.99 in the Android app");
-  await page.locator("#storeClose").click();
+  await expect(page.locator("#storePage")).toBeVisible();
+  await expect(page.locator("#stSheetH")).toHaveText("Skeleton");
+  await expect(page.locator("#stSheet")).toContainText("$1.99");
+  await expect(page.locator('#stTabs [aria-selected="true"]')).toHaveText("Premium looks");
+  // Escape closes the item, then Back returns to Settings
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#stSheet")).toBeHidden();
+  await page.locator("#stBack").click();
+  await expect(page.locator("#storePage")).toBeHidden();
+  await expect(page.locator("#dSettings")).toBeVisible();
   await expect(page.locator("#cfgLook")).toHaveValue("classic");
 });
 
 test("the store lists bundles, presets and every item", async ({ page }) => {
   await lockedApp(page);
-  await page.locator("#bStore").click();
-  const list = page.locator("#storeList");
-  await expect(list.locator("> h3")).toContainText(["Bundles", "Presets", "Spider kinds", "Spider looks", "Premium looks", "Colors"]);
+  // the Store tab in Settings opens the store page
+  await page.locator('#setTabs [data-g="store"]').click();
+  await expect(page.locator("#storePage")).toBeVisible();
+  await expect(page.locator("#dSettings")).toBeHidden();
+  await expect(page.locator("#stTabs button")).toContainText(["Featured", "Bundles", "Presets", "Spider kinds", "Spider looks", "Premium looks", "Colors"]);
+  await expect(page.locator(".st-hero")).toContainText("$19.99");
+  await page.locator('#stTabs [data-cat="bundles"]').click();
   for (const [name, price] of [["Starter bundle", "$4.99"], ["Collector bundle", "$9.99"], ["Deluxe bundle", "$14.99"], ["Everything", "$19.99"]])
-    await expect(list.locator(".pack", { hasText: name }).first()).toContainText(price);
-  await expect(list.locator(".pack", { hasText: "Spooky night preset" })).toContainText("$1.99");
+    await expect(page.locator(".st-card", { hasText: name })).toContainText(price);
+  await page.locator('#stTabs [data-cat="presets"]').click();
+  await expect(page.locator(".st-card", { hasText: "Spooky night preset" })).toContainText("$1.99");
+  // a bundle's detail lists what it includes
+  await page.locator('#stTabs [data-cat="bundles"]').click();
+  await page.locator(".st-card", { hasText: "Starter bundle" }).click();
+  await expect(page.locator("#stSheet .st-inc")).toContainText("Spider kinds");
 });
 
 test("bundles, presets and single items unlock what they should", async ({ page }) => {
@@ -91,14 +106,18 @@ test("every item in the store has a picture of what it gives", async ({ page }) 
   const errors = []; page.on("pageerror", e => errors.push(e.message));
   await lockedApp(page);
   await page.locator("#bStore").click();
-  const cards = await page.locator("#storeList .pack").count();
-  expect(cards).toBe(67);
-  // every thumbnail has something drawn on it (not just its background)
-  const blank = await page.locator("#storeList canvas.thumb").evaluateAll(cvs => cvs.filter(cv => {
-    const g = cv.getContext("2d"), d = g.getImageData(0, 0, cv.width, cv.height).data, first = d.slice(0, 4).join();
-    for (let i = 0; i < d.length; i += 16) if (d.slice(i, i + 4).join() !== first) return false;
-    return true;
-  }).map(cv => cv.dataset.thumb));
+  // walk every section; each product shows up once outside Featured
+  const seen = new Set(), blank = [];
+  for (const cat of await page.locator("#stTabs button").evaluateAll(bs => bs.map(b => b.dataset.cat).filter(c => c !== "featured"))) {
+    await page.locator(`#stTabs [data-cat="${cat}"]`).click();
+    const res = await page.locator("#stBody canvas[data-thumb]").evaluateAll(cvs => cvs.map(cv => {
+      const g = cv.getContext("2d"), d = g.getImageData(0, 0, cv.width, cv.height).data, first = d.slice(0, 4).join();
+      let empty = true; for (let i = 0; i < d.length; i += 16) if (d.slice(i, i + 4).join() !== first) { empty = false; break; }
+      return [cv.dataset.thumb, empty];
+    }));
+    for (const [id, empty] of res) { seen.add(id); if (empty) blank.push(id); }
+  }
+  expect(seen.size).toBe(67);
   expect(blank).toEqual([]);
   expect(errors).toEqual([]);
 });

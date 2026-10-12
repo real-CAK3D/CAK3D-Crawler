@@ -107,21 +107,51 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 .sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
 #weaveOut { width: 100%; font-family: var(--mono); font-size: 11px; resize: vertical; }
 #spiderPop .who { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.packs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin: 6px 0 12px; }
-#storeList > h3 { margin: 18px 0 4px; font-size: 1.05rem; }
-#storeList > h3:first-child { margin-top: 4px; }
-.pack .worth { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.pack.small { padding: 10px 12px; gap: 4px; } .pack.small h3 { font-size: .98rem; }
-.pack canvas.thumb { width: 100%; height: 96px; border-radius: 8px; display: block; background: var(--paper); border: 1px solid var(--rule); }
-.pack:not(.small) canvas.thumb { height: 120px; }
-.packs.tight { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-.packs.tight .pack p:not(.worth) { font-size: .92rem; }
-.pack { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 6px; }
-.pack.focus { outline: 2px solid var(--link); outline-offset: 2px; }
-.pack h3 { margin: 0; font-size: 1.05rem; }
-.pack p { margin: 0; }
-.pack .state { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.pack .btn { align-self: flex-start; }
+/* ---- the store page */
+.store { position: fixed; inset: 0; z-index: 45; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
+body.store-open { overflow: hidden; }
+.st-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+.st-top h2 { margin: 0; font-size: 1.6rem; font-weight: 600; }
+.st-top h2:focus { outline: none; }
+.st-top .meta { flex: 1 1 16rem; margin: 0; }
+.st-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; border-bottom: 1px solid var(--rule); scrollbar-width: none; }
+.st-tabs::-webkit-scrollbar { display: none; }
+.st-tabs button { flex: none; font: 13px var(--mono); padding: 7px 13px; border-radius: 999px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+.st-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.st-body { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 16px 48px; }
+.st-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+.st-hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: center; text-align: left; font: inherit; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 18px; padding: 16px; cursor: pointer; }
+.st-hero:hover, .st-hero:focus-visible { border-color: var(--link); }
+.st-hero canvas { width: 100%; height: 210px; border-radius: 12px; display: block; background: var(--paper); }
+.st-hero h3 { margin: 4px 0 6px; font-size: 1.9rem; line-height: 1.1; }
+.st-hero p { margin: 0 0 8px; }
+.st-badge { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--link); }
+.st-sec h3 { margin: 0 0 4px; font-size: 1.2rem; }
+.st-sec > .meta { margin: 0 0 10px; }
+.st-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.st-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(190px, 230px); gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.st-card { display: flex; flex-direction: column; gap: 7px; text-align: left; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 10px; cursor: pointer; min-width: 0; }
+.st-card:hover, .st-card:focus-visible { border-color: var(--link); }
+.st-card canvas { width: 100%; height: 128px; border-radius: 9px; display: block; background: var(--paper); }
+.st-card b { font-size: 1rem; line-height: 1.25; font-weight: 600; }
+.st-price { align-self: flex-start; font: 600 12px var(--mono); padding: 4px 10px; border-radius: 999px; background: var(--ink); color: var(--paper); }
+.st-price.owned { background: transparent; color: var(--muted); border: 1px solid var(--rule); }
+.st-worth { font: 12px var(--mono); color: var(--muted); }
+.st-sheet { position: fixed; inset: 0; z-index: 46; background: rgba(0,0,0,.5); display: grid; place-items: end center; }
+.st-sheet-box { box-sizing: border-box; width: min(560px, 100%); max-height: 92vh; overflow-y: auto; background: var(--paper); color: var(--ink); border-radius: 20px 20px 0 0;
+  padding: 14px 18px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -10px 40px rgba(0,0,0,.3); }
+@media (min-width: 700px) { .st-sheet { place-items: center; } .st-sheet-box { border-radius: 20px; } }
+.st-sheet-top { display: flex; justify-content: flex-end; }
+#stSheetBody { display: flex; flex-direction: column; gap: 10px; }
+#stSheetBody canvas { width: 100%; height: 240px; border-radius: 14px; display: block; background: var(--paper); border: 1px solid var(--rule); }
+#stSheetBody h3 { margin: 4px 0 0; font-size: 1.5rem; }
+#stSheetBody p { margin: 0; }
+.st-inc { margin: 0; padding-left: 1.2em; columns: 2 12rem; font-size: .95rem; }
+.st-inc li { break-inside: avoid; margin: 2px 0; }
+.st-buy { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.st-buy .btn { font-size: 15px; padding: 10px 18px; }
+@media (max-width: 560px) { .st-hero { grid-template-columns: minmax(0, 1fr); } .st-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .st-card canvas { height: 110px; } }
 .bridges { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 10px; }
 .sharecode { font-family: var(--mono); background: var(--panel); padding: 1px 6px; border-radius: 4px; }
 .done-card { cursor: default; }
@@ -745,17 +775,23 @@ body.bar-off .bar { display: none; }
 }
 </script>
 
-<!-- Store: paid items -->
-<dialog id="dStore" aria-labelledby="storeH">
-  <div class="body">
-    <div class="head">
-      <div><h2 id="storeH">Unlock more</h2><p class="meta" id="storeNote"></p></div>
-      <button class="btn" type="button" id="storeClose">Close</button>
+<!-- The store: a full-screen page -->
+<section id="storePage" class="store" hidden aria-labelledby="stH">
+  <header class="st-top">
+    <button class="btn" type="button" id="stBack">← Back</button>
+    <h2 id="stH" tabindex="-1">✦ Store</h2>
+    <p class="meta" id="stNote"></p>
+    <button class="btn" type="button" id="stRestore" hidden>Restore purchases</button>
+  </header>
+  <div class="st-tabs" role="tablist" aria-label="Store sections" id="stTabs"></div>
+  <div class="st-body" id="stBody"></div>
+  <div class="st-sheet" id="stSheet" hidden>
+    <div class="st-sheet-box" role="dialog" aria-modal="true" aria-labelledby="stSheetH">
+      <div class="st-sheet-top"><button class="btn" type="button" id="stSheetClose">Close</button></div>
+      <div id="stSheetBody"></div>
     </div>
-    <div id="storeList"></div>
-    <div class="rowi"><button class="btn" type="button" id="storeRestore" hidden>Restore purchases</button></div>
   </div>
-</dialog>
+</section>
 
 <!-- Ask dialog -->
 <dialog id="dAsk" aria-labelledby="askH">
@@ -880,7 +916,7 @@ body.bar-off .bar { display: none; }
           <option value="study">Study mode: high contrast, calm, focused</option>
         </select></label>
       <button class="btn" type="button" id="surprise">Surprise me</button>
-      <button class="btn" type="button" id="bStore">✦ Unlock more</button>
+      <button class="btn" type="button" id="bStore">✦ Store</button>
     </div>
     <div class="tabs" id="setTabs" role="tablist">
       <button type="button" role="tab" data-g="spider" aria-selected="true">Spider</button>
@@ -890,6 +926,7 @@ body.bar-off .bar { display: none; }
       <button type="button" role="tab" data-g="babies" aria-selected="false">Sacs &amp; babies</button>
       <button type="button" role="tab" data-g="theme" aria-selected="false">Theme</button>
       <button type="button" role="tab" data-g="research" aria-selected="false">Research</button>
+      <button type="button" role="tab" data-g="store" aria-selected="false">✦ Store</button>
     </div>
     <div class="set-body">
       <section data-g="spider">
@@ -5794,11 +5831,11 @@ const BILLING = {
     if (!P || !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return;
     const st = P.store;
     st.register(PRODUCTS.map(p => ({ id: p.id, type: P.ProductType.NON_CONSUMABLE, platform: P.Platform.GOOGLE_PLAY })));
-    st.when().productUpdated(p => { if (p.pricing) BILLING.prices[p.id] = p.pricing.price; if (p.owned) grant(p.id, true); if ($("dStore").open) renderStore(); markPaid(); })
+    st.when().productUpdated(p => { if (p.pricing) BILLING.prices[p.id] = p.pricing.price; if (p.owned) grant(p.id, true); if (storeOpen()) renderStore(); markPaid(); })
       .approved(t => t.verify()).verified(r => r.finish()).finished(t => { for (const p of t.products) grant(p.id); });
     await st.initialize([P.Platform.GOOGLE_PLAY]);
     BILLING.store = st; BILLING.ready = true;
-    if ($("dStore").open) renderStore();
+    if (storeOpen()) renderStore();
   },
   async buy(id) {
     const p = BILLING.store.get(id, window.CdvPurchase.Platform.GOOGLE_PLAY), offer = p && p.getOffer();
@@ -5811,27 +5848,99 @@ function grant(id, quiet) {
   if (OWNED.has(id)) return;
   OWNED.add(id); store.set("cak3d-owned", [...OWNED]); markPaid();
   if (!quiet) { const p = PRODUCTS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
-  if ($("dStore").open) renderStore();
+  if (storeOpen()) { renderStore(); if (sheetId) openSheet(sheetId); }
 }
-let storeFocus = null;
+// ---- the store page: tabs of categories, a featured banner, cards, and a detail panel for each item
+let storeTab = "featured", storeFromSettings = false, sheetId = null, sheetRaf = 0;
+const storeOpen = () => !$("storePage").hidden;
+const productById = id => PRODUCTS.find(p => p.id === id) || null;
+const STORE_TABS = () => [["featured", "Featured"], ["bundles", "Bundles"], ["presets", "Presets"], ...CATALOG.groups.map(g => [g.key, g.name])];
+function tabOf(id) { const it = ITEMS.find(x => x.id === id); return it ? it.group : id.startsWith("preset_") ? "presets" : id.startsWith("bundle_") ? "bundles" : "featured"; }
+// what a bundle or preset would cost bought item by item
+function worth(p) {
+  if (p.all) return ITEMS.reduce((t, it) => t + +it.price, 0) + CATALOG.presets.reduce((t, pr) => t + +pr.price, 0);
+  const ids = p.groups ? ITEMS.filter(it => p.groups.includes(it.group)).map(it => it.id) : p.preset ? presetItems(p) : [];
+  return ITEMS.filter(it => ids.includes(it.id)).reduce((t, it) => t + +it.price, 0);
+}
+const ownedText = p => DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked" : "Owned ✓";
+const priceTag = p => unlocked(p.id) ? `<span class="st-price owned">${ownedText(p)}</span>` : `<span class="st-price">${esc(money(p))}</span>`;
+const storeCard = p => `<button type="button" class="st-card" data-open="${p.id}" aria-label="${esc(p.name)}, ${unlocked(p.id) ? "owned" : esc(money(p))}"><canvas data-thumb="${p.id}" aria-hidden="true"></canvas><b>${esc(p.name)}</b>${priceTag(p)}</button>`;
 function renderStore() {
-  const native = BILLING.ready, play = window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.playUrl;
-  $("storeNote").textContent = DEV_UNLOCK ? "Everything is unlocked while the app is in development. Options marked ✦ will be paid items."
+  const native = BILLING.ready;
+  $("stNote").textContent = DEV_UNLOCK ? "Everything is unlocked while the app is in development. Prices show what each item will cost."
     : native ? "Purchases belong to your Google account and unlock on every Android device you use it on."
-    : "Items are sold in the Android app on Google Play. Options marked 🔒 unlock there.";
-  $("storeRestore").hidden = !native;
-  const action = p => unlocked(p.id) ? `<span class="state">${DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked for development" : "Unlocked"}</span>`
-    : native ? `<button class="btn primary" type="button" data-buy="${p.id}">Buy · ${esc(money(p))}</button>`
-    : play ? `<a class="btn" href="${esc(play)}" target="_blank" rel="noopener">${esc(money(p))} in the Android app</a>` : `<span class="state">${esc(money(p))} in the Android app</span>`;
-  const card = (p, extra, small) => `<div class="pack${small ? " small" : ""}${storeFocus === p.id ? " focus" : ""}" data-product="${p.id}"><canvas class="thumb" data-thumb="${p.id}" aria-hidden="true"></canvas><h3>${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${extra || ""}${action(p)}</div>`;
-  const worth = ids => { const t = ITEMS.filter(it => ids.includes(it.id)).reduce((sum, it) => sum + +it.price, 0); return t ? `<p class="worth">$${t.toFixed(2)} if bought one by one</p>` : ""; };
-  const inBundle = bd => bd.all ? PRODUCTS.filter(p => p !== bd && !p.all).map(p => p.id) : ITEMS.filter(it => bd.groups.includes(it.group)).map(it => it.id);
-  let html = `<h3>Bundles</h3><div class="packs">${CATALOG.bundles.map(bd => card(bd, bd.all ? `<p class="worth">$${(ITEMS.reduce((t, it) => t + +it.price, 0) + CATALOG.presets.reduce((t, pr) => t + +pr.price, 0)).toFixed(2)} if bought one by one</p>` : worth(inBundle(bd)))).join("")}</div>`;
-  html += `<h3>Presets</h3><p class="meta">A whole style in one tap. A preset also unlocks every item it uses, to mix with anything else.</p><div class="packs tight">${CATALOG.presets.map(pr => card(pr, worth(presetItems(pr)), true)).join("")}</div>`;
-  for (const g of CATALOG.groups) html += `<h3>${esc(g.name)}</h3><div class="packs tight">${g.items.map(it => card(it, "", true)).join("")}</div>`;
-  $("storeList").innerHTML = html;
-  drawThumbs();
+    : "Items are sold in the Android app on Google Play.";
+  $("stRestore").hidden = !native;
+  $("stTabs").innerHTML = STORE_TABS().map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === storeTab}" data-cat="${k}">${esc(n)}</button>`).join("");
+  const sec = (title, list, row, sub) => `<section class="st-sec"><h3>${esc(title)}</h3>${sub ? `<p class="meta">${esc(sub)}</p>` : ""}<div class="${row ? "st-row" : "st-grid"}">${list.map(storeCard).join("")}</div></section>`;
+  let h = "";
+  if (storeTab === "featured") {
+    const all = CATALOG.bundles.find(b => b.all);
+    if (all) h += `<button type="button" class="st-hero" data-open="${all.id}"><canvas data-thumb="${all.id}" aria-hidden="true"></canvas>
+      <div><span class="st-badge">Best value</span><h3>${esc(all.name)}</h3><p>${esc(all.desc)}</p><p class="st-worth">$${worth(all).toFixed(2)} if bought one by one</p>${priceTag(all)}</div></button>`;
+    h += sec("Bundles", CATALOG.bundles.filter(b => !b.all), true, "Each bundle includes the one before it.");
+    h += sec("Presets", CATALOG.presets, true, "A whole style in one tap.");
+    h += sec("Premium looks", ITEMS.filter(it => it.group === "premium"), true);
+    h += sec("Popular", ["extra_flies", "kind_jumping", "color_rainbow", "weather_snow", "season_halloween", "bored_both"].map(productById).filter(Boolean), true);
+  } else if (storeTab === "bundles") h += sec("Bundles", CATALOG.bundles, false, "Each bundle includes the one before it, and costs far less than its items one by one.");
+  else if (storeTab === "presets") h += sec("Presets", CATALOG.presets, false, "A whole style in one tap. A preset also unlocks every item it uses, to mix with anything else.");
+  else { const g = CATALOG.groups.find(x => x.key === storeTab); if (g) h += sec(g.name, g.items, false); }
+  $("stBody").innerHTML = `<div class="st-inner">${h}</div>`;
+  drawThumbs($("stBody"));
 }
+function openSheet(id) {
+  const p = productById(id); if (!p) return;
+  sheetId = id; cancelAnimationFrame(sheetRaf);
+  const native = BILLING.ready, play = window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.playUrl, have = unlocked(id);
+  let inc = "";
+  if (p.all) inc = `<p>Everything in the store, now and later:</p><ul class="st-inc">${CATALOG.groups.map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}<li>Presets (${CATALOG.presets.length})</li></ul>`;
+  else if (p.groups) inc = `<p>Includes:</p><ul class="st-inc">${CATALOG.groups.filter(g => p.groups.includes(g.key)).map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}</ul>`;
+  else if (p.preset) inc = `<p>Also unlocks:</p><ul class="st-inc">${presetItems(p).map(i => `<li>${esc(productById(i).name)}</li>`).join("")}</ul>`;
+  const value = p.all || p.groups || p.preset ? `<p class="st-worth">$${worth(p).toFixed(2)} if bought one by one</p>` : "";
+  const action = have ? `<span class="st-price owned">${ownedText(p)}</span>`
+    : native ? `<button class="btn primary" type="button" data-buy="${id}">Buy · ${esc(money(p))}</button>`
+    : play ? `<a class="btn primary" href="${esc(play)}" target="_blank" rel="noopener">Get it in the Android app · ${esc(money(p))}</a>`
+    : `<span class="st-price">${esc(money(p))}</span><span class="meta">in the Android app on Google Play</span>`;
+  $("stSheetBody").innerHTML = `<canvas data-thumb="${id}" aria-hidden="true"></canvas><h3 id="stSheetH">${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${inc}${value}<div class="st-buy">${action}</div>`;
+  $("stSheet").hidden = false;
+  const cv = $("stSheetBody").querySelector("canvas"), it = ITEMS.find(x => x.id === id);
+  // spiders move in the big preview: capes wave, rainbows shift, the peacock fans out
+  const live = !reduce && (p.groups || p.all || (it && ["type", "look", "tint", "season", "spiders", "flies", "speed"].includes(it.field)));
+  const frame = () => { drawThumb(cv, performance.now()); if (live && sheetId === id) sheetRaf = requestAnimationFrame(frame); };
+  frame();
+  $("stSheetClose").focus();
+}
+function closeSheet() { cancelAnimationFrame(sheetRaf); $("stSheet").hidden = true; const back = sheetId && $("stBody").querySelector(`[data-open="${sheetId}"]`); sheetId = null; if (back) back.focus(); }
+function openStore(focus) {
+  storeFromSettings = $("dSettings").open;
+  if (storeFromSettings) $("dSettings").close();
+  if (focus) storeTab = tabOf(focus);
+  $("storePage").hidden = false; document.body.classList.add("store-open");
+  renderStore(); $("stH").focus();
+  if (focus) openSheet(focus);
+}
+function closeStore() {
+  if (!$("stSheet").hidden) closeSheet();
+  $("storePage").hidden = true; document.body.classList.remove("store-open");
+  if (storeFromSettings) { storeFromSettings = false; $("bSettings").click(); }
+}
+$("bStore").onclick = () => openStore();
+$("stBack").onclick = closeStore;
+$("stRestore").onclick = async () => { try { await BILLING.restore(); flash("Checked Google Play for your purchases."); } catch (e) { flash("Couldn't reach Google Play. Try again later."); } };
+$("stTabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; storeTab = b.dataset.cat; renderStore(); $("stTabs").querySelector(`[data-cat="${storeTab}"]`).focus(); $("stBody").scrollTop = 0; });
+$("stBody").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if (c) openSheet(c.dataset.open); });
+$("stSheet").addEventListener("click", async e => {
+  if (e.target === $("stSheet") || e.target.closest("#stSheetClose")) { closeSheet(); return; }
+  const bt = e.target.closest("[data-buy]"); if (!bt) return;
+  bt.disabled = true;
+  try { await BILLING.buy(bt.dataset.buy); } catch (err) { flash(err.message); } finally { bt.disabled = false; }
+});
+addEventListener("keydown", e => {
+  if (e.key !== "Escape" || !storeOpen()) return;
+  e.stopPropagation(); e.preventDefault();
+  if (!$("stSheet").hidden) closeSheet(); else closeStore();
+}, true);
+
 // ---- item previews, drawn with the same code that draws the real thing
 function themeColors(skin) {
   const out = { paper: C.paper, ink: C.ink, link: C.link, silk: C.silk, spider: C.spider, muted: C.muted, rule: C.rule };
@@ -5936,30 +6045,16 @@ const BUNDLE_SHOW = {
   bundle_deluxe: [{ look: "realistic" }, { look: "flyer" }, { look: "skeleton" }],
   bundle_everything: [{ look: "hero" }, { look: "heroyb" }, { look: "herork" }, { look: "peacock" }]
 };
-function drawThumbs() {
-  const now = performance.now();
-  for (const cv of $("storeList").querySelectorAll("canvas[data-thumb]")) {
-    const id = cv.dataset.thumb, it = ITEMS.find(x => x.id === id), pr = CATALOG.presets.find(x => x.id === id);
-    withCanvas(cv, (g, w, h) => {
-      g.fillStyle = C.paper; g.fillRect(0, 0, w, h);
-      if (it && THUMB[it.field]) THUMB[it.field](it, w, h, now);
-      else if (pr) drawPreset(pr, w, h, now);
-      else if (BUNDLE_SHOW[id]) { const list = BUNDLE_SHOW[id], step = w / list.length; list.forEach((o, i) => previewSpider({ ...o, x: step * (i + 0.5) - 6, scale: Math.min(step, h) / 112 }, w, h, now)); }
-    });
-  }
+function drawThumb(cv, now) {
+  const id = cv.dataset.thumb, it = ITEMS.find(x => x.id === id), pr = CATALOG.presets.find(x => x.id === id);
+  withCanvas(cv, (g, w, h) => {
+    g.fillStyle = C.paper; g.fillRect(0, 0, w, h);
+    if (it && THUMB[it.field]) THUMB[it.field](it, w, h, now);
+    else if (pr) drawPreset(pr, w, h, now);
+    else if (BUNDLE_SHOW[id]) { const list = BUNDLE_SHOW[id], step = w / list.length; list.forEach((o, i) => previewSpider({ ...o, x: step * (i + 0.5) - 6, scale: Math.min(step, h) / 112 }, w, h, now)); }
+  });
 }
-function openStore(focus) {
-  storeFocus = focus || null; renderStore(); if (!$("dStore").open) $("dStore").showModal();
-  const el = $("storeList").querySelector(".focus"); if (el) el.scrollIntoView({ block: "center" });
-}
-$("bStore").onclick = () => openStore();
-$("storeClose").onclick = () => $("dStore").close();
-$("storeRestore").onclick = async () => { try { await BILLING.restore(); flash("Checked Google Play for your purchases."); } catch (e) { flash("Couldn't reach Google Play. Try again later."); } };
-$("storeList").addEventListener("click", async e => {
-  const bt = e.target.closest("[data-buy]"); if (!bt) return;
-  bt.disabled = true;
-  try { await BILLING.buy(bt.dataset.buy); } catch (err) { flash(err.message); } finally { bt.disabled = false; }
-});
+function drawThumbs(root) { const now = performance.now(); for (const cv of root.querySelectorAll("canvas[data-thumb]")) drawThumb(cv, now); }
 
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
   size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never",
@@ -6070,6 +6165,7 @@ $("surprise").onclick = () => {
 };
 $("setTabs").addEventListener("click", e => {
   const b = e.target.closest("[data-g]"); if (!b) return;
+  if (b.dataset.g === "store") { openStore(); return; }
   for (const t of $("setTabs").children) t.setAttribute("aria-selected", String(t === b));
   for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== b.dataset.g;
 });
