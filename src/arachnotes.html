@@ -191,6 +191,57 @@ body.explain, body.explain * { cursor: help !important; }
 .xp-silk::after { content: ""; position: absolute; left: -4px; top: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
 @keyframes xpDrop { from { opacity: 0; transform: translateY(-24px); } }
 @media (prefers-reduced-motion: reduce) { .xp-tip, .xp-silk { animation: none; } .xp-ring { transition: none; } }
+/* ---- the code reader */
+.code-page { position: fixed; inset: 0; z-index: 45; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); animation: pageDrop .32s cubic-bezier(.2,.9,.3,1.05); }
+.cd-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+.cd-top h2 { margin: 0; font-size: 1.5rem; font-weight: 600; }
+.cd-top h2:focus { outline: none; }
+.cd-top .meta { flex: 1 1 12rem; margin: 0; }
+.cd-open { position: relative; }
+.cd-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 5; min-width: 16rem; padding: 6px; display: grid; gap: 2px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+.cd-menu .tb-item { opacity: 1; animation: none; cursor: pointer; }
+#cdTabs { margin: 10px 16px 0; align-self: flex-start; }
+.cd-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem); }
+.cd-main { position: relative; min-width: 0; min-height: 0; }
+.cd-pane { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.cd-pane.scroll { overflow: auto; padding: 14px 16px 40px; display: block; }
+#cdCanvas { flex: 1; min-height: 0; width: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+#cdCanvas:focus-visible { outline: 3px solid var(--link); outline-offset: -3px; }
+.cd-side { overflow-y: auto; border-left: 1px solid var(--rule); background: var(--panel); padding: 14px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+.cd-side h3 { font: 600 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.cd-side p { margin: 0 0 6px; }
+.cd-side .term { font: 600 1.4rem var(--mono); margin: 2px 0; word-break: break-word; }
+.cd-kind { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--link); }
+.cd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cd-chips .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.cd-link { font: inherit; font-family: var(--mono); font-size: .92em; color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.cd-explain p { line-height: 1.55; }
+.cd-explain code, .cd-doc code { font: .9em var(--mono); background: color-mix(in srgb, var(--ink) 7%, transparent); padding: 1px 4px; border-radius: 4px; }
+.cd-snip, .cd-src { font: 12.5px/1.55 var(--mono); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; overflow-x: auto; margin: 0; tab-size: 4; }
+.cd-snip { white-space: pre; max-height: 18rem; }
+.cd-uses { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; font-size: .9rem; }
+.cd-uses code { display: block; font: 12px var(--mono); color: var(--muted); white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+.cd-how { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .05em; margin-left: 6px; }
+.cd-write { color: var(--c1); } .cd-call { color: var(--c0); } .cd-read { color: var(--muted); }
+.cd-files { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cd-src { white-space: pre; padding: 0; }
+.cd-src .ln { display: block; padding-right: 12px; }
+.cd-src .ln i { display: inline-block; width: 4.2em; padding-right: 1em; text-align: right; color: var(--muted); font-style: normal; user-select: none; opacity: .7; }
+.cd-src .kw { color: var(--c3); font-weight: 600; } .cd-src .st { color: var(--c2); } .cd-src .cm { color: var(--muted); font-style: italic; } .cd-src .nu { color: var(--c4); }
+.cd-n { font: inherit; color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; border-radius: 3px; }
+.cd-n.def { font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.cd-n.hit { background: var(--grip); color: var(--ink); }
+.cd-file h3 { margin: 18px 0 8px; font: 600 1.05rem var(--mono); }
+.cd-doc { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.cd-doc p { margin: 0 0 4px; line-height: 1.55; }
+.cd-input { font: 13px/1.5 var(--mono) !important; min-height: 16rem; white-space: pre; tab-size: 4; }
+#cdDocsPane .rowi { margin-bottom: 8px; }
+@media (max-width: 800px) {
+  .cd-body { display: flex; flex-direction: column; overflow-y: auto; }
+  .cd-main { flex: none; height: 62vh; }
+  .cd-side { border-left: 0; border-top: 1px solid var(--rule); overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) { .code-page { animation: none; } }
 /* ---- the store page */
 .store { position: fixed; inset: 0; z-index: 45; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
 body.store-open { overflow: hidden; }
@@ -671,6 +722,7 @@ body.bar-off .bar { display: none; }
         <button type="button" role="menuitem" class="tb-item" id="bSource"><span class="tb-lbl">Open text, a file or a link</span></button>
         <button type="button" role="menuitem" class="tb-item" id="bMore"><span class="tb-lbl">Search the web for more pages</span></button>
         <button type="button" role="menuitem" class="tb-item" id="bLib"><span class="tb-lbl">Library</span><kbd>L</kbd></button>
+        <button type="button" role="menuitem" class="tb-item" id="bCode"><span class="tb-lbl">Read code</span><kbd>K</kbd></button>
       </div>
     </div>
     <button class="tb-btn icon" type="button" id="bSettings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M10.3 2.5h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9-2.6-.5v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8z"/><g fill="none" stroke="currentColor" stroke-width=".9"><path d="M12 7v10M7 12h10M8.5 8.5l7 7M15.5 8.5l-7 7"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="3.9"/></g></svg><span>Settings</span></button>
@@ -1007,6 +1059,62 @@ body.bar-off .bar { display: none; }
   ]
 }
 </script>
+
+<!-- The code reader: a full-screen page of its own -->
+<section id="codePage" class="code-page" hidden aria-labelledby="cdH">
+  <header class="cd-top">
+    <button class="btn" type="button" id="cdBack">← Back</button>
+    <h2 id="cdH" tabindex="-1">Code reader</h2>
+    <span class="meta" id="cdSum"></span>
+    <div class="cd-open">
+      <button class="btn primary" type="button" id="cdOpen" aria-haspopup="true" aria-expanded="false" aria-controls="cdOpenMenu">Open code ▾</button>
+      <div class="cd-menu" id="cdOpenMenu" hidden>
+        <button type="button" class="tb-item" id="cdPasteBtn"><span class="tb-lbl">Paste code</span></button>
+        <label class="tb-item" for="cdFiles"><span class="tb-lbl">Pick files, or a .zip of a project</span></label>
+        <button type="button" class="tb-item" id="cdGitBtn"><span class="tb-lbl">A GitHub link</span></button>
+        <button type="button" class="tb-item" id="cdExample"><span class="tb-lbl">The example code</span></button>
+      </div>
+      <input type="file" id="cdFiles" multiple hidden>
+    </div>
+  </header>
+  <div class="tabs" id="cdTabs" role="tablist" aria-label="Code reader views">
+    <button type="button" role="tab" data-cdt="map" aria-selected="true">Map</button>
+    <button type="button" role="tab" data-cdt="code" aria-selected="false">Code</button>
+    <button type="button" role="tab" data-cdt="docs" aria-selected="false">Explained</button>
+  </div>
+  <div class="cd-body">
+    <div class="cd-main">
+      <div class="cd-pane" id="cdMapPane">
+        <nav class="orb-trail" id="cdTrail" aria-label="Where you are in the code"></nav>
+        <canvas id="cdCanvas" tabindex="0" role="application" aria-roledescription="spider web of the code" aria-label="Map of the code. The notes panel lists the same parts as buttons." aria-describedby="cdHelp"></canvas>
+        <p id="cdHelp" class="sr-only">The project is in the middle. Each section is a file or a kind of thing, and each cell a function, class or variable. Arrow keys move between them, Enter opens one, Backspace goes back.</p>
+        <p class="orb-hint" id="cdHint"></p>
+      </div>
+      <div class="cd-pane scroll" id="cdCodePane" hidden><div class="cd-files" id="cdFileTabs"></div><pre class="cd-src" id="cdSrc"></pre></div>
+      <div class="cd-pane scroll" id="cdDocsPane" hidden>
+        <div class="rowi"><input class="inp" id="cdSearch" type="search" placeholder="Find a function, class or variable" aria-label="Search the explanations"><button class="btn" type="button" id="cdSaveMd">Save as notes (.md)</button></div>
+        <div id="cdDocs"></div>
+      </div>
+    </div>
+    <aside class="cd-side" id="cdSide" aria-label="About the selected part"></aside>
+  </div>
+</section>
+<dialog class="page" id="dCodePaste" aria-labelledby="cdPasteH">
+  <form method="dialog" id="fCodePaste">
+    <h2 id="cdPasteH">Paste code</h2>
+    <label class="field"><span>Code</span><textarea id="cdPasteText" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off" class="cd-input"></textarea></label>
+    <label class="field"><span>File name (optional, helps with the language)</span><input type="text" id="cdPasteName" placeholder="e.g. app.py or main.go" autocomplete="off" spellcheck="false"></label>
+    <div class="actions"><button class="btn" type="submit">Cancel</button><button class="btn primary" type="button" id="cdPasteGo">Read it</button></div>
+  </form>
+</dialog>
+<dialog class="page" id="dCodeGit" aria-labelledby="cdGitH">
+  <form method="dialog" id="fCodeGit">
+    <h2 id="cdGitH">Open from GitHub</h2>
+    <label class="field"><span>Link</span><input type="url" id="cdGitUrl" placeholder="https://github.com/owner/project" autocomplete="off" spellcheck="false" inputmode="url"></label>
+    <p class="meta" id="cdGitNote" aria-live="polite"></p>
+    <div class="actions"><button class="btn" type="submit">Cancel</button><button class="btn primary" type="button" id="cdGitGo">Open</button></div>
+  </form>
+</dialog>
 
 <!-- The store: a full-screen page -->
 <section id="storePage" class="store" hidden aria-labelledby="stH">
@@ -1487,6 +1595,7 @@ body.bar-off .bar { display: none; }
           <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
           <dt>G</dt><dd>Make a study guide. Select a paragraph or more first for a guide to just that part.</dd>
           <dt>L</dt><dd>Open the library.</dd>
+          <dt>K</dt><dd>Open the code reader.</dd>
           <dt>S</dt><dd>Show or hide the live crawl stats.</dd>
           <dt>T</dt><dd>Switch between light, dark and your device's theme.</dd>
           <dt>H</dt><dd>Hide or show the toolbar.</dd>
@@ -2233,7 +2342,7 @@ function flash(msg) {
   if (!msg) return;
   st.classList.remove("spun"); void st.offsetWidth; st.classList.add("spun");
   // the toolbar's status line is hidden behind pages, the store and the web view: show a note that drops in on a thread
-  const covered = document.querySelector("dialog[open]") || storeOpen() || WV.open || $("bar").hidden;
+  const covered = document.querySelector("dialog[open]") || storeOpen() || codeOpen() || WV.open || $("bar").hidden;
   if (covered) toast(msg);
 }
 function toast(msg) {
@@ -5079,7 +5188,7 @@ function squashAt(e) {
   return true;
 }
 addEventListener("click", e => { if (!overUi(e) && squashAt(e)) { e.preventDefault(); e.stopPropagation(); } }, true);
-const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini, .tb-menu, .xp-bar, .xp-tip, #storePage, .st-sheet, .sp, .findp, .barshow, .toast");
+const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini, .tb-menu, .xp-bar, .xp-tip, #storePage, #codePage, .st-sheet, .sp, .findp, .barshow, .toast");
 addEventListener("click", e => {
   if (WV.open || explaining || document.querySelector("dialog[open]") || overUi(e)) return;
   const s = sacAt(e);
@@ -5352,13 +5461,16 @@ function orbGroups() {
   for (const k of ks) { if (!by.has(k.cat)) by.set(k.cat, []); by.get(k.cat).push(k); }
   return [...by].map(([cat, list]) => ({ cat, list: list.sort((a, b) => b.count - a.count) })).sort((a, b) => a.cat - b.cat);
 }
-function orbLayout(w, h, g) {
-  const groups = orbGroups(), total = groups.reduce((t, x) => t + x.list.length, 0);
-  // leave room around the rim for the topic names, which sit outside the web
+// ---- the spider-web picture, shared by the reading web and the code reader's map.
+// model: { center, groups: [{ name, color, list: [{ id, label, strong, note }] }], sel, empty }
+// st: { born, hover, focus, layout } is each web's own state.
+function silkLayout(groups, w, h, g) {
+  const total = groups.reduce((t, x) => t + x.list.length, 0);
+  // leave room around the rim for the group names, which sit outside the web
   let side = 34;
-  if (g) { g.font = `600 12px ${MONO}`; side = Math.min(w * 0.24, 30 + Math.max(0, ...groups.map(x => g.measureText(trunc((DOC.cats[x.cat] || {}).name || "", w < 520 ? 14 : 22)).width))); }
+  if (g) { g.font = `600 12px ${MONO}`; side = Math.min(w * 0.24, 30 + Math.max(0, ...groups.map(x => g.measureText(trunc(x.name || "", w < 520 ? 14 : 22)).width))); }
   const cx = w / 2, cy = h / 2, R = Math.max(60, Math.min(w / 2 - side, h / 2 - 34)), hub = Math.max(30, R * 0.2);
-  // enough spokes to look like a web however few keywords there are; enough rings to hold them all
+  // enough spokes to look like a web however few items there are; enough rings to hold them all
   const T = clamp(Math.round(Math.sqrt(total) * 2.2), 10, 28), minShare = groups.length ? 0.35 / groups.length : 0;
   const shares = groups.map(x => minShare + (1 - minShare * groups.length) * (x.list.length / Math.max(1, total)));
   const colsOf = shares.map(sh => Math.max(1, Math.round(sh * T)));
@@ -5368,50 +5480,50 @@ function orbLayout(w, h, g) {
   let a0 = -Math.PI / 2;
   groups.forEach((x, gi) => {
     const span = shares[gi] * Math.PI * 2, cols = colsOf[gi], n = x.list.length;
-    sectors.push({ cat: x.cat, a0, a1: a0 + span, cols });
-    x.list.forEach((k, i) => {
+    sectors.push({ group: x, a0, a1: a0 + span, cols });
+    x.list.forEach((item, i) => {
       const ring = Math.floor(i / cols), j = i % cols, inRing = Math.min(cols, n - ring * cols);
-      const col = Math.floor(j * cols / inRing);                    // a part-full ring spreads its keywords out evenly
-      const r0 = hub + (R - hub) * ring / rings, r1 = hub + (R - hub) * (ring + 1) / rings;  // most-used keywords sit nearest the middle
+      const col = Math.floor(j * cols / inRing);                    // a part-full ring spreads its items out evenly
+      const r0 = hub + (R - hub) * ring / rings, r1 = hub + (R - hub) * (ring + 1) / rings;  // the first items sit nearest the middle
       const b0 = a0 + span * col / cols, b1 = a0 + span * (col + 1) / cols;
-      cells.push({ k, cat: x.cat, r0, r1, b0, b1 });
+      cells.push({ item, k: item.k, group: x, r0, r1, b0, b1 });
     });
     a0 += span;
   });
-  return { cx, cy, R, hub, rings, cells, sectors, groups };
+  return { cx, cy, R, hub, rings, cells, sectors };
 }
-function drawOrb(now) {
-  const cv = $("orbCanvas"), w = cv.clientWidth, h = cv.clientHeight;
-  if (!w || !h || !DOC) return;
+function silkPaint(cv, st, model, now) {
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const L = ORB.layout = orbLayout(w, h, g), { cx, cy, R, hub } = L;
+  const L = st.layout = silkLayout(model.groups, w, h, g), { cx, cy, R, hub } = L;
   // it spins itself: spokes first, then the spiral from the middle out, then the labels; afterwards it sways a little
-  const age = reduce ? 9999 : now - ORB.born, grow = ease(clamp(age / 500, 0, 1)), spiralP = clamp((age - 250) / 900, 0, 1), labelA = clamp((age - 700) / 400, 0, 1);
+  const age = reduce ? 9999 : now - st.born, grow = ease(clamp(age / 500, 0, 1)), spiralP = clamp((age - 250) / 900, 0, 1), labelA = clamp((age - 700) / 400, 0, 1);
   const sway = reduce ? 0 : Math.sin(now * 0.0007) * 0.012, breathe = reduce ? 1 : 1 + Math.sin(now * 0.0011) * 0.004;
   const pt = (r, a) => [cx + Math.cos(a + sway) * r * grow * breathe, cy + Math.sin(a + sway) * r * grow * breathe];
-  const sel = WV.sel;
+  const sel = model.sel;
   // anchor threads from the frame out to the edges of the screen
   g.strokeStyle = C.silk; g.lineWidth = 0.8; g.globalAlpha = 0.45;
   for (const sct of L.sectors) { const [x, y] = pt(R + 14, sct.a0); const far = Math.hypot(w, h); g.beginPath(); g.moveTo(x, y); g.lineTo(cx + Math.cos(sct.a0 + sway) * far, cy + Math.sin(sct.a0 + sway) * far); g.stroke(); }
   g.globalAlpha = 1;
-  // cells: a soft fill in the topic's color; brighter for the one you're on
+  // cells: a soft fill in the group's color; brighter for the one you're on
   L.cells.forEach((c, i) => {
-    const on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
+    const on = c.item.id === sel || i === st.hover || i === st.focus;
     g.beginPath(); const [x0, y0] = pt(c.r0, c.b0), [x1, y1] = pt(c.r1, c.b0), [x2, y2] = pt(c.r1, c.b1), [x3, y3] = pt(c.r0, c.b1);
     g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x2, y2); g.lineTo(x3, y3); g.closePath();
-    g.fillStyle = catColor(c.cat); g.globalAlpha = (on ? 0.38 : c.k.crawled ? 0.08 : 0.035) * labelA; g.fill(); g.globalAlpha = 1;
+    g.fillStyle = c.group.color; g.globalAlpha = (on ? 0.38 : c.item.strong ? 0.08 : 0.035) * labelA; g.fill(); g.globalAlpha = 1;
   });
-  // silk: the frame ring, the spokes, and the spiral (straight threads between spokes, like a real orb web)
+  // silk: the spokes, and the spiral
   g.strokeStyle = C.silk; g.lineCap = "round";
   const spokes = [];
-  for (const s of L.sectors) for (let j = 0; j <= s.cols; j++) spokes.push({ a: s.a0 + (s.a1 - s.a0) * j / s.cols, major: j === 0 });
+  for (const sct of L.sectors) for (let j = 0; j <= sct.cols; j++) spokes.push({ a: sct.a0 + (sct.a1 - sct.a0) * j / sct.cols, major: j === 0 });
   for (const sp of spokes) { g.lineWidth = sp.major ? 1.6 : 0.8; g.globalAlpha = sp.major ? 0.95 : 0.6; const [ax, ay] = pt(hub, sp.a), [bx, by] = pt(R + 14, sp.a); g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke(); }
   // the sticky spiral: each thread between two spokes sags a little toward the middle, with dew on some of them
   g.lineWidth = 0.9; g.globalAlpha = 0.8;
   const ringsShown = L.rings * spiralP, dew = [];
   for (let r = 0; r <= L.rings; r++) {
-    if (r > ringsShown + 0.001) break;
+    if (r > ringsShown + 0.001 || !spokes.length) break;
     const rr = hub + (R - hub) * r / L.rings, n = spokes.length;
     const upto = r + 1 > ringsShown ? Math.floor(n * (ringsShown - r)) : n;
     g.beginPath();
@@ -5426,49 +5538,59 @@ function drawOrb(now) {
   g.globalAlpha = 1;
   for (const [x, y] of dew) { g.fillStyle = C.silk; g.globalAlpha = 0.55; g.beginPath(); g.arc(x, y, 1.8, 0, 7); g.fill(); g.fillStyle = "#fff"; g.globalAlpha = 0.7; g.beginPath(); g.arc(x - 0.5, y - 0.6, 0.6, 0, 7); g.fill(); }
   g.globalAlpha = 1;
-  // labels: keywords in their cells, topics around the rim
+  // labels: items in their cells, group names around the rim
   g.textAlign = "center"; g.textBaseline = "middle";
   L.cells.forEach((c, i) => {
     const am = (c.b0 + c.b1) / 2, rm = (c.r0 + c.r1) / 2, [x, y] = pt(rm, am);
-    const arc = rm * (c.b1 - c.b0), room = Math.min(arc, c.r1 - c.r0 + 40), on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
+    const arc = rm * (c.b1 - c.b0), room = Math.min(arc, c.r1 - c.r0 + 40), on = c.item.id === sel || i === st.hover || i === st.focus;
     const size = clamp(room / 7, 9, 13);
-    g.font = `${on ? 700 : c.k.crawled ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = (on || c.k.crawled ? 1 : 0.65) * labelA;
+    g.font = `${on ? 700 : c.item.strong ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = (on || c.item.strong ? 1 : 0.65) * labelA;
     const maxChars = Math.max(3, Math.floor(room / (size * 0.62)));
-    g.fillText(on ? c.k.label : trunc(c.k.label, maxChars), x, y);
-    if (DOC.notes && DOC.notes.k[c.k.key]) { g.fillText("✎", x + Math.min(room / 2, 40), y - size); }
+    g.fillText(on ? c.item.label : trunc(c.item.label, maxChars), x, y);
+    if (c.item.note) g.fillText("✎", x + Math.min(room / 2, 40), y - size);
   });
   g.globalAlpha = 1;
-  for (const s of L.sectors) {
-    const am = (s.a0 + s.a1) / 2, [x, y] = pt(R + 24, am), cat = DOC.cats[s.cat];
-    g.font = `600 12px ${MONO}`; g.fillStyle = catColor(s.cat);
-    const text = trunc(cat ? cat.name : "", w < 520 ? 14 : 22), tw = g.measureText(text).width;
+  for (const sct of L.sectors) {
+    const am = (sct.a0 + sct.a1) / 2, [x, y] = pt(R + 24, am);
+    g.font = `600 12px ${MONO}`; g.fillStyle = sct.group.color;
+    const text = trunc(sct.group.name || "", w < 520 ? 14 : 22), tw = g.measureText(text).width;
     const align = Math.cos(am) > 0.3 ? "left" : Math.cos(am) < -0.3 ? "right" : "center";
-    // keep every topic name fully on screen
+    // keep every group name fully on screen
     const lx = align === "left" ? Math.min(x, w - 4 - tw) : align === "right" ? Math.max(x, tw + 4) : clamp(x, tw / 2 + 4, w - tw / 2 - 4);
     g.textAlign = align; g.fillText(text, lx, clamp(y, 10, h - 10));
   }
-  // the hub: the main topic, or the keyword you opened
+  // the hub
   g.textAlign = "center";
   g.beginPath(); g.arc(cx, cy, hub * grow, 0, 7); g.fillStyle = C.panel; g.fill(); g.strokeStyle = C.silk; g.lineWidth = 1.6; g.stroke();
   g.lineWidth = 0.6; g.globalAlpha = 0.5;
   for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + sway * 3; g.beginPath(); g.moveTo(cx + Math.cos(a) * hub * 0.95 * grow, cy + Math.sin(a) * hub * 0.95 * grow); g.lineTo(cx + Math.cos(a + 2.4) * hub * 0.95 * grow, cy + Math.sin(a + 2.4) * hub * 0.95 * grow); g.stroke(); }
   g.globalAlpha = 0.92; g.fillStyle = C.panel; g.beginPath(); g.arc(cx, cy, hub * 0.72 * grow, 0, 7); g.fill(); g.globalAlpha = 1;
-  const label = orbCenterLabel(), hs = clamp(hub / 4, 11, 18);
+  const hs = clamp(hub / 4, 11, 18);
   g.font = `600 ${hs}px ${SERIF}`; g.fillStyle = C.ink;
-  const words = label.split(/\s+/), lines = []; let cur = "";
+  const words = String(model.center || "").split(/\s+/), lines = []; let cur = "";
   for (const wd of words) { if ((cur + " " + wd).trim().length > 14 && cur) { lines.push(cur); cur = wd; } else cur = (cur + " " + wd).trim(); }
   if (cur) lines.push(cur);
-  lines.slice(0, 3).forEach((ln, i, arr) => g.fillText(trunc(ln, 16), cx, cy + (i - (arr.length - 1) / 2) * hs * 1.15));
-  if (!L.cells.length) { g.font = `13px ${MONO}`; g.fillStyle = C.muted; g.fillText(ORB.path.length ? "Nothing else connects to this keyword." : "Keywords appear here as the spider crawls.", cx, cy + hub + 30); }
+  const shown = lines.slice(0, 3).map(ln => trunc(ln, 16)), widest = Math.max(1, ...shown.map(ln => g.measureText(ln).width));
+  const fit = Math.min(hs, hs * hub * 1.55 / widest, hub * 1.4 / Math.max(1, shown.length) / 1.15);
+  g.font = `600 ${fit}px ${SERIF}`;
+  shown.forEach((ln, i, arr) => g.fillText(ln, cx, cy + (i - (arr.length - 1) / 2) * fit * 1.15));
+  if (!L.cells.length && model.empty) { g.font = `13px ${MONO}`; g.fillStyle = C.muted; g.fillText(model.empty, cx, cy + hub + 30); }
   g.textAlign = "start";
 }
-function orbHit(x, y) {
-  const L = ORB.layout; if (!L) return -1;
+function silkHit(st, x, y) {
+  const L = st.layout; if (!L) return -1;
   const dx = x - L.cx, dy = y - L.cy, r = Math.hypot(dx, dy);
   if (r < L.hub) return -2; // the hub
   let a = Math.atan2(dy, dx); while (a < -Math.PI / 2) a += Math.PI * 2;
   return L.cells.findIndex(c => r >= c.r0 && r < c.r1 && a >= c.b0 && a < c.b1);
 }
+// the reading web: topics are the groups, keywords the items
+function drawOrb(now) {
+  if (!DOC) return;
+  const groups = orbGroups().map(x => ({ name: (DOC.cats[x.cat] || {}).name || "", color: catColor(x.cat), list: x.list.map(k => ({ id: k.key, label: k.label, strong: k.crawled, note: !!(DOC.notes && DOC.notes.k[k.key]), k })) }));
+  silkPaint($("orbCanvas"), ORB, { center: orbCenterLabel(), groups, sel: WV.sel, empty: ORB.path.length ? "Nothing else connects to this keyword." : "Keywords appear here as the spider crawls." }, now);
+}
+const orbHit = (x, y) => silkHit(ORB, x, y);
 function renderOrbTrail() {
   ORB.path = ORB.path.filter(k => DOC.kw.has(k));
   const crumbs = [["", DOC.title || "This text"], ...ORB.path.map(k => [k, DOC.kw.get(k).label])];
@@ -6934,7 +7056,11 @@ const HELP = [
   ["Toolbar", "#mbSpider", "Spider menu", "Pause or resume the crawl, follow the spider as it moves, or start the crawl over."],
   ["Toolbar", "#bWeb", "Web view", "Every keyword the spider found, drawn as a web, a timeline, flashcards and an outline you can save. It glows when the crawl is done."],
   ["Toolbar", "#mbAsk", "Ask menu", "Ask the text a question, search inside it, or make a study guide with key points, terms, questions and citations."],
-  ["Toolbar", "#mbPages", "Pages menu", "Open your own text, a file (PDF, EPUB, Word, photos of pages) or a link; search the web for more pages on the topic; or open your library of saved crawls."],
+  ["Toolbar", "#mbPages", "Pages menu", "Open your own text, a file (PDF, EPUB, Word, photos of pages) or a link; search the web for more pages on the topic; open your library of saved crawls; or read code."],
+  ["Code reader", "#cdCanvas", "Code map", "The whole project as a spider web: each section is a file or a kind of thing, each cell a function, class or variable. Tap one to see what it does, what it calls, what calls it, and what it reads and changes."],
+  ["Code reader", "#cdSrc", "The code", "The source with line numbers. Tap any name to see what it is and light up every place it's used."],
+  ["Code reader", "#cdDocs", "Explained", "Every function, class and variable in plain words, with where it's used. Search it, or save it as notes."],
+  ["Code reader", "#cdOpen", "Open code", "Paste code, pick files or a .zip of a whole project, or open a GitHub link. Works with JavaScript, TypeScript, Python, Java, C, C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby and shell scripts."],
   ["Toolbar", "#bSettings", "Settings", "The spider's look and moves, the theme, live stats, your AI, the store, your support ID and Report an issue."],
   ["Toolbar", "#bHelp", "Help", "This panel. Point at anything shows what any part of the screen is."],
   ["Toolbar", "#bHideBar", "Hide", "Hides the toolbar for more room to read. The Toolbar tab in the top corner, or H, brings it back."],
@@ -6996,6 +7122,7 @@ const FAQ = [
   ["Why didn't it find a keyword I expected?", "It looks for words and phrases that are frequent and specific to the text. Select any word on the page to add it yourself; it goes in the “My highlights” topic."],
   ["What do the colors mean?", "Each topic has a color. A keyword's underline, its threads and its sacs share that color. Open Help → Legend to see the topics in the current text."],
   ["What do purchases unlock, and do I keep them?", "Store items change how the spider and the page look and behave; every reading and study feature is free. Purchases belong to your Google account and come back after a reinstall. A bundle also includes anything added to its sections later."],
+  ["Can it read code?", "Yes. Pages → Read code. Paste code, open files or a .zip of a project, or a GitHub link. It finds every function, class and variable, shows what each one does, what it calls and what uses it, and explains it all in plain words. It works without the internet; an AI adds deeper explanations."],
   ["How do I make the spider calmer or quieter?", "Settings → Web & effects → Effects & sound: turn off sounds and effects, or pick the Study mode preset. If your device asks for reduced motion, the app keeps animation to a minimum."]
 ];
 function renderFaq() { $("helpFaq").innerHTML = `<dl class="hw-list faq">${FAQ.map(([q, a]) => `<div><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join("")}</dl>`; }
@@ -7171,6 +7298,840 @@ function grant(id, quiet) {
   if (!quiet) { const p = PRODUCTS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
   if (storeOpen()) { renderStore(); if (sheetId) openSheet(sheetId); }
 }
+// ---- the code reader's engine: reads source files, finds every function, class, variable and import,
+// where each is defined and used (read, changed or called), what calls what, and explains it in plain words.
+// No AI and no internet needed. Works on JavaScript/TypeScript, Python, Java, C/C++, C#, Go, Rust, Kotlin,
+// Swift, PHP, Ruby, Dart, Scala and shell scripts, and on the <script> blocks inside HTML files.
+const CodeParse = (() => {
+  const EXT = {
+    js: "js", mjs: "js", cjs: "js", jsx: "js", ts: "js", tsx: "js", mts: "js", cts: "js", vue: "html", svelte: "html",
+    py: "py", pyw: "py", rb: "rb", sh: "sh", bash: "sh", zsh: "sh",
+    java: "java", kt: "kt", kts: "kt", scala: "scala", groovy: "java", dart: "dart",
+    c: "c", h: "c", cpp: "c", cc: "c", cxx: "c", hpp: "c", hh: "c", cs: "cs", go: "go", rs: "rs", swift: "swift", php: "php", m: "c",
+    html: "html", htm: "html", lua: "lua"
+  };
+  const LANG_NAME = { js: "JavaScript", py: "Python", rb: "Ruby", sh: "Shell", java: "Java", kt: "Kotlin", scala: "Scala", dart: "Dart", c: "C/C++", cs: "C#", go: "Go", rs: "Rust", swift: "Swift", php: "PHP", html: "HTML", lua: "Lua" };
+  const langOf = (name, text) => {
+    const e = (name.split(".").pop() || "").toLowerCase();
+    if (EXT[e]) return EXT[e];
+    if (/^#!.*\b(ba|z)?sh\b/.test(text)) return "sh";
+    if (/^#!.*python/.test(text)) return "py";
+    if (/^\s*(def |class |import |from \S+ import )/m.test(text) && !/[;{}]\s*$/m.test(text)) return "py";
+    if (/^\s*(func |package )/m.test(text)) return "go";
+    if (/^\s*(fn |use |impl |pub )/m.test(text)) return "rs";
+    if (/\bfunction\b|=>|\bconst\b|\blet\b/.test(text)) return "js";
+    return "js";
+  };
+  const hashComments = new Set(["py", "rb", "sh"]);
+  const KW = {
+    common: "if else for while do switch case default break continue return try catch finally throw new delete typeof instanceof in of void this super class extends implements interface enum import export from as await async yield static public private protected readonly abstract final const let var function true false null undefined nil None True False and or not is lambda def pass with elif except raise global nonlocal assert print self struct union typedef sizeof goto register volatile extern inline unsigned signed char short int long float double bool boolean string void package func defer go chan map range select fallthrough type fn mut impl trait pub use mod crate where match loop move ref dyn unsafe val fun object companion when init override open lateinit internal sealed data inner out var let guard defer fileprivate mutating weak unowned lazy echo then fi done esac local export elsif unless until begin end ensure rescue module require include attr_accessor attr_reader puts",
+  };
+  const KWS = new Set(KW.common.split(" "));
+  const CONTROL = new Set("if else for while do switch case return catch try finally throw new typeof sizeof await yield when match loop elif except with assert unless until guard defer go select".split(" "));
+  // ---- tokenizer: identifiers, keywords, numbers, strings, comments and punctuation, with line numbers
+  function tokenize(src, lang) {
+    const T = [], n = src.length; let i = 0, line = 1;
+    const push = (t, v, l) => T.push({ t, v, line: l });
+    const isId0 = c => /[A-Za-z_$À-￿]/.test(c), isId = c => /[\w$À-￿]/.test(c);
+    let lastSig = null; // last significant token, to tell a regex from a division in JavaScript
+    while (i < n) {
+      const c = src[i], c2 = src[i + 1];
+      if (c === "\n") { line++; i++; continue; }
+      if (c === " " || c === "\t" || c === "\r") { i++; continue; }
+      const start = line;
+      // comments
+      if ((c === "/" && c2 === "/" && !hashComments.has(lang)) || (c === "#" && hashComments.has(lang)) || (c === "-" && c2 === "-" && lang === "lua")) {
+        let j = src.indexOf("\n", i); if (j < 0) j = n; push("com", src.slice(i, j), start); i = j; continue;
+      }
+      if (c === "/" && c2 === "*" && !hashComments.has(lang)) {
+        let j = src.indexOf("*/", i + 2); j = j < 0 ? n : j + 2; const v = src.slice(i, j); push("com", v, start); line += (v.match(/\n/g) || []).length; i = j; continue;
+      }
+      if (lang === "rb" && src.startsWith("=begin", i) && (i === 0 || src[i - 1] === "\n")) { let j = src.indexOf("=end", i); j = j < 0 ? n : j + 4; const v = src.slice(i, j); push("com", v, start); line += (v.match(/\n/g) || []).length; i = j; continue; }
+      // strings: Python triple quotes, template literals (with ${...} parts tokenized), ordinary quotes
+      if (lang === "py" && (src.startsWith('"""', i) || src.startsWith("'''", i))) {
+        const q = src.slice(i, i + 3); let j = src.indexOf(q, i + 3); j = j < 0 ? n : j + 3; const v = src.slice(i, j); push("str", v, start); line += (v.match(/\n/g) || []).length; i = j; lastSig = "str"; continue;
+      }
+      if (c === "`" && (lang === "js" || lang === "html")) {
+        let j = i + 1, depth = 0; const parts = [];
+        let seg0 = j;
+        while (j < n) {
+          if (src[j] === "\\") { j += 2; continue; }
+          if (depth === 0 && src[j] === "`") break;
+          if (src[j] === "$" && src[j + 1] === "{" && depth === 0) { depth = 1; j += 2; seg0 = j; continue; }
+          if (depth > 0) { if (src[j] === "{") depth++; else if (src[j] === "}") { depth--; if (depth === 0) { parts.push([seg0, j]); } } }
+          j++;
+        }
+        const v = src.slice(i, Math.min(n, j + 1));
+        push("str", v, start);
+        // the ${...} parts are real code: tokenize them so their names count as uses
+        for (const [a, b] of parts) { const before = (src.slice(i, a).match(/\n/g) || []).length; for (const t of tokenize(src.slice(a, b), lang)) { t.line += start + before - 1; T.push(t); } }
+        line += (v.match(/\n/g) || []).length; i = j + 1; lastSig = "str"; continue;
+      }
+      if (c === '"' || c === "'" || (c === "`" && lang === "go")) {
+        if (c === "'" && lang === "rs" && /[A-Za-z_]/.test(c2) && src[i + 2] !== "'") { i++; while (i < n && isId(src[i])) i++; continue; } // a Rust lifetime, not a string
+        let j = i + 1; while (j < n && src[j] !== c) { if (src[j] === "\\" && c !== "`") j++; if (src[j] === "\n" && c !== "`" && lang !== "py" && lang !== "sh") break; j++; }
+        const v = src.slice(i, Math.min(n, j + 1)); push("str", v, start); line += (v.match(/\n/g) || []).length; i = j + 1; lastSig = "str"; continue;
+      }
+      // regular expression literals in JavaScript
+      if (c === "/" && (lang === "js" || lang === "html") && (lastSig === null || (lastSig.t === "punc" && !/^[)\]}]$/.test(lastSig.v)) || (lastSig.t === "kw" && /^(return|typeof|case|do|else|in|of|void|yield|await)$/.test(lastSig.v)))) {
+        let j = i + 1, cls = false;
+        while (j < n && src[j] !== "\n") { if (src[j] === "\\") { j += 2; continue; } if (src[j] === "[") cls = true; else if (src[j] === "]") cls = false; else if (src[j] === "/" && !cls) break; j++; }
+        if (src[j] === "/") { j++; while (j < n && /[a-z]/i.test(src[j])) j++; push("str", src.slice(i, j), start); i = j; lastSig = { t: "str" }; continue; }
+      }
+      if (/[0-9]/.test(c) || (c === "." && /[0-9]/.test(c2))) { let j = i + 1; while (j < n && /[\w.]/.test(src[j])) j++; push("num", src.slice(i, j), start); lastSig = { t: "num" }; i = j; continue; }
+      if (isId0(c) || (c === "@" && (lang === "rb") && isId0(c2)) || (c === "$" && (lang === "php" || lang === "sh") && isId0(c2))) {
+        let j = i + 1; while (j < n && isId(src[j])) j++;
+        const v = src.slice(i, j), tok = { t: KWS.has(v) ? "kw" : "id", v, line: start };
+        T.push(tok); lastSig = tok; i = j; continue;
+      }
+      // punctuation: try the longest operators first
+      const three = src.slice(i, i + 3), two = src.slice(i, i + 2);
+      let v = ["===", "!==", "**=", "<<=", ">>=", "...", "&&=", "||=", "??="].includes(three) ? three
+        : ["==", "!=", "<=", ">=", "=>", "->", "++", "--", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "&&", "||", "??", "::", ":=", "?."].includes(two) ? two : c;
+      const tok = { t: "punc", v, line: start }; T.push(tok); lastSig = tok; i += v.length;
+    }
+    return T;
+  }
+  const ASSIGN = new Set(["=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "**=", "<<=", ">>=", "&&=", "||=", "??=", ":="]);
+  // ---- find definitions and scopes in one file
+  function analyzeFile(file, out) {
+    const lang = file.lang, toks = file.toks, lines = file.lines;
+    const sym = (name, kind, i, extra = {}) => {
+      if (!name || KWS.has(name) || name.length > 80) return null;
+      const s = { id: out.syms.length, name, kind, file: file.name, line: toks[i] ? toks[i].line : 1, tokIndex: i, uses: [], calls: new Set(), reads: new Set(), writes: new Set(), members: [], params: [], parent: null, ...extra };
+      out.syms.push(s); file.syms.push(s); return s;
+    };
+    const docAbove = ln => { // comment lines right above a definition
+      const out2 = []; for (let l = ln - 1; l >= 1 && l > ln - 12; l--) { const t = lines[l - 1].trim(); if (/^(\/\/|#|\*|\/\*|--|""")/.test(t) || (t.endsWith("*/"))) out2.unshift(t.replace(/^(\/\*\*?|\*\/|\*|\/\/+|#+|--|""")\s?/, "").replace(/\*\/$/, "").trim()); else if (t === "" && out2.length === 0) continue; else break; }
+      // a comment block that is the first thing in the file describes the whole file, not the line under it
+      if (out2.length && lines.slice(0, Math.max(0, ln - 1 - out2.length)).every(t => /^\s*$/.test(t) || /^#!/.test(t))) return "";
+      return out2.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+    };
+    const paramsFrom = (i, close = ")") => { // identifiers that are parameter names between ( and its )
+      const ps = []; let d = 0, expectName = true, j = i;
+      for (; j < toks.length; j++) {
+        const t = toks[j];
+        if (t.t === "punc" && /^[([{<]$/.test(t.v)) { d++; if (d > 1 && t.v !== "<") expectName = false; continue; }
+        if (t.t === "punc" && /^[)\]}>]$/.test(t.v)) { d--; if (d === 0 && t.v === close) break; continue; }
+        if (d === 1 && t.t === "punc" && t.v === ",") { expectName = true; continue; }
+        if (d === 1 && t.t === "punc" && (t.v === "=" || t.v === ":")) { expectName = false; continue; }
+        if (d === 1 && t.t === "id" && expectName) {
+          const nx = toks[j + 1];
+          // typed languages put the type first: keep the last identifier before , ) = :
+          if (nx && nx.t === "id" && lang !== "py" && lang !== "js" && lang !== "rb") continue;
+          if (lang === "go" && nx && nx.t === "id") continue;
+          ps.push(t.v.replace(/^[$@]/, "")); if (lang === "js" || lang === "py" || lang === "rb" || lang === "php" || lang === "kt" || lang === "swift" || lang === "rs" || lang === "scala" || lang === "go") expectName = false;
+        }
+        if (d === 1 && t.t === "id" && !expectName && lang !== "js" && lang !== "py") { /* the name after a type in Java/C#/C */ }
+      }
+      // Java/C/C#/Dart: "Type name, Type name" → take the identifier right before each , or )
+      if (["java", "c", "cs", "dart"].includes(lang)) {
+        const names = []; let d2 = 0;
+        for (let k = i; k <= j && k < toks.length; k++) { const t = toks[k]; if (t.t === "punc" && "([{<".includes(t.v)) d2++; else if (t.t === "punc" && ")]}>".includes(t.v)) { if (d2 === 1 && t.v === ")" && toks[k - 1].t === "id") names.push(toks[k - 1].v); d2--; } else if (d2 === 1 && t.v === "," && toks[k - 1].t === "id") names.push(toks[k - 1].v); }
+        return { params: names, end: j };
+      }
+      return { params: ps, end: j };
+    };
+    // scopes: functions and classes, by braces (or indentation in Python, def/end in Ruby)
+    const scopes = [{ sym: null, depth: 0, indent: -1 }];
+    let depth = 0;
+    const cur = () => scopes[scopes.length - 1].sym;
+    const pendingBody = []; // definitions waiting for their opening brace
+    const indentOf = ln => { const m = /^[ \t]*/.exec(lines[ln - 1] || ""); return m ? m[0].replace(/\t/g, "    ").length : 0; };
+    for (let i = 0; i < toks.length; i++) {
+      const t = toks[i], p = toks[i - 1], n1 = toks[i + 1], n2 = toks[i + 2];
+      // indentation scopes (Python), def/end scopes (Ruby)
+      if (lang === "py" && (i === 0 || t.line !== p.line)) { const ind = indentOf(t.line); while (scopes.length > 1 && ind <= scopes[scopes.length - 1].indent) scopes.pop(); }
+      if (lang === "rb" && t.t === "kw" && t.v === "end") { let k = scopes.length - 1; if (k > 0 && scopes[k].rbOpen > 0) scopes[k].rbOpen--; else if (k > 0) scopes.pop(); continue; }
+      if (lang === "rb" && t.t === "kw" && /^(if|unless|while|until|case|begin|do|for)$/.test(t.v) && (i === 0 || t.line !== p.line || t.v === "do")) { scopes[scopes.length - 1].rbOpen = (scopes[scopes.length - 1].rbOpen || 0) + 1; }
+      if (t.t === "punc" && t.v === "{") {
+        depth++;
+        if (pendingBody.length) { const s = pendingBody.pop(); scopes.push({ sym: s, depth }); s.bodyStart = i; }
+        continue;
+      }
+      if (t.t === "punc" && t.v === "}") {
+        if (scopes.length > 1 && scopes[scopes.length - 1].depth === depth && lang !== "py" && lang !== "rb") { const sc = scopes.pop(); if (sc.sym) sc.sym.endLine = t.line; }
+        depth = Math.max(0, depth - 1); continue;
+      }
+      const owner = cur();
+      const open = (s, isClass) => {
+        if (!s) return;
+        s.parent = owner; if (owner) owner.members.push(s);
+        s.doc = docAbove(s.line);
+        if (lang === "py") scopes.push({ sym: s, indent: indentOf(t.line) });
+        else if (lang === "rb") scopes.push({ sym: s, rbOpen: 0 });
+        else pendingBody.push(s);
+      };
+      if (t.t === "kw" || t.t === "id") {
+        const v = t.v;
+        // classes and other named types
+        if (/^(class|struct|interface|enum|trait|protocol|object|module|record|union)$/.test(v) && n1 && (n1.t === "id") && !(p && p.t === "punc" && p.v === ".")) {
+          const kind = v === "module" ? "module" : v === "class" || v === "object" || v === "record" ? "class" : v;
+          const s = sym(n1.v, kind === "class" ? "class" : "type", i + 1, { typeKind: v });
+          if (s) { // extends / inherits
+            for (let k = i + 2; k < Math.min(toks.length, i + 12); k++) { const tk = toks[k]; if (tk.t === "punc" && (tk.v === "{" || tk.v === ":") && lang !== "py" && lang !== "kt" && lang !== "swift" && lang !== "cs" && lang !== "c" || (lang === "py" && tk.v === ":")) break; if ((tk.v === "extends" || tk.v === "<" && lang === "rb" || tk.v === "(" && lang === "py" || tk.v === ":") && toks[k + 1] && toks[k + 1].t === "id") { s.extends = toks[k + 1].v; break; } }
+            open(s, true);
+          }
+          i++; continue;
+        }
+        // named types: Go "type Point struct {", TypeScript "type Id = string", Rust and Swift type aliases
+        if (v === "type" && n1 && n1.t === "id" && ["go", "js", "rs", "swift", "scala"].includes(lang) && (i === 0 || t.line !== p.line || (p && (p.v === "export" || p.v === "pub")))) {
+          const s = sym(n1.v, "type", i + 1, { typeKind: n2 && ["struct", "interface"].includes(n2.v) ? n2.v : "type" });
+          if (s) { s.parent = owner; s.doc = docAbove(s.line); if (n2 && ["struct", "interface"].includes(n2.v) && toks[i + 3] && toks[i + 3].v === "{") open(s); else if (owner) owner.members.push(s); }
+          i++; continue;
+        }
+        if (v === "impl" && lang === "rs" && n1 && n1.t === "id") { // methods belong to the type they implement
+          let k = i + 1; while (k < toks.length && !(toks[k].t === "punc" && toks[k].v === "{")) k++;
+          const target = toks[k - 1] && toks[k - 1].t === "id" ? toks[k - 1].v : n1.v;
+          const s = out.syms.find(x => x.name === target && (x.kind === "type" || x.kind === "class")) || null;
+          pendingBody.push(s || sym(target, "type", i + 1, { typeKind: "impl" })); i = k - 1; continue;
+        }
+        // functions with a keyword: function, def, func, fn, fun, sub
+        if (/^(function|def|func|fn|fun)$/.test(v) && !(p && p.t === "punc" && p.v === ".")) {
+          let k = i + 1;
+          if (v === "func" && toks[k] && toks[k].v === "(") { let d = 0; for (; k < toks.length; k++) { if (toks[k].v === "(") d++; else if (toks[k].v === ")") { d--; if (d === 0) { k++; break; } } } } // Go method receiver
+          if (toks[k] && toks[k].v === "*") k++;
+          if (lang === "rb" && toks[k] && toks[k].v === "self" && toks[k + 1] && toks[k + 1].v === ".") k += 2;
+          const nm = toks[k];
+          if (nm && nm.t === "id") {
+            const s = sym(nm.v.replace(/^[$]/, ""), owner && (owner.kind === "class" || owner.kind === "type") ? "method" : "function", k);
+            if (s) {
+              s.async = p && p.v === "async";
+              let q = k + 1; if (toks[q] && toks[q].v === "<") { let d = 0; for (; q < toks.length; q++) { if (toks[q].v === "<") d++; else if (toks[q].v === ">") { d--; if (d === 0) { q++; break; } } } }
+              if (toks[q] && toks[q].v === "(") { const r = paramsFrom(q); s.params = r.params; s.sig = sigText(toks, k, r.end); }
+              open(s);
+            }
+            i = k; continue;
+          }
+          continue;
+        }
+        // variables: const / let / var / val / auto / local, including destructuring
+        if (/^(const|let|var|val|local|auto|my|our)$/.test(v) && n1) {
+          if (n1.t === "punc" && (n1.v === "{" || n1.v === "[")) {
+            const close = n1.v === "{" ? "}" : "]"; let k = i + 2, d = 1;
+            for (; k < toks.length && d > 0; k++) { const tk = toks[k]; if (tk.v === "{" || tk.v === "[") d++; else if (tk.v === "}" || tk.v === "]") d--; else if (d === 1 && tk.t === "id" && !(toks[k + 1] && toks[k + 1].v === ":")) { const s = sym(tk.v, v === "const" || v === "val" ? "constant" : "variable", k); if (s) { s.parent = owner; if (owner) owner.members.push(s); s.init = "taken from " + rhsText(toks, k, close); } } }
+            i = k - 1; continue;
+          }
+          let k = i + 1; if (toks[k] && toks[k].v === "mut") k++;
+          if (toks[k] && toks[k].t === "id") {
+            const nm = toks[k], after = toks[k + 1];
+            // const x = function / arrow → a function
+            const eq = after && after.v === "=" ? k + 1 : after && after.v === ":" ? findEq(toks, k + 1) : -1;
+            const rhs = eq > 0 ? toks[eq + 1] : null;
+            const isFn = rhs && (rhs.v === "function" || (rhs.v === "async" && toks[eq + 2] && (toks[eq + 2].v === "function" || toks[eq + 2].v === "(" || toks[eq + 2].t === "id")) || isArrowAt(toks, eq + 1));
+            if (isFn) {
+              const s = sym(nm.v, "function", k); if (s) { s.async = rhs.v === "async"; let q = eq + 1; while (toks[q] && toks[q].v !== "(" && toks[q].t !== "id") q++; if (toks[q] && toks[q].v === "(") { const r = paramsFrom(q); s.params = r.params; s.sig = sigText(toks, k, r.end); } else if (toks[q] && toks[q].t === "id" && toks[q].v !== "function" && toks[q].v !== "async") s.params = [toks[q].v]; if (bodyIsBrace(toks, eq + 1)) open(s); else { s.parent = owner; if (owner) owner.members.push(s); s.doc = docAbove(s.line); s.exprBody = [eq + 1, endOfStatement(toks, eq + 1)]; } }
+            } else {
+              const s = sym(nm.v, v === "const" || v === "val" ? "constant" : "variable", k);
+              if (s) { s.parent = owner; if (owner) owner.members.push(s); s.doc = docAbove(s.line); if (eq > 0) s.init = rhsText(toks, eq); }
+              // more names on the same line: let a = 1, b = 2
+              let d = 0;
+              for (let q = k + 1; q < toks.length && toks[q].line === nm.line; q++) {
+                const tq = toks[q]; if ("([{".includes(tq.v)) d++; else if (")]}".includes(tq.v)) d--; else if (tq.v === ";") break;
+                else if (d === 0 && tq.v === "," && toks[q + 1] && toks[q + 1].t === "id" && toks[q + 2] && (toks[q + 2].v === "=" || toks[q + 2].v === "," || toks[q + 2].v === ";")) { const s2 = sym(toks[q + 1].v, v === "const" ? "constant" : "variable", q + 1); if (s2) { s2.parent = owner; if (owner) owner.members.push(s2); if (toks[q + 2].v === "=") s2.init = rhsText(toks, q + 2); } }
+              }
+            }
+          }
+          continue;
+        }
+        // imports
+        if (v === "import" || v === "from" || v === "require" || v === "use" || v === "include" || v === "using") {
+          if (v === "import" && lang === "js") { let k = i + 1, mod = ""; const names = []; for (; k < toks.length && toks[k].line - t.line < 12; k++) { const tk = toks[k]; if (tk.t === "str") { mod = tk.v.slice(1, -1); break; } if (tk.t === "id" && !(toks[k - 1] && toks[k - 1].v === "as" && false)) { if (toks[k + 1] && toks[k + 1].v === "as") continue; names.push([tk.v, k]); } if (tk.v === ";") break; } for (const [nm, idx] of names) { const s = sym(nm, "import", idx, { from: mod }); if (s) s.doc = ""; } i = k; continue; }
+          if (v === "require" && n1 && n1.v === "(" && n2 && n2.t === "str" && p && p.v === "=" && toks[i - 2] && toks[i - 2].t === "id") { const prev = out.syms.find(x => x.file === file.name && x.tokIndex === i - 2); if (prev) { prev.kind = "import"; prev.from = n2.v.slice(1, -1); delete prev.init; } continue; }
+          if (lang === "py" && v === "import" && (i === 0 || t.line !== p.line || (p && p.t === "id"))) { let k = i + 1, mod = ""; if (p && p.t === "id" && toks[i - 2] && toks[i - 2].v === "from") mod = p.v; for (; k < toks.length && toks[k].line === t.line; k++) { const tk = toks[k]; if (tk.t === "id") { if (toks[k + 1] && toks[k + 1].v === "as") continue; if (toks[k + 1] && toks[k + 1].v === ".") continue; sym(tk.v, "import", k, { from: mod || tk.v }); } } i = k - 1; continue; }
+          if ((lang === "java" || lang === "kt" || lang === "scala" || lang === "dart" || lang === "go" || lang === "cs" || lang === "rs" || lang === "swift") && (v === "import" || v === "use" || v === "using")) { let k = i + 1, last = null; for (; k < toks.length && toks[k].line === t.line; k++) { if (toks[k].t === "id") last = k; if (toks[k].t === "str") { const nm = toks[k].v.slice(1, -1).split("/").pop(); sym(nm, "import", k, { from: toks[k].v.slice(1, -1) }); last = null; } } if (last !== null) sym(toks[last].v, "import", last, { from: lines[t.line - 1].trim().replace(/^(import|use|using)\s+/, "").replace(/;$/, "") }); i = k - 1; continue; }
+          if (v === "include" && p && p.v === "#") { const mm = /#\s*include\s*[<"]([^>"]+)/.exec(lines[t.line - 1]); if (mm) sym(mm[1].replace(/\.\w+$/, "").split("/").pop(), "import", i, { from: mm[1] }); continue; }
+        }
+        // Python / Ruby / shell top-level and class-level assignments: name = value
+        if ((lang === "py" || lang === "rb" || lang === "sh" || lang === "lua") && t.t === "id" && n1 && (n1.v === "=" || (lang === "py" && n1.v === ":" && findEq(toks, i + 1) > 0 && toks[findEq(toks, i + 1)].line === t.line)) && (i === 0 || p.line !== t.line || p.v === "local")) {
+          const isConst = /^[A-Z][A-Z0-9_]*$/.test(t.v), have = out.syms.find(x => x.file === file.name && x.name === t.v.replace(/^[@$]/, "") && x.parent === owner && (x.kind === "variable" || x.kind === "constant"));
+          if (!have && !(owner && owner.kind !== "class" && lang === "py" && scopeHasName(out, owner, t.v))) {
+            const s = sym(t.v.replace(/^[@$]/, ""), isConst ? "constant" : "variable", i); if (s) { s.parent = owner; if (owner) owner.members.push(s); s.doc = docAbove(s.line); s.init = rhsText(toks, n1.v === "=" ? i + 1 : findEq(toks, i + 1)); }
+          }
+        }
+        // self.x = ... / this.x = ... inside a method → a property of the class
+        if ((v === "self" || v === "this") && n1 && n1.v === "." && n2 && n2.t === "id" && toks[i + 3] && ASSIGN.has(toks[i + 3].v)) {
+          let cls = owner; while (cls && cls.kind !== "class" && cls.kind !== "type") cls = cls.parent;
+          if (cls && !cls.members.some(m => m.name === n2.v)) { const s = sym(n2.v, "property", i + 2); if (s) { s.parent = cls; cls.members.push(s); s.init = rhsText(toks, i + 3); } }
+        }
+        // shell functions: name() { ... }
+        if (lang === "sh" && t.t === "id" && n1 && n1.v === "(" && n2 && n2.v === ")" && toks[i + 3] && toks[i + 3].v === "{") { const s = sym(t.v, "function", i); if (s) { s.parent = null; s.doc = docAbove(s.line); pendingBody.push(s); } i += 2; continue; }
+        // methods and functions written "name(params) {" — class methods in JS, and C/Java/C#/Kotlin/Swift/Dart functions "Type name(params) {"
+        if (t.t === "id" && n1 && n1.v === "(" && !CONTROL.has(t.v) && !(p && p.t === "punc" && (p.v === "." || p.v === "->" || p.v === "?." || p.v === "::" && lang !== "c")) && !(p && p.t === "kw" && /^(new|return|typeof|await|throw|case)$/.test(p.v)) && lang !== "py" && lang !== "rb" && lang !== "sh") {
+          const r = paramsFrom(i + 1);
+          let k = r.end + 1;
+          // skip return types, throws, const, async-fn modifiers, and annotations until { or ; or =>
+          let guard = 0; while (k < toks.length && guard++ < 20 && !(toks[k].t === "punc" && /^[{;=]$/.test(toks[k].v)) && toks[k].v !== "=>" && toks[k].line - toks[r.end].line < 3) { if (toks[k].t === "punc" && /^[,)]$/.test(toks[k].v)) break; k++; }
+          const inClass = owner && (owner.kind === "class" || owner.kind === "type");
+          const typedHead = p && (p.t === "id" || (p.t === "punc" && (p.v === ">" || p.v === "*" || p.v === "&" || p.v === "]")) || (p.t === "kw" && /^(void|int|long|bool|boolean|char|double|float|string|static|public|private|protected|async|override|virtual|final|inline|unsigned|short|auto|get|set)$/.test(p.v)));
+          if (toks[k] && toks[k].v === "{" && (inClass || typedHead) && !(p && p.v === "=")) {
+            const s = sym(t.v, inClass ? "method" : "function", i); if (s) { s.params = r.params; s.sig = sigText(toks, i, r.end); s.async = !!(p && p.v === "async"); open(s); }
+            i = r.end; continue;
+          }
+        }
+        // object methods and properties: name: function(...) / name = (...) => in a class body
+        if (t.t === "id" && n1 && (n1.v === ":" || n1.v === "=") && lang === "js" && owner && owner.kind === "class" && (i === 0 || p.line !== t.line || p.v === "static" || p.v === ";" || p.v === "{" || p.v === "}")) {
+          if (isArrowAt(toks, i + 2) || (n2 && n2.v === "function")) { const s = sym(t.v, "method", i); if (s) { let q = i + 2; while (toks[q] && toks[q].v !== "(") q++; const r = paramsFrom(q); s.params = r.params; s.sig = sigText(toks, i, r.end); if (bodyIsBrace(toks, i + 2)) open(s); else { s.parent = owner; owner.members.push(s); } } continue; }
+          if (n1.v === "=") { const s = sym(t.v, "property", i); if (s) { s.parent = owner; owner.members.push(s); s.init = rhsText(toks, i + 1); } continue; }
+        }
+        // Java/C#/C/Dart fields and locals: "Type name =" or "Type name;"
+        if (["java", "c", "cs", "dart", "kt", "scala"].includes(lang) && t.t === "id" && p && (p.t === "id" || (p.t === "kw" && /^(int|long|bool|boolean|char|double|float|string|var|final|auto|short|unsigned)$/.test(p.v)) || p.v === ">" || p.v === "]" || p.v === "*") && n1 && (n1.v === "=" || n1.v === ";") && !CONTROL.has(p.v)) {
+          if (!out.syms.some(x => x.file === file.name && x.tokIndex === i)) { const s = sym(t.v, owner && (owner.kind === "class" || owner.kind === "type") ? "property" : "variable", i); if (s) { s.parent = owner; if (owner) owner.members.push(s); s.doc = docAbove(s.line); if (n1.v === "=") s.init = rhsText(toks, i + 1); } }
+        }
+      }
+    }
+  }
+  const findEq = (toks, from) => { let d = 0; for (let k = from; k < toks.length && k < from + 40; k++) { const v = toks[k].v; if ("([{<".includes(v) && toks[k].t === "punc") d++; else if (")]}>".includes(v) && toks[k].t === "punc") d--; else if (d === 0 && v === "=") return k; else if (d === 0 && (v === ";" || v === ",")) return -1; } return -1; };
+  const isArrowAt = (toks, k) => {
+    if (!toks[k]) return false;
+    if (toks[k].v === "async") k++;
+    if (toks[k] && toks[k].t === "id" && toks[k + 1] && toks[k + 1].v === "=>") return true;
+    if (toks[k] && toks[k].v === "(") { let d = 0; for (let q = k; q < toks.length; q++) { if (toks[q].v === "(") d++; else if (toks[q].v === ")") { d--; if (d === 0) { let r = q + 1; if (toks[r] && toks[r].v === ":") { while (toks[r] && toks[r].v !== "=>" && toks[r].v !== "{" && toks[r].v !== ";") r++; } return !!(toks[r] && toks[r].v === "=>"); } } } }
+    return false;
+  };
+  const bodyIsBrace = (toks, k) => { for (let q = k; q < toks.length && q < k + 200; q++) { if (toks[q].v === "=>") return toks[q + 1] && toks[q + 1].v === "{"; if (toks[q].v === "function") { while (toks[q] && toks[q].v !== "{") q++; return true; } } return false; };
+  const endOfStatement = (toks, k) => { let d = 0; for (let q = k; q < toks.length; q++) { const v = toks[q].v; if ("([{".includes(v) && toks[q].t === "punc") d++; else if (")]}".includes(v) && toks[q].t === "punc") { if (d === 0) return q; d--; } else if (d === 0 && (v === ";" || v === ",")) return q; if (d === 0 && toks[q + 1] && toks[q + 1].line > toks[q].line && !/^[.+\-*/?:&|]/.test(toks[q + 1].v) && !/[=+\-*/?:&|(,]$/.test(v)) return q + 1; } return toks.length; };
+  const sigText = (toks, a, b) => { let s = ""; for (let k = a; k <= b && k < toks.length; k++) { const t = toks[k]; if (t.t === "com") continue; const glue = /^[(),.\]:]$/.test(t.v) || (toks[k - 1] && /^[(.[]$/.test(toks[k - 1].v)) || k === a; s += (glue ? "" : " ") + t.v; } return s.replace(/\s+,/g, ",").slice(0, 160); };
+  const rhsText = (toks, eq, stop) => { if (eq < 0 || !toks[eq + 1]) return ""; let s = "", d = 0; for (let k = eq + 1; k < toks.length && s.length < 90; k++) { const t = toks[k]; if (t.t === "com") continue; if ("([{".includes(t.v) && t.t === "punc") d++; else if (")]}".includes(t.v) && t.t === "punc") { if (d === 0) break; d--; } if (d === 0 && (t.v === ";" || t.v === "," || (stop && t.v === stop))) break; if (k > eq + 1 && t.line !== toks[k - 1].line && d === 0) break; s += (s && !/^[(),.\]]$/.test(t.v) && !/[(.[]$/.test(s) ? " " : "") + t.v; } return s.length >= 90 ? s.slice(0, 88) + "…" : s; };
+  const scopeHasName = (out, owner, name) => out.syms.some(x => x.parent === owner && x.name === name);
+
+  // ---- link every use of a name to the symbol it means, and work out reads, writes and calls
+  function linkUses(out) {
+    const byName = new Map();
+    for (const s of out.syms) { if (!byName.has(s.name)) byName.set(s.name, []); byName.get(s.name).push(s); }
+    for (const f of out.files) {
+      const toks = f.toks;
+      // which function or class is each token inside? walk the definitions' body ranges
+      const encl = new Array(toks.length).fill(null);
+      const ranges = f.syms.filter(s => s.bodyStart != null || s.exprBody).map(s => {
+        let a = s.bodyStart != null ? s.bodyStart : s.exprBody[0], b = s.exprBody ? s.exprBody[1] : -1;
+        if (s.bodyStart != null) { let d = 0; for (let k = s.bodyStart; k < toks.length; k++) { if (toks[k].v === "{" && toks[k].t === "punc") d++; else if (toks[k].v === "}" && toks[k].t === "punc") { d--; if (d === 0) { b = k; break; } } } if (b < 0) b = toks.length - 1; }
+        return [a, b, s];
+      });
+      if (f.lang === "py" || f.lang === "rb") for (const s of f.syms) if (["function", "method", "class", "type", "module"].includes(s.kind)) {
+        // indentation (Python) or the matching "end" (Ruby): the body is every later line indented further, or up to end
+        const startLine = s.line, ind = (/^[ \t]*/.exec(f.lines[startLine - 1]) || [""])[0].length; let endLine = f.lines.length;
+        for (let l = startLine + 1; l <= f.lines.length; l++) { const tx = f.lines[l - 1]; if (!tx.trim() || /^\s*#/.test(tx)) continue; const ii = (/^[ \t]*/.exec(tx) || [""])[0].length; if (ii <= ind && !(f.lang === "rb" && /^\s*end\b/.test(tx) && ii === ind && (endLine = l) && false)) { endLine = f.lang === "rb" && /^\s*end\b/.test(tx) ? l : l - 1; break; } }
+        const a = toks.findIndex(t => t.line > startLine || (t.line === startLine && toks.indexOf(t) > s.tokIndex)), bIdx = toks.findIndex(t => t.line > endLine);
+        s.endLine = endLine; ranges.push([a < 0 ? toks.length : a, bIdx < 0 ? toks.length - 1 : bIdx - 1, s]);
+      }
+      ranges.sort((x, y) => (x[1] - x[0]) - (y[1] - y[0])); // smallest range wins
+      for (let k = toks.length - 1; k >= 0; k--) { /* filled below */ }
+      for (const [a, b, s] of ranges.slice().reverse()) for (let k = a; k <= b && k < toks.length; k++) encl[k] = s;
+      for (const [a, b, s] of ranges) { if (s.endLine == null && toks[b]) s.endLine = toks[b].line; }
+      // parameters of unnamed functions (x => …, (a, b) => …, function (e) {…}, catch (err)) only exist inside them
+      const shadow = new Map(), addShadow = (names, from, start = from) => {
+        let to = toks[from] && toks[from].v === "{" ? (() => { let d = 0; for (let q = from; q < toks.length; q++) { if (toks[q].v === "{" && toks[q].t === "punc") d++; else if (toks[q].v === "}" && toks[q].t === "punc") { d--; if (d === 0) return q; } } return toks.length - 1; })() : endOfStatement(toks, from);
+        for (const nm of names) { if (!shadow.has(nm)) shadow.set(nm, []); shadow.get(nm).push([Math.min(start, from), to]); }
+      };
+      const parenNames = (open, close) => { const out2 = []; let d = 0; for (let q = open; q <= close; q++) { const v = toks[q].v; if ("([{".includes(v) && toks[q].t === "punc") d++; else if (")]}".includes(v) && toks[q].t === "punc") d--; else if (toks[q].t === "id" && (d === 1 || (d === 2 && toks[open + 1] && "{[".includes(toks[open + 1].v))) && !(toks[q - 1] && (toks[q - 1].v === "=" || toks[q - 1].v === ":")) && !(toks[q + 1] && toks[q + 1].v === ":" && d === 2)) out2.push(toks[q].v); } return out2; };
+      if (f.lang === "js") for (let k = 0; k < toks.length; k++) {
+        const t = toks[k];
+        if (t.t === "id" && toks[k + 1] && toks[k + 1].v === "=>") addShadow([t.v], k + 2, k);
+        else if (t.v === "=>" && toks[k - 1] && toks[k - 1].v === ")") { let d = 0, q = k - 1; for (; q >= 0; q--) { if (toks[q].v === ")") d++; else if (toks[q].v === "(") { d--; if (d === 0) break; } } if (q >= 0) addShadow(parenNames(q, k - 1), k + 1, q); }
+        else if ((t.v === "function" && toks[k + 1] && toks[k + 1].v === "(") || (t.v === "catch" && toks[k + 1] && toks[k + 1].v === "(")) { let d = 0, q = k + 1; for (; q < toks.length; q++) { if (toks[q].v === "(") d++; else if (toks[q].v === ")") { d--; if (d === 0) break; } } let body = q + 1; while (toks[body] && toks[body].v !== "{" && body < q + 6) body++; addShadow(parenNames(k + 1, q), body, k + 1); }
+        else if (t.v === "for" && toks[k + 1] && toks[k + 1].v === "(" && toks[k + 2] && /^(const|let|var)$/.test(toks[k + 2].v)) { let d = 0, q = k + 1; for (; q < toks.length; q++) { if (toks[q].v === "(") d++; else if (toks[q].v === ")") { d--; if (d === 0) break; } } const nms = toks[k + 3] && toks[k + 3].t === "id" ? [toks[k + 3].v] : parenNames(k + 3, q); addShadow(nms, q + 1, k + 2); }
+      }
+      const shadowed = (nm, k) => { const L = shadow.get(nm); if (!L) return false; for (const [a1, b1] of L) if (k >= a1 && k <= b1) return true; return false; };
+      for (let k = 0; k < toks.length; k++) {
+        const t = toks[k]; if (t.t !== "id" && !(t.t === "kw" && (t.v === "self" || t.v === "this"))) continue;
+        if (!(toks[k - 1] && [".", "?.", "->"].includes(toks[k - 1].v)) && shadowed(t.v, k)) continue;
+        const name = t.v.replace(/^[@$]/, ""), cands = byName.get(name); if (!cands) continue;
+        const p = toks[k - 1], n1 = toks[k + 1], here = encl[k];
+        const member = p && p.t === "punc" && (p.v === "." || p.v === "?." || p.v === "->" || (p.v === "::" && f.lang !== "c"));
+        // pick the best match: defined right here, then the nearest enclosing scope, then this file, then anywhere
+        let s = cands.find(c => c.file === f.name && c.tokIndex === k);
+        if (s) continue; // the definition itself
+        // object keys ({ name: 1 }) are labels, not uses
+        if (!member && f.lang === "js" && n1 && n1.v === ":" && p && (p.v === "{" || p.v === ",")) continue;
+        // only names visible from here: top-level ones, class members, and the locals of this function and the ones around it
+        const visible = c => { if (!c.parent || ["class", "type", "module"].includes(c.parent.kind)) return true; for (let q = here; q; q = q.parent) if (q === c.parent) return true; return false; };
+        const pool = member ? cands.filter(c => c.kind === "method" || c.kind === "property" || c.kind === "function") : cands.filter(c => (c.kind !== "property" || (p && (p.v === "this" || p.v === "self"))) && visible(c));
+        if (!pool.length) continue;
+        let sc = here; while (sc && !s) { s = pool.find(c => c.parent === sc); sc = sc.parent; }
+        if (!s) s = pool.find(c => c.file === f.name && !c.parent) || pool.find(c => c.file === f.name) || pool.find(c => !c.parent) || pool[0];
+        // a parameter or local with the same name shadows outer symbols
+        if (here && here.params && here.params.includes(name) && !member && s.parent !== here) continue;
+        const prev2 = toks[k - 2];
+        let how = "read";
+        if (n1 && n1.v === "(" ) how = "call";
+        else if (n1 && ASSIGN.has(n1.v)) how = "write";
+        else if ((n1 && (n1.v === "++" || n1.v === "--")) || (p && (p.v === "++" || p.v === "--"))) how = "write";
+        else if (p && p.v === "new") how = "call";
+        if (member && prev2 && prev2.t !== "kw" && (s.kind === "property") && how === "read" && !(prev2.v === "this" || prev2.v === "self")) { /* someone else's property with the same name: keep it, but less sure */ }
+        s.uses.push({ file: f.name, line: t.line, how, inside: here ? here.id : null, tok: k });
+        // what a function calls, reads and changes, not counting its own local variables
+        let own = false; for (let q = s.parent; q; q = q.parent) if (q === here) { own = true; break; }
+        if (here && here !== s && !own) {
+          if (how === "call") here.calls.add(s.id);
+          else if (s.kind === "variable" || s.kind === "constant" || s.kind === "property") (how === "write" ? here.writes : here.reads).add(s.id);
+        }
+      }
+      for (const s of f.syms) if (s.bodyStart != null || s.exprBody || s.endLine) {
+        // does it give back a value?
+        let a = s.bodyStart != null ? s.bodyStart : s.exprBody ? s.exprBody[0] : -1;
+        if (s.exprBody) s.returns = true;
+        else if (a >= 0) for (let k = a; k < toks.length && toks[k].line <= (s.endLine || Infinity); k++) if (toks[k].v === "return" && encl[k] === s && toks[k + 1] && toks[k + 1].line === toks[k].line && !/^[;}]$/.test(toks[k + 1].v)) { s.returns = true; break; }
+        if (f.lang === "py" || f.lang === "rb") for (let k = 0; k < toks.length; k++) if (toks[k].v === "return" && encl[k] === s && toks[k + 1] && toks[k + 1].line === toks[k].line) { s.returns = true; break; }
+      }
+    }
+    for (const s of out.syms) s.calledBy = new Set(s.uses.filter(u => u.how === "call" && u.inside != null).map(u => u.inside));
+    // events: element.onclick = name / addEventListener("click", name)
+    for (const f of out.files) {
+      const toks = f.toks;
+      for (let k = 0; k < toks.length; k++) {
+        const t = toks[k];
+        if (t.v === "addEventListener" && toks[k + 2] && toks[k + 2].t === "str" && toks[k + 4] && toks[k + 4].t === "id") { const target = (byName.get(toks[k + 4].v) || [])[0]; if (target) (target.events = target.events || new Set()).add(toks[k + 2].v.slice(1, -1)); }
+        if (/^on[a-z]+$/.test(t.v) && toks[k + 1] && toks[k + 1].v === "=" && toks[k + 2] && toks[k + 2].t === "id" && !(toks[k + 3] && toks[k + 3].v === "(")) { const target = (byName.get(toks[k + 2].v) || [])[0]; if (target) (target.events = target.events || new Set()).add(t.v.slice(2)); }
+      }
+    }
+  }
+
+  // ---- plain-words explanations
+  const VERBS = { get: "gets", set: "sets", load: "loads", save: "saves", read: "reads", write: "writes", render: "draws", draw: "draws", paint: "draws", update: "updates", refresh: "refreshes", handle: "handles", on: "responds to", is: "checks whether it is", has: "checks whether it has", can: "checks whether it can", should: "decides whether it should", create: "creates", make: "makes", build: "builds", new: "creates", delete: "deletes", remove: "removes", add: "adds", push: "adds", pop: "takes off", fetch: "fetches", request: "requests", send: "sends", post: "sends", parse: "parses (reads apart)", format: "formats", convert: "converts", to: "converts to", init: "sets up", setup: "sets up", start: "starts", stop: "stops", reset: "resets", clear: "clears", toggle: "switches", open: "opens", close: "closes", show: "shows", hide: "hides", find: "finds", search: "searches for", filter: "filters", sort: "sorts", map: "maps", calc: "calculates", calculate: "calculates", compute: "computes", count: "counts", check: "checks", validate: "checks", test: "tests", apply: "applies", run: "runs", process: "processes", play: "plays", pause: "pauses", resume: "resumes", select: "selects", pick: "picks", sync: "syncs", merge: "merges", split: "splits", copy: "copies", clone: "copies", export: "exports", import: "imports", log: "logs", print: "prints", emit: "sends out", listen: "listens for", watch: "watches", wait: "waits for", try: "tries", ensure: "makes sure of", register: "registers", connect: "connects", attach: "attaches", detach: "detaches", mount: "mounts", unmount: "unmounts", insert: "inserts", replace: "replaces", move: "moves", scroll: "scrolls", resize: "resizes", zoom: "zooms", spin: "spins", wrap: "wraps", catch: "catches", hunt: "hunts", spawn: "spawns", plan: "plans", enter: "enters", exit: "exits", go: "goes to", jump: "jumps to", encode: "encodes", decode: "decodes", hash: "hashes", sign: "signs", verify: "verifies", login: "logs in", logout: "logs out", sum: "adds up", total: "totals", track: "tracks", tick: "advances", step: "steps", animate: "animates", fit: "fits", measure: "measures", announce: "announces", flash: "flashes", notify: "notifies", report: "reports", explain: "explains", describe: "describes", list: "lists", collect: "collects", gather: "gathers", group: "groups", mark: "marks", pin: "pins", restore: "restores", capture: "captures", store: "stores", cache: "caches", queue: "queues", schedule: "schedules", retry: "retries", throttle: "slows down", debounce: "waits for a pause in", compare: "compares", match: "matches", resolve: "resolves", reject: "rejects", bind: "binds", use: "uses" };
+  const words = name => name.replace(/^[_$@]+/, "").replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2").replace(/[_-]+/g, " ").trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const listText = (arr, max = 5) => { const a = [...arr]; if (!a.length) return ""; const shown = a.slice(0, max); const rest = a.length - shown.length; const body = shown.length === 1 ? shown[0] : shown.slice(0, -1).join(", ") + (rest > 0 ? ", " + shown[shown.length - 1] : " and " + shown[shown.length - 1]); return rest > 0 ? `${body} and ${rest} more` : body; };
+  function guessFromName(s) {
+    const w = words(s.name); if (!w.length) return "";
+    const v = VERBS[w[0]], rest = w.slice(1).join(" ");
+    if (["function", "method"].includes(s.kind) && v && rest) return w[0] === "is" || w[0] === "has" || w[0] === "can" || w[0] === "should" ? `Going by its name, it ${v} ${rest}.` : `Going by its name, it ${v} the ${rest}.`;
+    if (["function", "method"].includes(s.kind) && w[0] === "on" && rest) return `Going by its name, it runs when ${rest} happens.`;
+    if ((s.kind === "variable" || s.kind === "property") && /^(is|has|can|should|was|did)$/.test(w[0])) return `Going by its name, it's a yes/no flag for whether it ${w.join(" ").replace(/^(is|has|can|should|was|did) /, (m, x) => x + " ")}.`;
+    if ((s.kind === "variable" || s.kind === "property" || s.kind === "constant") && /(count|total|num|size|length|index|idx|max|min|width|height|x|y|id)$/.test(w[w.length - 1])) return `Going by its name, it holds a number (${w.join(" ")}).`;
+    if ((s.kind === "variable" || s.kind === "property" || s.kind === "constant") && /(list|items|arr|array|s)$/.test(w[w.length - 1]) && w[w.length - 1].length > 2) return `Going by its name, it holds a list of ${w.join(" ")}.`;
+    return "";
+  }
+  const KIND_WORD = { function: "a function", method: "a method", class: "a class", type: "a type", module: "a module", variable: "a variable", constant: "a constant", property: "a property", import: "an import" };
+  function explain(model, s) {
+    const name = id => model.syms[id].name, parts = [];
+    const where = `${s.file}, line ${s.line}`;
+    const owner = s.parent ? ` of ${s.parent.kind === "class" || s.parent.kind === "type" ? "the class" : ""} ${s.parent.name}`.replace("  ", " ") : "";
+    if (s.kind === "import") { parts.push(`\`${s.name}\` is brought in from ${s.from ? `\`${s.from}\`` : "another module"} (${where}).`); }
+    else if (s.kind === "function" || s.kind === "method") {
+      parts.push(`\`${s.name}\` is ${KIND_WORD[s.kind]}${owner} (${where})${s.params.length ? ` that takes ${listText(s.params.map(p => "`" + p + "`"), 8)}` : " that takes nothing"}.`);
+      if (s.async) parts.push("It runs asynchronously: it can wait for slow things like the network without freezing everything else.");
+      if (s.doc) parts.push(`Its comment says: “${s.doc.length > 220 ? s.doc.slice(0, 218) + "…" : s.doc}”`);
+      const g = guessFromName(s); if (g && !s.doc) parts.push(g);
+      if (s.events && s.events.size) parts.push(`It runs when ${listText([...s.events].map(e => `a \`${e}\` event`))} happens.`);
+      if (s.calls.size) parts.push(`It calls ${listText([...s.calls].map(i => "`" + name(i) + "`"))}.`);
+      if (s.writes.size) parts.push(`It changes ${listText([...s.writes].map(i => "`" + name(i) + "`"))}.`);
+      if (s.reads.size) parts.push(`It reads ${listText([...s.reads].map(i => "`" + name(i) + "`"))}.`);
+      parts.push(s.returns ? "It gives back a value." : "It doesn't give back a value; it does its work by side effects.");
+      const callers = [...s.calledBy]; const calls = s.uses.filter(u => u.how === "call").length;
+      parts.push(calls ? `It's called ${calls === 1 ? "once" : calls + " times"}${callers.length ? `, from ${listText(callers.map(i => "`" + name(i) + "`"))}` : ""}.` : s.events && s.events.size ? "" : s.uses.length ? `It's passed around ${s.uses.length === 1 ? "once" : s.uses.length + " times"} (for example as a callback) rather than called by name.` : "Nothing in these files calls it. It may be called from outside, or not be used at all.");
+    } else if (s.kind === "class" || s.kind === "type") {
+      const methods = s.members.filter(m => m.kind === "method" || m.kind === "function"), props = s.members.filter(m => m.kind === "property" || m.kind === "variable" || m.kind === "constant");
+      parts.push(`\`${s.name}\` is ${s.typeKind && s.typeKind !== "class" ? `a ${s.typeKind}` : "a class"} (${where})${s.extends ? ` that builds on \`${s.extends}\`` : ""}.`);
+      if (s.doc) parts.push(`Its comment says: “${s.doc.length > 220 ? s.doc.slice(0, 218) + "…" : s.doc}”`);
+      if (methods.length) parts.push(`It can ${listText(methods.map(m => "`" + m.name + "`"), 8)}.`);
+      if (props.length) parts.push(`It keeps ${listText(props.map(m => "`" + m.name + "`"), 8)}.`);
+      const made = s.uses.filter(u => u.how === "call").length; if (made) parts.push(`It's created or called ${made === 1 ? "once" : made + " times"}.`);
+    } else {
+      const writes = s.uses.filter(u => u.how === "write"), reads = s.uses.filter(u => u.how !== "write");
+      parts.push(`\`${s.name}\` is ${KIND_WORD[s.kind] || "a name"}${owner} (${where})${s.init ? ` that starts as \`${s.init}\`` : ""}.`);
+      if (s.doc) parts.push(`Its comment says: “${s.doc.length > 220 ? s.doc.slice(0, 218) + "…" : s.doc}”`);
+      const g = guessFromName(s); if (g && !s.doc) parts.push(g);
+      if (s.kind === "constant" && !writes.length) parts.push("It never changes after that.");
+      const wIn = [...new Set(writes.map(u => u.inside).filter(x => x != null))], rIn = [...new Set(reads.map(u => u.inside).filter(x => x != null))];
+      if (writes.length) parts.push(`It's changed ${writes.length === 1 ? "once" : writes.length + " times"}${wIn.length ? `, in ${listText(wIn.map(i => "`" + name(i) + "`"))}` : ""}.`);
+      if (reads.length) parts.push(`It's used ${reads.length === 1 ? "once" : reads.length + " times"}${rIn.length ? `, in ${listText(rIn.map(i => "`" + name(i) + "`"))}` : ""}.`);
+      if (!writes.length && !reads.length) parts.push("Nothing in these files uses it.");
+    }
+    return parts.filter(Boolean).join(" ");
+  }
+
+  // ---- the whole job: files in, a model out
+  function analyze(inputs) {
+    const out = { files: [], syms: [] };
+    for (const inp of inputs) {
+      let text = String(inp.text || "").replace(/\r\n?/g, "\n");
+      let lang = langOf(inp.name, text);
+      if (lang === "html") { // keep the code inside <script> tags, blank out the rest so line numbers still match
+        let js = ""; const re = /<script\b[^>]*>([\s\S]*?)<\/script>/gi; let last = 0, m;
+        while ((m = re.exec(text))) { js += text.slice(last, m.index + m[0].indexOf(">") + 1).replace(/[^\n]/g, " ") + m[1]; last = m.index + m[0].length - 9 /* the closing script tag */; }
+        js += text.slice(last).replace(/[^\n]/g, " ");
+        const f = { name: inp.name, lang: "js", shownLang: "html", text, lines: text.split("\n"), toks: tokenize(js, "js"), syms: [] };
+        out.files.push(f); continue;
+      }
+      out.files.push({ name: inp.name, lang, shownLang: lang, text, lines: text.split("\n"), toks: tokenize(text, lang), syms: [] });
+    }
+    for (const f of out.files) analyzeFile(f, out);
+    linkUses(out);
+    for (const s of out.syms) s.text = explain(out, s);
+    out.langs = [...new Set(out.files.map(f => LANG_NAME[f.shownLang] || f.shownLang))];
+    return out;
+  }
+  return { analyze, tokenize, langOf, explain, LANG_NAME, words };
+})();
+
+// ---- the code reader: its own page and its own data, separate from the crawl
+const CODE = { model: null, inputs: [], tab: "map", sel: null, path: [], st: { born: 0, hover: -1, focus: -1, layout: null }, file: 0, query: "", ai: new Map(), lineMaps: new Map() };
+const codeOpen = () => !$("codePage").hidden;
+const CODE_EXAMPLE = [
+  { name: "cart.js", text: `// A tiny shopping cart, to show what the code reader does
+const TAX_RATE = 0.08;
+let cartItems = [];
+let cartCount = 0;
+
+/** Adds an item to the cart, then redraws the page. */
+function addItem(name, price, qty = 1) {
+  cartItems.push({ name, price, qty });
+  cartCount += qty;
+  render();
+  return cartCount;
+}
+
+// Removes every item with this name
+function removeItem(name) {
+  const before = cartItems.length;
+  cartItems = cartItems.filter(item => item.name !== name);
+  cartCount = cartItems.reduce((n, item) => n + item.qty, 0);
+  render();
+  return before - cartItems.length;
+}
+
+function totalPrice() {
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  return Math.round(subtotal * (1 + TAX_RATE) * 100) / 100;
+}
+
+function render() {
+  document.querySelector("#count").textContent = cartCount;
+  document.querySelector("#total").textContent = "$" + totalPrice();
+}
+
+document.querySelector("#buy").addEventListener("click", checkout);
+async function checkout() {
+  const res = await fetch("/api/order", { method: "POST", body: JSON.stringify(cartItems) });
+  if (res.ok) { cartItems = []; cartCount = 0; render(); }
+}
+` },
+  { name: "report.py", text: `"""Builds a sales report from the orders."""
+import json
+from datetime import date
+
+class Report:
+    """A summary of one day's orders."""
+    def __init__(self, orders):
+        self.orders = orders
+        self.day = date.today()
+
+    def total(self):
+        # add up every order
+        return sum(o["price"] * o["qty"] for o in self.orders)
+
+    def best_seller(self):
+        counts = {}
+        for o in self.orders:
+            counts[o["name"]] = counts.get(o["name"], 0) + o["qty"]
+        return max(counts, key=counts.get) if counts else None
+
+def save_report(report, path):
+    with open(path, "w") as f:
+        json.dump({"day": str(report.day), "total": report.total()}, f)
+` }
+];
+const KIND_GROUP = [["function", "Functions"], ["method", "Methods"], ["class", "Classes"], ["type", "Types"], ["module", "Modules"], ["variable", "Variables"], ["constant", "Constants"], ["property", "Properties"], ["import", "Imports"]];
+const KIND_LABEL = { function: "function", method: "method", class: "class", type: "type", module: "module", variable: "variable", constant: "constant", property: "property", import: "import" };
+const codeColor = i => C.cats[i % 8];
+// the parts worth listing: top level and class members, not every local inside a function
+const mainPart = s => !s.parent || ["class", "type", "module"].includes(s.parent.kind);
+function codeLoad(inputs, label) {
+  const files = inputs.filter(f => f && typeof f.text === "string" && f.text.length && !/\u0000/.test(f.text.slice(0, 2000)));
+  if (!files.length) { toast("There's no code in that to read."); return false; }
+  CODE.inputs = files; CODE.label = label || (files.length === 1 ? files[0].name : `${files.length} files`);
+  try { CODE.model = CodeParse.analyze(files); } catch (e) { console.error(e); toast("Couldn't read that code."); return false; }
+  CODE.sel = null; CODE.path = []; CODE.file = 0; CODE.ai.clear(); CODE.lineMaps.clear(); CODE.st.born = performance.now();
+  // keep it for next time if it isn't huge
+  const size = files.reduce((t, f) => t + f.text.length, 0);
+  store.set("cak3d-code", size < 1500000 ? { label: CODE.label, files: files.map(f => ({ name: f.name, text: f.text })) } : null);
+  codeRender();
+  return true;
+}
+function openCode() {
+  closeMenu && closeMenu();
+  if (!CODE.model) { const saved = store.get("cak3d-code"); if (saved && saved.files && saved.files.length) codeLoad(saved.files, saved.label); else { codeLoad(CODE_EXAMPLE, "Example code"); CODE.example = true; } }
+  $("codePage").hidden = false; document.body.classList.add("store-open");
+  CODE.st.born = performance.now(); codeRender(); $("cdH").focus();
+}
+function closeCode() { $("codePage").hidden = true; document.body.classList.remove("store-open"); }
+const symById = id => CODE.model.syms[id];
+const codeName = s => s.parent && ["class", "type", "module"].includes(s.parent.kind) ? `${s.parent.name}.${s.name}` : s.name;
+// the web: the whole project in the middle, or the part you opened with what it touches around it
+function codeGroups() {
+  const M = CODE.model; if (!M) return [];
+  const item = s => ({ id: s.id, label: s.name, strong: ["function", "method", "class", "type"].includes(s.kind), s });
+  if (!CODE.path.length) {
+    const parts = M.syms.filter(mainPart);
+    if (M.files.length > 1) return M.files.map((f, i) => ({ name: f.name.split("/").pop(), color: codeColor(i), list: parts.filter(s => s.file === f.name && s.kind !== "import").sort(byWeight).slice(0, 40).map(item) })).filter(g => g.list.length);
+    return KIND_GROUP.map(([k, n], i) => ({ name: n, color: codeColor(i), list: parts.filter(s => s.kind === k).sort(byWeight).slice(0, 40).map(item) })).filter(g => g.list.length);
+  }
+  const s = symById(CODE.path[CODE.path.length - 1]), seen = new Set([s.id]);
+  const take = (name, ids, ci) => { const list = [...ids].map(symById).filter(x => x && !seen.has(x.id)); list.forEach(x => seen.add(x.id)); return { name, color: codeColor(ci), list: list.sort(byWeight).slice(0, 24).map(item) }; };
+  const writersOf = new Set(s.uses.filter(u => u.how === "write" && u.inside != null).map(u => u.inside)), readersOf = new Set(s.uses.filter(u => u.how !== "write" && u.how !== "call" && u.inside != null).map(u => u.inside));
+  return [take("It calls", s.calls, 0), take("Called by", s.calledBy, 1), take("It changes", s.writes, 2), take("It reads", s.reads, 3), take("Inside it", s.members.filter(mainPart).map(m => m.id), 4), take("Changed in", writersOf, 5), take("Used in", readersOf, 6)].filter(g => g.list.length);
+}
+const byWeight = (a, b) => (b.uses.length + b.calls.size) - (a.uses.length + a.calls.size) || a.line - b.line;
+function drawCodeMap(now) {
+  if (!CODE.model) return;
+  const center = CODE.path.length ? symById(CODE.path[CODE.path.length - 1]).name : CODE.label;
+  silkPaint($("cdCanvas"), CODE.st, { center, groups: codeGroups(), sel: CODE.sel, empty: CODE.path.length ? "Nothing else in this code connects to it." : "No functions, classes or variables found." }, now);
+}
+function codeTrail() {
+  const crumbs = [[-1, CODE.label], ...CODE.path.map(id => [id, symById(id).name])];
+  $("cdTrail").innerHTML = crumbs.map(([id, l], i) => `${i ? "<span>›</span>" : ""}<button type="button" data-cd-to="${i}" aria-current="${i === crumbs.length - 1}">${esc(trunc(l, 28))}</button>`).join("");
+  $("cdHint").textContent = CODE.path.length ? "In the middle is the part you opened. Around it: what it calls, what calls it, what it reads and changes. Tap one to go further." : CODE.model && CODE.model.files.length > 1 ? "Each section is a file and each cell one of its functions, classes or variables. Tap one to see what it does and what it's connected to." : "Each section is a kind of thing in the code. Tap one to see what it does and what it's connected to.";
+}
+// select a part: explain it in the side panel, and spin its web
+function codeSelect(id, drill = true) {
+  const s = symById(id); if (!s) return;
+  CODE.sel = id;
+  if (drill) { const at = CODE.path.indexOf(id); if (at >= 0) CODE.path = CODE.path.slice(0, at + 1); else CODE.path.push(id); CODE.st.born = performance.now(); CODE.st.hover = CODE.st.focus = -1; }
+  codeTrail(); codeSide(); if (CODE.tab === "code") codeHighlightSel();
+  announce(`${s.name}, ${KIND_LABEL[s.kind]}`);
+}
+function codeBack(to) { CODE.path = CODE.path.slice(0, to); CODE.sel = CODE.path.length ? CODE.path[CODE.path.length - 1] : null; CODE.st.born = performance.now(); codeTrail(); codeSide(); }
+// plain words with `names` turned into links
+function codeText(t) {
+  return esc(t).replace(/`([^`]+)`/g, (m, nm) => { const s = CODE.model.syms.find(x => x.name === nm && mainPart(x)) || CODE.model.syms.find(x => x.name === nm); return s ? `<button type="button" class="cd-link" data-cd="${s.id}">${esc(nm)}</button>` : `<code>${esc(nm)}</code>`; });
+}
+const codeChips = (ids, empty) => { const list = [...ids].map(symById).filter(Boolean); return list.length ? `<div class="cd-chips">${list.sort(byWeight).slice(0, 30).map(x => `<button type="button" class="chip" data-cd="${x.id}"><i style="background:${codeColor(KIND_GROUP.findIndex(k => k[0] === x.kind))}"></i>${esc(codeName(x))}</button>`).join("")}${list.length > 30 ? `<span class="meta">and ${list.length - 30} more</span>` : ""}</div>` : `<p class="meta">${empty}</p>`; };
+function codeSide() {
+  const side = $("cdSide"), M = CODE.model;
+  if (!M) { side.innerHTML = ""; return; }
+  if (CODE.sel == null) {
+    const parts = M.syms.filter(mainPart), count = k => parts.filter(s => s.kind === k).length;
+    const fns = parts.filter(s => s.kind === "function" || s.kind === "method");
+    const entry = fns.filter(s => !s.calledBy.size && (s.calls.size || (s.events && s.events.size))).sort((a, b) => b.calls.size - a.calls.size).slice(0, 6);
+    const busiest = fns.filter(s => s.calledBy.size).sort((a, b) => b.uses.length - a.uses.length).slice(0, 6);
+    const lines = M.files.reduce((t, f) => t + f.lines.length, 0);
+    side.innerHTML = `<div><h3>${esc(CODE.label)}${CODE.example ? ' <span class="meta">(example)</span>' : ""}</h3>
+      <p>${plural(M.files.length, "file")} · ${lines.toLocaleString()} lines · ${esc(M.langs.join(", "))}</p>
+      <p class="meta">${[["function", "function"], ["method", "method"], ["class", "class"], ["variable", "variable"], ["constant", "constant"], ["import", "import"]].map(([k, w]) => count(k) ? plural(count(k), w) : "").filter(Boolean).join(" · ")}</p></div>
+      ${entry.length ? `<div><h3>Good places to start</h3><p class="meta">Functions that start things off: nothing in the code calls them, but they call others.</p>${codeChips(entry.map(s => s.id), "")}</div>` : ""}
+      ${busiest.length ? `<div><h3>Used the most</h3>${codeChips(busiest.map(s => s.id), "")}</div>` : ""}
+      ${CODE.example ? `<div><p class="meta">This is example code. Open your own with <b>Open code</b> at the top: paste it, pick files, a .zip of a project, or a GitHub link.</p></div>` : ""}`;
+    return;
+  }
+  const s = symById(CODE.sel), f = M.files.find(x => x.name === s.file);
+  const snippet = f ? f.lines.slice(s.line - 1, Math.min(f.lines.length, (s.endLine || s.line) , s.line + 11)).join("\n") : "";
+  const uses = s.uses.slice(0, 40);
+  side.innerHTML = `<div><button type="button" class="linkish" data-cd-act="back">← The whole project</button></div>
+    <div><p class="cd-kind">${esc(KIND_LABEL[s.kind])}${s.parent && mainPart(s) ? ` in ${esc(s.parent.name)}` : ""}</p><p class="term">${esc(s.name)}</p>
+      <p class="meta"><button type="button" class="linkish" data-cd-line="${esc(s.file)}:${s.line}">${esc(s.file)}, line ${s.line}${s.endLine && s.endLine > s.line ? `–${s.endLine}` : ""}</button></p></div>
+    <div class="cd-explain"><h3>What it is</h3><p>${codeText(s.text)}</p>
+      ${SAMPLE ? `<p><button type="button" class="btn" data-cd-act="ai">Explain it with ${esc(aiName())}</button></p><div id="cdAi" class="answer"${CODE.ai.has(s.id) ? "" : " hidden"}>${CODE.ai.has(s.id) ? esc(CODE.ai.get(s.id)) : ""}</div>` : ""}</div>
+    ${snippet ? `<div><h3>The code</h3><pre class="cd-snip">${esc(snippet)}${s.endLine && s.endLine > s.line + 11 ? "\n…" : ""}</pre></div>` : ""}
+    ${["function", "method"].includes(s.kind) ? `<div><h3>It calls</h3>${codeChips(s.calls, "Nothing in this code.")}</div><div><h3>Called by</h3>${codeChips(s.calledBy, "Nothing in this code calls it by name.")}</div>${s.writes.size ? `<div><h3>It changes</h3>${codeChips(s.writes, "")}</div>` : ""}${s.reads.size ? `<div><h3>It reads</h3>${codeChips(s.reads, "")}</div>` : ""}` : ""}
+    ${s.members.filter(mainPart).length ? `<div><h3>Inside it</h3>${codeChips(s.members.filter(mainPart).map(m => m.id), "")}</div>` : ""}
+    <div><h3>Where it's used (${s.uses.length})</h3>${uses.length ? `<ol class="cd-uses">${uses.map(u => { const lf = M.files.find(x => x.name === u.file); const ln = lf ? lf.lines[u.line - 1].trim() : ""; return `<li><button type="button" class="linkish" data-cd-line="${esc(u.file)}:${u.line}">${esc(u.file.split("/").pop())}:${u.line}</button> <span class="cd-how cd-${u.how}">${u.how === "write" ? "changes it" : u.how === "call" ? "calls it" : "reads it"}</span><code>${esc(trunc(ln, 90))}</code></li>`; }).join("")}</ol>${s.uses.length > 40 ? `<p class="meta">and ${s.uses.length - 40} more</p>` : ""}` : '<p class="meta">Nowhere else in this code.</p>'}</div>`;
+}
+// ---- the code itself, with colors, line numbers and tappable names
+const CD_KW = new Set("if else for while do switch case default break continue return try catch finally throw new delete typeof instanceof in of void this super class extends implements interface enum import export from as await async yield static public private protected readonly abstract final const let var function true false null undefined nil None True False and or not is lambda def pass with elif except raise global nonlocal assert struct func fn impl trait pub use mod match loop val fun object when override package type echo then fi done esac local self".split(" "));
+function codeLineMap(f) {
+  if (CODE.lineMaps.has(f.name)) return CODE.lineMaps.get(f.name);
+  const map = new Map(); // line → name → symbol id
+  const put = (line, name, id) => { if (!map.has(line)) map.set(line, new Map()); if (!map.get(line).has(name)) map.get(line).set(name, id); };
+  for (const s of CODE.model.syms) { if (s.file === f.name) put(s.line, s.name, s.id); for (const u of s.uses) if (u.file === f.name) put(u.line, s.name, s.id); }
+  CODE.lineMaps.set(f.name, map); return map;
+}
+function codeRenderSrc() {
+  const M = CODE.model; if (!M) return;
+  const f = M.files[CODE.file] || M.files[0]; if (!f) return;
+  $("cdFileTabs").innerHTML = M.files.length > 1 ? M.files.map((x, i) => `<button type="button" class="chip" data-cd-file="${i}" aria-pressed="${i === CODE.file}">${esc(x.name)}</button>`).join("") : `<span class="meta">${esc(f.name)} · ${f.lines.length.toLocaleString()} lines</span>`;
+  const map = codeLineMap(f), hash = new Set(["py", "rb", "sh"]).has(f.lang) || f.shownLang === "py";
+  const limit = Math.min(f.lines.length, CODE.showAll ? 20000 : 3000);
+  let inBlock = null, out = "";
+  for (let i = 0; i < limit; i++) {
+    const raw = f.lines[i], names = map.get(i + 1);
+    let html = "", j = 0;
+    while (j < raw.length) {
+      if (inBlock) { const end = raw.indexOf(inBlock.close, j); const stop = end < 0 ? raw.length : end + inBlock.close.length; html += `<span class="${inBlock.cls}">${esc(raw.slice(j, stop))}</span>`; j = stop; if (end >= 0) inBlock = null; continue; }
+      const c = raw[j], two = raw.slice(j, j + 2), three = raw.slice(j, j + 3);
+      if ((two === "//" && !hash) || (c === "#" && hash)) { html += `<span class="cm">${esc(raw.slice(j))}</span>`; break; }
+      if (two === "/*" && !hash) { inBlock = { close: "*/", cls: "cm" }; continue; }
+      if ((three === '"""' || three === "'''") && f.lang === "py") { const end = raw.indexOf(three, j + 3); if (end < 0) { inBlock = { close: three, cls: "st" }; html += `<span class="st">${esc(raw.slice(j))}</span>`; j = raw.length; } else { html += `<span class="st">${esc(raw.slice(j, end + 3))}</span>`; j = end + 3; } continue; }
+      if (c === "`" && f.lang === "js") { const end = raw.indexOf("`", j + 1); if (end < 0) { inBlock = { close: "`", cls: "st" }; html += `<span class="st">${esc(raw.slice(j))}</span>`; j = raw.length; } else { html += `<span class="st">${esc(raw.slice(j, end + 1))}</span>`; j = end + 1; } continue; }
+      if (c === '"' || c === "'") { let k = j + 1; while (k < raw.length && raw[k] !== c) { if (raw[k] === "\\") k++; k++; } html += `<span class="st">${esc(raw.slice(j, k + 1))}</span>`; j = k + 1; continue; }
+      if (/[0-9]/.test(c) && !/[\w$]/.test(raw[j - 1] || "")) { let k = j + 1; while (k < raw.length && /[\w.]/.test(raw[k])) k++; html += `<span class="nu">${esc(raw.slice(j, k))}</span>`; j = k; continue; }
+      if (/[A-Za-z_$@]/.test(c)) {
+        let k = j + 1; while (k < raw.length && /[\w$]/.test(raw[k])) k++;
+        const w = raw.slice(j, k), nm = w.replace(/^[@$]/, ""), id = names && names.get(nm);
+        if (id != null) html += `<button type="button" class="cd-n${CODE.sel === id ? " hit" : ""}${symById(id).line === i + 1 && symById(id).file === f.name ? " def" : ""}" data-cd="${id}">${esc(w)}</button>`;
+        else html += CD_KW.has(w) ? `<span class="kw">${esc(w)}</span>` : esc(w);
+        j = k; continue;
+      }
+      html += esc(c); j++;
+    }
+    out += `<span class="ln" id="cdl-${i + 1}"><i>${i + 1}</i>${html || " "}</span>`;
+  }
+  $("cdSrc").innerHTML = out + (f.lines.length > limit ? `<span class="ln"><i></i><button type="button" class="btn" data-cd-act="all">Show all ${f.lines.length.toLocaleString()} lines</button></span>` : "");
+}
+function codeHighlightSel() { for (const b of $("cdSrc").querySelectorAll(".cd-n")) b.classList.toggle("hit", +b.dataset.cd === CODE.sel); }
+function codeGoLine(file, line) {
+  const i = CODE.model.files.findIndex(f => f.name === file); if (i < 0) return;
+  if (CODE.file !== i || CODE.tab !== "code") { CODE.file = i; codeTab("code"); }
+  if (line > 3000 && !CODE.showAll) { CODE.showAll = true; codeRenderSrc(); }
+  const el = $("cdl-" + line); if (!el) return;
+  el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  el.classList.remove("flash-block"); void el.offsetWidth; el.classList.add("flash-block");
+}
+// ---- readable docs: every main part of the code, explained
+function codeDocs() {
+  const M = CODE.model; if (!M) return;
+  const q = CODE.query.trim().toLowerCase();
+  const parts = M.syms.filter(mainPart).filter(s => s.kind !== "import" || q).filter(s => !q || s.name.toLowerCase().includes(q) || s.text.toLowerCase().includes(q));
+  $("cdDocs").innerHTML = M.files.map(f => {
+    const list = parts.filter(s => s.file === f.name).sort((a, b) => a.line - b.line);
+    if (!list.length) return "";
+    return `<section class="cd-file"><h3>${esc(f.name)} <span class="meta">${esc(CodeParse.LANG_NAME[f.shownLang] || f.shownLang)} · ${f.lines.length.toLocaleString()} lines</span></h3>
+      ${list.map(s => `<article class="cd-doc"><p><button type="button" class="cd-link" data-cd="${s.id}"><b>${esc(codeName(s))}</b></button> <span class="cd-kind">${esc(KIND_LABEL[s.kind])}</span>${s.sig ? ` <code>${esc(trunc(s.sig, 90))}</code>` : ""}</p><p>${codeText(s.text)}</p></article>`).join("")}</section>`;
+  }).join("") || `<p class="meta">Nothing matches “${esc(CODE.query)}”.</p>`;
+}
+function codeMarkdown() {
+  const M = CODE.model, parts = M.syms.filter(mainPart);
+  return `# ${CODE.label}\n\n${plural(M.files.length, "file")}, ${M.langs.join(", ")}. Explained by Arachnotes.\n\n` + M.files.map(f => {
+    const list = parts.filter(s => s.file === f.name).sort((a, b) => a.line - b.line);
+    return list.length ? `## ${f.name}\n\n` + list.map(s => `### ${codeName(s)} (${KIND_LABEL[s.kind]}, line ${s.line})\n\n${s.sig ? "`" + s.sig + "`\n\n" : ""}${s.text}\n`).join("\n") : "";
+  }).filter(Boolean).join("\n");
+}
+function codeTab(t) {
+  CODE.tab = t;
+  for (const b of $("cdTabs").children) b.setAttribute("aria-selected", String(b.dataset.cdt === t));
+  $("cdMapPane").hidden = t !== "map"; $("cdCodePane").hidden = t !== "code"; $("cdDocsPane").hidden = t !== "docs";
+  if (t === "code") codeRenderSrc();
+  if (t === "docs") codeDocs();
+  if (t === "map") CODE.st.born = performance.now();
+}
+function codeRender() {
+  const M = CODE.model; if (!M) return;
+  const parts = M.syms.filter(mainPart);
+  $("cdSum").textContent = `${CODE.label} · ${plural(M.files.length, "file")} · ${plural(parts.filter(s => s.kind === "function" || s.kind === "method").length, "function")}`;
+  codeTrail(); codeSide(); codeTab(CODE.tab);
+}
+// ---- getting code in: paste, files, a .zip of a project, or a GitHub link
+const CODE_EXT = /\.(js|mjs|cjs|jsx|ts|tsx|mts|cts|vue|svelte|py|pyw|rb|sh|bash|zsh|java|kt|kts|scala|groovy|dart|c|h|cpp|cc|cxx|hpp|hh|cs|go|rs|swift|php|m|html?|lua)$/i;
+const CODE_SKIP = /(^|\/)(node_modules|\.git|dist|build|out|vendor|bower_components|\.next|\.nuxt|target|bin|obj|__pycache__|\.venv|venv|coverage|Pods)\//;
+const CODE_LIMIT = { files: 400, bytes: 8 * 1024 * 1024, one: 2 * 1024 * 1024 };
+async function codeFromFiles(list) {
+  const files = [], skipped = []; let bytes = 0;
+  for (const file of list) {
+    if (/\.zip$/i.test(file.name)) { await codeFromZip(file); return; }
+    if (!CODE_EXT.test(file.name)) { skipped.push(file.name); continue; }
+    if (file.size > CODE_LIMIT.one || bytes + file.size > CODE_LIMIT.bytes || files.length >= CODE_LIMIT.files) { skipped.push(file.name); continue; }
+    bytes += file.size; files.push({ name: file.webkitRelativePath || file.name, text: await file.text() });
+  }
+  if (!files.length) { toast(skipped.length ? "Those don't look like code files. Try .js, .py, .java, .cs, .go and so on, or a .zip of a project." : "No files picked."); return; }
+  CODE.example = false;
+  if (codeLoad(files)) toast(`Read ${plural(files.length, "file")}${skipped.length ? `, skipped ${skipped.length} that aren't code or are too big` : ""}.`);
+}
+async function codeFromZip(file) {
+  try {
+    const JSZip = await getJSZip(), zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const entries = Object.values(zip.files).filter(e => !e.dir && CODE_EXT.test(e.name) && !CODE_SKIP.test("/" + e.name) && !/\.min\.(js|css)$/.test(e.name));
+    const files = []; let bytes = 0;
+    for (const e of entries.sort((a, b) => a.name.length - b.name.length)) {
+      if (files.length >= CODE_LIMIT.files || bytes > CODE_LIMIT.bytes) break;
+      const text = await e.async("string"); if (text.length > CODE_LIMIT.one) continue;
+      bytes += text.length; files.push({ name: e.name.replace(/^[^/]+\/(?=.+\/)/, ""), text });
+    }
+    if (!files.length) { toast("That .zip doesn't have any code files in it."); return; }
+    CODE.example = false;
+    if (codeLoad(files, file.name.replace(/\.zip$/i, ""))) toast(`Read ${plural(files.length, "file")} from ${file.name}${entries.length > files.length ? ` (the first ${files.length} of ${entries.length})` : ""}.`);
+  } catch (e) { toast("Couldn't open that .zip. Is it a complete download?"); }
+}
+async function codeFromGitHub(url) {
+  const note = $("cdGitNote"), say = t => { note.textContent = t; };
+  const m = /github\.com\/([^/\s]+)\/([^/\s#?]+)(?:\/(tree|blob)\/([^/\s]+)\/?([^\s#?]*))?/i.exec(url.trim());
+  if (!m) { say("That isn't a GitHub link. It should look like github.com/owner/project."); return; }
+  const [, owner, repo0, kind, branch0, path = ""] = m, repo = repo0.replace(/\.git$/, "");
+  try {
+    if (kind === "blob") { // one file
+      say("Getting the file…");
+      const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch0}/${path}`); if (!r.ok) throw new Error(r.status);
+      CODE.example = false; if (codeLoad([{ name: path.split("/").pop(), text: await r.text() }])) { $("dCodeGit").close(); } return;
+    }
+    say("Looking at the project…");
+    let branch = branch0;
+    if (!branch) { const info = await fetch(`https://api.github.com/repos/${owner}/${repo}`); if (info.status === 404) throw new Error("missing"); if (!info.ok) throw new Error(info.status); branch = (await info.json()).default_branch; }
+    const tr = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`); if (!tr.ok) throw new Error(tr.status);
+    const tree = (await tr.json()).tree || [];
+    const want = tree.filter(e => e.type === "blob" && CODE_EXT.test(e.path) && (!path || e.path.startsWith(path)) && !CODE_SKIP.test("/" + e.path) && !/\.min\.js$/.test(e.path) && (e.size || 0) < CODE_LIMIT.one)
+      .sort((a, b) => a.path.split("/").length - b.path.split("/").length || a.path.localeCompare(b.path)).slice(0, 150);
+    if (!want.length) { say("No code files found there."); return; }
+    const files = []; let done = 0;
+    const queue = want.slice();
+    await Promise.all(Array.from({ length: 6 }, async () => { while (queue.length) { const e = queue.shift(); try { const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${e.path}`); if (r.ok) files.push({ name: e.path, text: await r.text() }); } catch (err) { /* skip it */ } say(`Reading files… ${++done} of ${want.length}`); } }));
+    files.sort((a, b) => a.name.localeCompare(b.name));
+    CODE.example = false;
+    if (codeLoad(files, `${owner}/${repo}`)) { $("dCodeGit").close(); toast(`Read ${plural(files.length, "file")} from ${owner}/${repo}${want.length >= 150 ? " (the first 150)" : ""}.`); }
+  } catch (e) {
+    say(String(e.message) === "missing" ? "Couldn't find that project. Is it public, and is the name right?" : String(e.message) === "403" ? "GitHub says to slow down (it allows 60 project looks an hour without a login). Try again later, or download the project as a .zip and open that." : IN_CLAUDE ? "This version can't reach GitHub. Open the web or Android app, or download the project as a .zip." : "Couldn't reach GitHub. Check your connection, or download the project as a .zip and open that.");
+  }
+}
+// explain a part with the AI the person set up
+async function codeAi(s) {
+  if (!SAMPLE) return;
+  const M = CODE.model, f = M.files.find(x => x.name === s.file), box = $("cdAi");
+  const body = f ? f.lines.slice(s.line - 1, Math.min(f.lines.length, (s.endLine || s.line) + 0, s.line + 119)).join("\n") : "";
+  const ctx2 = [s.calls.size ? `It calls: ${[...s.calls].map(i => symById(i).name).slice(0, 12).join(", ")}.` : "", s.calledBy.size ? `It's called by: ${[...s.calledBy].map(i => symById(i).name).slice(0, 12).join(", ")}.` : ""].filter(Boolean).join(" ");
+  const prompt = `Explain this ${CodeParse.LANG_NAME[f ? f.shownLang : "js"] || ""} ${KIND_LABEL[s.kind]} called ${s.name} in plain English for someone who is learning to code. Say what it does, what goes in and what comes out, in under 140 words. Then, only if there is one, add one short line starting "Watch out:" about a likely bug or risk. Don't repeat the code. ${ctx2}\n\nCode (from ${s.file}, line ${s.line}):\n\`\`\`\n${body}\n\`\`\``;
+  box.hidden = false; box.textContent = `${aiName()} is reading the code…`;
+  try { const { text } = await SAMPLE(prompt, { onText: ({ text }) => { if (CODE.sel === s.id) box.textContent = text; } }); CODE.ai.set(s.id, text); if (CODE.sel === s.id) box.textContent = text; }
+  catch (e) { box.textContent = sampleErr(e); }
+}
+// ---- wiring
+$("bCode").onclick = () => openCode();
+$("cdBack").onclick = closeCode;
+$("cdTabs").addEventListener("click", e => { const b = e.target.closest("[data-cdt]"); if (b) codeTab(b.dataset.cdt); });
+$("cdTrail").addEventListener("click", e => { const b = e.target.closest("[data-cd-to]"); if (b && b.getAttribute("aria-current") !== "true") codeBack(+b.dataset.cdTo); });
+$("codePage").addEventListener("click", e => {
+  const ln = e.target.closest("[data-cd-line]"); if (ln) { const [file, line] = [ln.dataset.cdLine.slice(0, ln.dataset.cdLine.lastIndexOf(":")), +ln.dataset.cdLine.split(":").pop()]; codeGoLine(file, line); return; }
+  const fl = e.target.closest("[data-cd-file]"); if (fl) { CODE.file = +fl.dataset.cdFile; CODE.showAll = false; codeRenderSrc(); $("cdCodePane").scrollTop = 0; return; }
+  const act = e.target.closest("[data-cd-act]");
+  if (act) { const a = act.dataset.cdAct; if (a === "back") codeBack(0); else if (a === "ai") codeAi(symById(CODE.sel)); else if (a === "all") { CODE.showAll = true; codeRenderSrc(); } return; }
+  const b = e.target.closest("[data-cd]"); if (b) { const inSrc = !!e.target.closest("#cdSrc"); codeSelect(+b.dataset.cd, !inSrc); if (inSrc) codeSide(); return; }
+});
+$("cdCanvas").addEventListener("click", e => {
+  const r = $("cdCanvas").getBoundingClientRect(), i = silkHit(CODE.st, e.clientX - r.left, e.clientY - r.top);
+  if (i === -2 && CODE.path.length) { codeBack(CODE.path.length - 1); return; }
+  if (i >= 0) codeSelect(CODE.st.layout.cells[i].item.id);
+});
+$("cdCanvas").addEventListener("pointermove", e => { const r = $("cdCanvas").getBoundingClientRect(); CODE.st.hover = silkHit(CODE.st, e.clientX - r.left, e.clientY - r.top); });
+$("cdCanvas").addEventListener("pointerleave", () => { CODE.st.hover = -1; });
+$("cdCanvas").addEventListener("keydown", e => {
+  const L = CODE.st.layout, n = L ? L.cells.length : 0;
+  if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key) && n) { e.preventDefault(); const fwd = e.key === "ArrowRight" || e.key === "ArrowDown"; CODE.st.focus = CODE.st.focus < 0 ? (fwd ? 0 : n - 1) : (CODE.st.focus + (fwd ? 1 : n - 1)) % n; const it = L.cells[CODE.st.focus].item; announce(`${it.label}, ${L.cells[CODE.st.focus].group.name}`); }
+  else if (e.key === "Enter" && CODE.st.focus >= 0) { e.preventDefault(); codeSelect(L.cells[CODE.st.focus].item.id); }
+  else if (e.key === "Backspace" && CODE.path.length) { e.preventDefault(); codeBack(CODE.path.length - 1); }
+});
+let cdSearchT = 0;
+$("cdSearch").addEventListener("input", () => { clearTimeout(cdSearchT); cdSearchT = setTimeout(() => { CODE.query = $("cdSearch").value; codeDocs(); }, 150); });
+$("cdSaveMd").onclick = () => saveFile(`${slug(CODE.label)}-explained.md`, codeMarkdown());
+// the Open code menu
+$("cdOpen").addEventListener("click", e => { e.stopPropagation(); const m = $("cdOpenMenu"); m.hidden = !m.hidden; $("cdOpen").setAttribute("aria-expanded", String(!m.hidden)); if (!m.hidden) m.querySelector("button, label").focus(); });
+document.addEventListener("click", e => { if (!e.target.closest("#cdOpenMenu, #cdOpen")) { $("cdOpenMenu").hidden = true; $("cdOpen").setAttribute("aria-expanded", "false"); } });
+$("cdOpenMenu").addEventListener("click", e => { if (e.target.closest("button")) { $("cdOpenMenu").hidden = true; $("cdOpen").setAttribute("aria-expanded", "false"); } });
+$("cdPasteBtn").onclick = () => { $("cdPasteText").value = ""; $("cdPasteName").value = ""; $("dCodePaste").showModal(); $("cdPasteText").focus(); };
+$("cdPasteGo").onclick = () => {
+  const text = $("cdPasteText").value; if (!text.trim()) { $("cdPasteText").focus(); return; }
+  let name = $("cdPasteName").value.trim();
+  if (!name) { const lang = CodeParse.langOf("", text); name = "pasted." + ({ js: "js", py: "py", rb: "rb", sh: "sh", java: "java", kt: "kt", c: "c", cs: "cs", go: "go", rs: "rs", swift: "swift", php: "php" }[lang] || "js"); }
+  CODE.example = false;
+  if (codeLoad([{ name, text }], name)) $("dCodePaste").close();
+};
+$("cdFiles").addEventListener("change", async e => { const list = [...e.target.files]; e.target.value = ""; if (list.length) await codeFromFiles(list); });
+$("cdGitBtn").onclick = () => { $("cdGitNote").textContent = "A whole project (github.com/owner/project), a folder in it, or one file."; $("dCodeGit").showModal(); $("cdGitUrl").focus(); };
+$("cdGitGo").onclick = () => codeFromGitHub($("cdGitUrl").value);
+$("cdGitUrl").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); codeFromGitHub($("cdGitUrl").value); } });
+$("cdExample").onclick = () => { CODE.example = true; codeLoad(CODE_EXAMPLE, "Example code"); };
+addEventListener("keydown", e => {
+  if (!codeOpen() || e.key !== "Escape" || document.querySelector("dialog[open]")) return;
+  e.preventDefault(); e.stopPropagation();
+  if (!$("cdOpenMenu").hidden) { $("cdOpenMenu").hidden = true; return; }
+  closeCode();
+}, true);
+
 // ---- the store page: tabs of categories, a featured banner, cards, and a detail panel for each item
 let storeTab = "featured", storeFromSettings = false, sheetId = null, sheetRaf = 0;
 const storeOpen = () => !$("storePage").hidden;
@@ -8089,8 +9050,9 @@ $("fSource").addEventListener("submit", async e => {
 // keyboard
 addEventListener("keydown", e => {
   if (e.key === "Escape") { hidePop(); stopSpeaking(); $("hlBtn").hidden = true; if (!$("statsPanel").hidden && !document.querySelector("dialog[open]") && !WV.open && findP.hidden && !storeOpen()) { toggleStats(false); return; } if (!findP.hidden && !document.querySelector("dialog[open]")) { closeFind(); return; } if (WV.open && !document.querySelector("dialog[open]")) closeWeb(); return; }
-  if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]") || storeOpen() || explaining) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]") || storeOpen() || codeOpen() || explaining) return;
   const t = e.target; if (t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+  if (e.key.toLowerCase() === "k" && !WV.open) { e.preventDefault(); openCode(); return; }
   if (WV.open && WV.tab === "cards") {
     if (e.key === " ") { e.preventDefault(); fcAct("flip"); return; }
     if (FC.mode === "study" && FC.flip && /^[1-4]$/.test(e.key)) { gradeCard(+e.key - 1); return; }
@@ -8123,7 +9085,8 @@ function frame(now) {
   try {
     update(dt, now);
     if (!WV.open) updAmbient(dt, now);
-    if (WV.open) { if (WV.tab === "graph") drawGraph(); else if (WV.tab === "orb") drawOrb(now); }
+    if (codeOpen()) { if (CODE.tab === "map") drawCodeMap(now); }
+    else if (WV.open) { if (WV.tab === "graph") drawGraph(); else if (WV.tab === "orb") drawOrb(now); }
     else { draw(now); if (++frameN % 6 === 0) drawMini(); }
   } catch (e) {
     // put the spider back on its feet and carry on; report once so it can be fixed

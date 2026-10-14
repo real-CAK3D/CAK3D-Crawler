@@ -55,6 +55,9 @@ for (const [name, vp] of SIZES) for (const scheme of ["light", "dark"]) {
     for (const t of ["graph", "chart", "timeline", "compare", "cards"]) { await page.locator(`#wvTabs [data-tab="${t}"]`).click(); await page.waitForTimeout(800); await check("10-web-" + t); }
     await page.locator("#wvClose").click();
     await tool(page, "bFind"); await check("11-find"); await page.keyboard.press("Escape");
+    await tool(page, "bCode"); await page.waitForTimeout(800); await check("12-code-map");
+    for (const t of ["code", "docs"]) { await page.locator(`#cdTabs [data-cdt="${t}"]`).click(); await check("12-code-" + t); }
+    await page.locator("#cdOpen").click(); await check("12-code-open"); await page.keyboard.press("Escape"); await page.locator("#cdBack").click();
     console.log(`\n=== ${name} ${scheme}: ${problems.length} problem(s)\n` + [...new Set(problems)].join("\n"));
     expect([...new Set(problems)]).toEqual([]);
   });
