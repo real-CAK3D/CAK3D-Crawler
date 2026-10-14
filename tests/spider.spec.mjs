@@ -26,6 +26,7 @@ test("sound settings switch on without errors", async ({ page }) => {
   await page.locator("#page").click({ position: { x: 10, y: 10 } }); // sound needs a tap first
   await page.waitForTimeout(1500);
   await page.locator("#bSettings").click();
+  await page.locator('#setTabs [data-p="webfx"]').click();
   await page.locator('#setTabs [data-g="fx"]').click();
   for (const [id, v] of [["#cfgAmbience", "night"], ["#cfgMusic", "spooky"], ["#cfgAmbience", "fire"], ["#cfgMusic", "sea"], ["#cfgMusic", "off"], ["#cfgAmbience", "none"]]) {
     await page.locator(id).selectOption(v); await page.waitForTimeout(400);
@@ -75,7 +76,7 @@ test("Settings is a full page that doesn't change size between tabs", async ({ p
   const size = async () => page.locator("#dSettings").evaluate(d => { const r = d.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
   const vp = page.viewportSize(), first = await size();
   expect(first).toEqual([vp.width, vp.height]);
-  for (const g of ["moves", "theme", "research", "support"]) { await page.locator(`#setTabs [data-g="${g}"]`).click(); expect(await size()).toEqual(first); }
+  for (const sel of [`#setTabs [data-g="moves"]`, `#setTabs [data-g="theme"]`, `#setTabs [data-p="webfx"]`, `#setTabs [data-g="fx"]`, `#setTabs [data-g="research"]`, "#setHelp"]) { await page.locator(sel).click(); expect(await size()).toEqual(first); }
   await page.locator("#setBack").click();
   await expect(page.locator("#dSettings")).toBeHidden();
 });

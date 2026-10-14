@@ -57,13 +57,13 @@ test("help explains whatever you point at", async ({ page }) => {
 test("Settings shows a support ID and a way to report an issue", async ({ page }) => {
   await openApp(page);
   await page.locator("#bSettings").click();
-  await page.locator('#setTabs [data-g="support"]').click();
+  await page.locator("#setHelp").click();
   await expect(page.locator("#supId")).toHaveText(/^AN-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/);
   const id = await page.locator("#supId").textContent();
   await page.reload();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cak3d-id")))).toBe(id); // the same ID every time
   await page.locator("#bSettings").click();
-  await page.locator('#setTabs [data-g="support"]').click();
+  await page.locator("#setHelp").click();
   await page.locator("#repSend").click();
   await expect(page.locator("#repNote")).toHaveText("Write what went wrong first.");
   await expect(page.locator("#supLegal")).toContainText("CAK3D_Creations");

@@ -69,6 +69,7 @@
 .skip { position: absolute; left: 8px; top: -80px; z-index: 100; background: var(--ink); color: var(--paper); padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: 13px; }
 .skip:focus { top: 8px; }
 #wvCanvas:focus-visible { outline: 3px solid var(--link); outline-offset: -3px; }
+#wvCanvas { touch-action: none; }
 .glist { position: absolute; inset: 0; overflow: auto; padding: 16px 20px 70px; background: var(--paper); }
 .glist h3 { margin: 14px 0 6px; font-size: 1.05rem; }
 .glist ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; }
@@ -123,10 +124,47 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 .sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
 #weaveOut { width: 100%; font-family: var(--mono); font-size: 11px; resize: vertical; }
 #spiderPop .who { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+/* ---- every window opens as its own page, with a Back button at the top */
+dialog.page { width: 100vw !important; max-width: none !important; height: 100vh; height: 100dvh; max-height: none !important; margin: 0; border: 0; border-radius: 0; overflow-y: auto; }
+dialog.page > form, dialog.page > .body { min-height: 100%; padding: calc(env(safe-area-inset-top, 0px) + 14px) max(16px, calc((100% - 50rem) / 2)) calc(env(safe-area-inset-bottom, 0px) + 16px); }
+dialog.page .actions { position: sticky; bottom: 0; margin-top: auto; background: var(--paper); padding-block: 10px; border-top: 1px solid var(--rule); z-index: 1; }
+.page-back { align-self: flex-start; }
+/* pages arrive on a thread: they drop in, and a small spider runs down a strand in the corner */
+dialog.page[open], #dSettings[open] { animation: pageDrop .32s cubic-bezier(.2,.9,.3,1.05); }
+dialog.page[open]::after, #dSettings[open]::after { content: ""; position: fixed; top: 0; right: 22px; width: 9px; height: 64px; pointer-events: none; z-index: 2;
+  background: radial-gradient(circle at 50% calc(100% - 5px), var(--ink) 0 4px, transparent 4.5px), linear-gradient(var(--silk), var(--silk)) center top / 1px calc(100% - 9px) no-repeat;
+  animation: pageSpider 2.2s cubic-bezier(.3,.7,.4,1) forwards; }
+@keyframes pageDrop { from { opacity: 0; transform: translateY(-14px); } }
+@keyframes pageSpider { 0% { transform: translateY(-64px); } 45% { transform: translateY(0); } 70% { transform: translateY(-6px); } 100% { transform: translateY(-70px); opacity: 0; } }
+/* silk touches: tabs get a strand under the one you're on, panels get a cobweb in the corner, taps ripple like a web */
+.tabs [aria-selected="true"] { position: relative; }
+.tabs [aria-selected="true"]::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 2px; height: 1px; background: currentColor; opacity: .55; transform-origin: left; animation: tabSilk .35s ease-out; }
+@keyframes tabSilk { from { transform: scaleX(0); } }
+.sp-card, .st-hero, fieldset, .quote { position: relative; }
+.sp-card::before, .st-hero::before, fieldset::before { content: ""; position: absolute; top: 0; right: 0; width: 46px; height: 46px; pointer-events: none; opacity: .45;
+  background: repeating-radial-gradient(circle at 100% 0, transparent 0 7px, var(--rule) 7px 8px), repeating-conic-gradient(from 180deg at 100% 0, var(--rule) 0 1deg, transparent 1deg 18deg);
+  -webkit-mask: radial-gradient(circle at 100% 0, #000 30%, transparent 70%); mask: radial-gradient(circle at 100% 0, #000 30%, transparent 70%); border-top-right-radius: inherit; }
+.webrip { position: fixed; z-index: 70; pointer-events: none; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 7px, var(--silk) 7px 8px), repeating-conic-gradient(var(--silk) 0 1.5deg, transparent 1.5deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 35%, transparent 70%); mask: radial-gradient(circle, #000 35%, transparent 70%); animation: webRip .55s ease-out forwards; }
+@keyframes webRip { from { transform: scale(.2) rotate(-20deg); opacity: .9; } to { transform: scale(1.15); opacity: 0; } }
+#status.spun { background-image: linear-gradient(var(--silk), var(--silk)); background-size: 100% 1px; background-repeat: no-repeat; background-position: left bottom; animation: statusSilk .7s ease-out; }
+@keyframes statusSilk { from { background-size: 0 1px; } }
+@media (prefers-reduced-motion: reduce) {
+  dialog.page[open], #dSettings[open], .tabs [aria-selected="true"]::after, #status.spun { animation: none; }
+  dialog.page[open]::after, #dSettings[open]::after, .webrip { display: none; }
+}
+/* a short note that hangs down on a thread, used when the toolbar is covered */
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); z-index: 80; max-width: min(26rem, calc(100vw - 32px)); transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--paper); font: 13px/1.4 var(--mono); padding: 10px 14px; border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,.25); transition: opacity .2s, transform .25s cubic-bezier(.2,1.2,.4,1); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 0; background: var(--silk); transition: height .3s; }
+.toast.show::before { height: 26px; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } .toast::before { display: none; } }
 /* ---- support */
 .supid { font: 600 15px var(--mono); letter-spacing: .06em; padding: 6px 10px; border: 1px dashed var(--rule); border-radius: 6px; background: var(--paper); user-select: all; }
 /* ---- help */
-dialog.help { width: min(46rem, calc(100vw - 24px)); }
+
 .help-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-start; justify-content: space-between; }
 .help-head h2 { margin: 0; }
 .help-head .btn svg { width: 16px; height: 16px; vertical-align: -3px; }
@@ -213,9 +251,20 @@ body.wc-off span.kw:not(.caught):not(.packed), body.wc-off .echo { box-shadow: n
 .set-head .set-title { display: flex; align-items: center; gap: 12px; flex: 1 1 100%; }
 .set-head .set-title h2 { flex: 1; }
 .set-head .preset { flex: 1 1 14rem; }
-#dSettings #setTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
-#dSettings #setTabs::-webkit-scrollbar { display: none; }
-#dSettings #setTabs button { flex: none; }
+#dSettings #setTabs { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+#dSettings #setTabs .tabs { flex-wrap: wrap; }
+#dSettings .set-sub { border: 0; background: none; padding: 0 0 0 10px; border-left: 2px solid var(--silk); }
+#dSettings .set-sub button { font-size: 12px; padding: 4px 10px; }
+.set-help { margin-left: auto; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: 50%; }
+.set-help svg { width: 100%; height: 100%; display: block; }
+.set-help[aria-pressed="true"] { color: var(--link); }
+.set-help:hover svg, .set-help:focus-visible svg { animation: helpSpin 2.4s linear infinite; }
+@keyframes helpSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .set-help:hover svg, .set-help:focus-visible svg { animation: none; } }
+/* fields never push the page sideways: two columns only when there's room */
+.row2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)) !important; }
+.field, .row2 > * { min-width: 0; }
+.field select, .field input:not([type=checkbox]):not([type=radio]):not([type=range]) { max-width: 100%; width: 100%; box-sizing: border-box; }
 .set-body { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; overflow-y: auto; padding: 18px max(16px, calc((100% - 50rem) / 2)) 28px; }
 #dSettings > form > .actions { padding-top: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); border-top: 1px solid var(--rule); background: var(--panel); }
 .set-body section { display: flex; flex-direction: column; gap: 14px; }
@@ -227,7 +276,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* ---- top bar */
 .bar {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 13;
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
   padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--rule);
   font-family: var(--mono); font-size: 12.5px;
@@ -421,6 +470,17 @@ span.chip { cursor: default; }
 .orb-trail button[aria-current="true"] { color: var(--ink); text-decoration: none; font-weight: 600; cursor: default; }
 .orb-trail span { color: var(--muted); }
 .quote .loc { margin-right: .5em; }
+.chart h3 { margin: 18px 0 8px; font-size: 1.05rem; }
+.chart h3:first-child { margin-top: 0; }
+.cbars { display: grid; gap: 6px; }
+.cbar { display: grid; grid-template-columns: minmax(7rem, 13rem) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: .92rem; text-align: left; background: none; border: 0; padding: 2px 0; color: var(--ink); cursor: pointer; font-family: inherit; }
+.cbar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbar i { display: block; height: 14px; border-radius: 7px; background: var(--dot); transform-origin: left; animation: barGrow .6s cubic-bezier(.2,.8,.3,1) backwards; animation-delay: calc(var(--n) * 25ms); }
+.cbar b { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.cbar:hover i, .cbar:focus-visible i { filter: brightness(1.15); }
+@keyframes barGrow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .cbar i { animation: none; } }
+@media (max-width: 520px) { .cbar { grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) auto; } }
 .orb-hint { margin: 0; padding: 0 14px 10px; color: var(--muted); font-size: .85rem; }
 .pane.scroll { overflow-y: auto; overflow-x: hidden; padding: 18px 20px 40px; }
 #pGraph canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -453,7 +513,6 @@ span.chip { cursor: default; }
 .card-nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* sacs, ask, library */
-#dSac, #dAsk, #dLib, #dGuide { width: min(46rem, calc(100vw - 32px)); }
 .guide section { border-top: 1px solid var(--rule); padding: 14px 0 6px; }
 .guide h3 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; }
 .guide h4 { margin: 12px 0 4px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
@@ -624,7 +683,7 @@ body.bar-off .bar { display: none; }
 <main class="wrap">
 <article id="page" tabindex="-1" aria-label="The text being crawled">
   <h1>Spider</h1>
-  <p class="from">Sample page · load your own text with Source</p>
+  <p class="from">Sample page · open your own from Pages → Open text, a file or a link</p>
 
   <div class="infobox" role="group" aria-label="Spiders at a glance">
     <p class="ib-title">Spiders</p>
@@ -716,7 +775,8 @@ body.bar-off .bar { display: none; }
       <h2>Web of words</h2>
       <div class="tabs" role="tablist" id="wvTabs">
         <button type="button" role="tab" data-tab="orb" aria-selected="true">Web</button>
-        <button type="button" role="tab" data-tab="graph" aria-selected="false">Graph</button>
+        <button type="button" role="tab" data-tab="graph" aria-selected="false">Nest</button>
+        <button type="button" role="tab" data-tab="chart" aria-selected="false">Graph</button>
         <button type="button" role="tab" data-tab="timeline" aria-selected="false">Timeline</button>
         <button type="button" role="tab" data-tab="compare" aria-selected="false">Compare</button>
         <button type="button" role="tab" data-tab="cards" aria-selected="false">Flashcards</button>
@@ -761,6 +821,7 @@ body.bar-off .bar { display: none; }
           <button class="btn" type="button" id="gNotes">Hide notes</button>
           <button class="btn" type="button" id="gListBtn" aria-pressed="false">List view</button>
         </div></div>
+      <div class="pane scroll" id="pChart" hidden></div>
       <div class="pane scroll" id="pTimeline" hidden><p class="meta" style="margin-bottom:10px">Where each topic shows up from the start of the text to the end. Darker means more mentions. Click anywhere on a row to jump to that part of the page.</p><canvas id="tlCanvas" role="img" aria-label="Timeline chart. A text version follows."></canvas><div id="tlText" class="sr-only"></div></div>
       <div class="pane scroll" id="pCompare" hidden></div>
       <div class="pane scroll" id="pCards" hidden></div>
@@ -771,7 +832,7 @@ body.bar-off .bar { display: none; }
 </section>
 
 <!-- Egg sac dialog -->
-<dialog id="dSac" aria-label="Egg sac">
+<dialog class="page" id="dSac" aria-label="Egg sac">
   <div class="body">
     <div class="head">
       <div><input id="sacName" class="titleinput" aria-label="Sac name"><p class="meta" id="sacMeta"></p></div>
@@ -792,7 +853,7 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- Study guide -->
-<dialog id="dGuide" aria-labelledby="guideH">
+<dialog class="page" id="dGuide" aria-labelledby="guideH">
   <div class="body">
     <div class="head">
       <div><h2 id="guideH">Study guide</h2><p class="meta" id="guideMeta"></p></div>
@@ -966,7 +1027,7 @@ body.bar-off .bar { display: none; }
 </section>
 
 <!-- Ask dialog -->
-<dialog id="dAsk" aria-labelledby="askH">
+<dialog class="page" id="dAsk" aria-labelledby="askH">
   <form id="fAsk">
     <h2 id="askH">Ask the text</h2>
     <p class="lede" id="askLede">Ask a question. The spider hunts down the passages that answer it.</p>
@@ -981,7 +1042,7 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- Library dialog -->
-<dialog id="dLib" aria-labelledby="libH">
+<dialog class="page" id="dLib" aria-labelledby="libH">
   <form method="dialog">
     <h2 id="libH">Research library</h2>
     <p class="lede" id="libNote">Save a crawl with its text, sacs, highlights and answers, and come back to it later.</p>
@@ -1017,7 +1078,7 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- Source dialog -->
-<dialog id="dSource">
+<dialog class="page" id="dSource">
   <form id="fSource" method="dialog">
     <h2>What should the spider crawl?</h2>
     <p class="lede">Paste a chapter, an article or a whole book. The crawler picks out the main keywords, sorts them into topics, and spins its web through them.</p>
@@ -1073,7 +1134,8 @@ body.bar-off .bar { display: none; }
 <dialog id="dSettings" aria-labelledby="setH">
   <form method="dialog">
     <div class="set-head">
-      <div class="set-title"><button class="btn" type="submit" id="setBack">← Back</button><h2 id="setH">Settings</h2></div>
+      <div class="set-title"><button class="btn" type="submit" id="setBack">← Back</button><h2 id="setH">Settings</h2>
+        <button type="button" class="set-help" id="setHelp" data-g="support" aria-label="Help and support" title="Help & support"><svg viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M20 2v36M2 20h36M7 7l26 26M33 7 7 33" opacity=".55"/><path d="M20 8 28.5 11.5 32 20 28.5 28.5 20 32 11.5 28.5 8 20 11.5 11.5Z" opacity=".55"/><path d="M20 3 32 8 37 20 32 32 20 37 8 32 3 20 8 8Z" opacity=".35"/></g><circle cx="20" cy="20" r="9" fill="var(--paper)" stroke="currentColor" stroke-width="1.6"/><path d="M17.4 17.8a2.7 2.7 0 1 1 3.9 2.4c-.8.4-1.3.9-1.3 1.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="20" cy="25" r="1.1" fill="currentColor"/></svg></button></div>
       <label class="field preset"><span>Quick style</span>
         <select id="preset">
           <option value="">Pick a preset…</option>
@@ -1095,15 +1157,22 @@ body.bar-off .bar { display: none; }
       <button class="btn" type="button" id="bStats" aria-pressed="false" aria-controls="statsPanel" title="Show or hide the live crawl stats (S)">Live stats</button>
       <button class="btn" type="button" id="bStore">✦ Store</button>
     </div>
-    <div class="tabs" id="setTabs" role="tablist">
-      <button type="button" role="tab" data-g="spider" aria-selected="true">Spider</button>
-      <button type="button" role="tab" data-g="moves" aria-selected="false">Moves</button>
-      <button type="button" role="tab" data-g="web" aria-selected="false">Web</button>
-      <button type="button" role="tab" data-g="fx" aria-selected="false">Effects</button>
-      <button type="button" role="tab" data-g="babies" aria-selected="false">Sacs &amp; babies</button>
-      <button type="button" role="tab" data-g="theme" aria-selected="false">Theme</button>
-      <button type="button" role="tab" data-g="research" aria-selected="false">Research</button>
-      <button type="button" role="tab" data-g="support" aria-selected="false">Help &amp; support</button>
+    <div id="setTabs">
+      <div class="tabs set-main" role="tablist" aria-label="Settings sections">
+        <button type="button" role="tab" data-p="spider" data-g="spider" aria-selected="true">Spider</button>
+        <button type="button" role="tab" data-p="webfx" data-g="web" aria-selected="false">Web &amp; effects</button>
+        <button type="button" role="tab" data-p="theme" data-g="theme" aria-selected="false">Theme</button>
+        <button type="button" role="tab" data-p="research" data-g="research" aria-selected="false">Research</button>
+      </div>
+      <div class="tabs set-sub" role="tablist" aria-label="Spider settings" data-of="spider">
+        <button type="button" role="tab" data-g="spider" aria-selected="true">Look</button>
+        <button type="button" role="tab" data-g="moves" aria-selected="false">Moves</button>
+        <button type="button" role="tab" data-g="babies" aria-selected="false">Sacs &amp; babies</button>
+      </div>
+      <div class="tabs set-sub" role="tablist" aria-label="Web and effects settings" data-of="webfx" hidden>
+        <button type="button" role="tab" data-g="web" aria-selected="false">Web</button>
+        <button type="button" role="tab" data-g="fx" aria-selected="false">Effects &amp; sound</button>
+      </div>
     </div>
     <div class="set-body">
       <section data-g="spider">
@@ -1385,7 +1454,7 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- Help: what everything is, a legend, shortcuts, and "point at anything" -->
-<dialog id="dHelp" class="help" aria-labelledby="helpH">
+<dialog id="dHelp" class="help page" aria-labelledby="helpH">
   <form method="dialog">
     <div class="help-head">
       <div><h2 id="helpH">Help</h2><p class="meta">What everything on the screen is, and how to use it.</p></div>
@@ -2145,8 +2214,10 @@ const relevantCount = () => nodes.filter(relevant).length;
 const doneSacs = () => sacs.filter(s => s.state === "full" || s.state === "hatched");
 function updateStats() {
   const rel = relevantCount();
-  $("sCrawled").textContent = crawled;
-  $("sTotal").textContent = cfg.stop ? Math.min(rel, cfg.stop) : rel;
+  // counted against the same set as the total: with a focus, only the keywords that match it
+  const total = cfg.stop ? Math.min(rel, cfg.stop) : rel, got = Math.min(total, nodes.filter(n => n.caught && relevant(n)).length);
+  $("sCrawled").textContent = got;
+  $("sTotal").textContent = total;
   $("sThreads").textContent = spun;
   $("sSacs").textContent = doneSacs().length;
   $("sGrips").textContent = DOC && DOC.cats ? DOC.cats.filter(c => [...DOC.kw.values()].some(k => k.cat === DOC.cats.indexOf(c) && relevant({ key: k.key }))).length : 0;
@@ -2157,7 +2228,21 @@ let holdUntil = 0;
 // one calm live region for screen readers, instead of the busy status line
 let annTimer = 0;
 function announce(t) { const a = $("announce"); a.textContent = ""; clearTimeout(annTimer); if (t) annTimer = setTimeout(() => { a.textContent = t; }, 80); }
-function flash(msg) { $("status").textContent = msg; holdUntil = performance.now() + 3500; announce(msg); }
+function flash(msg) {
+  const st = $("status"); st.textContent = msg; holdUntil = performance.now() + 3500; announce(msg);
+  if (!msg) return;
+  st.classList.remove("spun"); void st.offsetWidth; st.classList.add("spun");
+  // the toolbar's status line is hidden behind pages, the store and the web view: show a note that drops in on a thread
+  const covered = document.querySelector("dialog[open]") || storeOpen() || WV.open || $("bar").hidden;
+  if (covered) toast(msg);
+}
+function toast(msg) {
+  const host = document.querySelector("dialog[open]") || document.body;
+  let t = host.querySelector(":scope > .toast");
+  if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); host.appendChild(t); }
+  t.textContent = msg; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+  clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), 3200);
+}
 function updateStatus() {
   $("bPause").querySelector(".tb-lbl").textContent = paused ? "Resume the crawl" : "Pause the crawl";
   $("bWeb").classList.toggle("ready", S.mode === "done" && crawled > 0 && !WV.open);
@@ -2239,7 +2324,7 @@ function sfx(kind) {
   if (!cfg.sound || !AC || paused) return;
   try {
     const P = { catch: [880, 0.07, "sine"], notice: [1320, 0.05, "triangle"], sac: [220, 0.28, "sine"], hatch: [520, 0.14, "square"],
-      enter: [440, 0.14, "triangle"], seed: [990, 0.05, "sine"], exit: [330, 0.18, "triangle"], pounce: [300, 0.12, "triangle"], lasso: [1500, 0.16, "sine"] }[kind] || [600, 0.05, "sine"];
+      enter: [440, 0.14, "triangle"], seed: [990, 0.05, "sine"], exit: [330, 0.18, "triangle"], pounce: [300, 0.12, "triangle"], lasso: [1500, 0.16, "sine"], squash: [140, 0.12, "square"], grumble: [110, 0.3, "sawtooth"] }[kind] || [600, 0.05, "sine"];
     const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = P[2]; o.frequency.setValueAtTime(P[0], t);
     if (kind === "hatch" || kind === "enter") o.frequency.exponentialRampToValueAtTime(P[0] * 2, t + P[1]);
@@ -2250,7 +2335,7 @@ function sfx(kind) {
   } catch (e) { /* audio is optional */ }
 }
 // ---- background sounds and music, all made on the device (no sound files). Volume, footsteps, ambience and
-// music are separate switches in Settings → Effects.
+// music are separate switches in Settings → Web & effects → Effects & sound.
 const AUDIO = (() => {
   let master = null, amb = null, mus = null, noiseBuf = null, ambKindNow = "none", musKindNow = "off";
   const out = () => { if (!master) { master = AC.createGain(); master.connect(AC.destination); } master.gain.value = clamp(+cfg.volume || 0, 0, 1); return master; };
@@ -2273,6 +2358,7 @@ const AUDIO = (() => {
     src.connect(filt); filt.connect(gain); src.start();
     let lfoT = 0;
     const timer = setInterval(() => {
+      if (AC.state !== "running") return;
       const t = AC.currentTime + 0.05;
       if (kind === "rain" && Math.random() < 0.7) blip(2200 + Math.random() * 2400, t + Math.random() * 0.2, 0.05, "sine", 0.006, out());
       if (kind === "wind") { lfoT += 0.25; filt.frequency.setTargetAtTime(300 + 260 * (0.5 + 0.5 * Math.sin(lfoT * 0.7)), t, 0.6); }
@@ -2301,7 +2387,7 @@ const AUDIO = (() => {
     stopMus(); const tr = TRACKS[kind]; if (!tr) return;
     const gain = AC.createGain(); gain.gain.value = 1; gain.connect(out());
     const beat = 60 / tr.bpm / 2; let step = 0, next = AC.currentTime + 0.1;
-    const timer = setInterval(() => { while (next < AC.currentTime + 0.4) { tr.play(step % tr.len, next, beat, gain); step++; next += beat; } }, 100);
+    const timer = setInterval(() => { if (AC.state !== "running") return; if (next < AC.currentTime) next = AC.currentTime + 0.05; while (next < AC.currentTime + 0.4) { tr.play(step % tr.len, next, beat, gain); step++; next += beat; } }, 100);
     mus = { gain, timer }; musKindNow = kind;
   }
   let stepAcc = 0;
@@ -2544,7 +2630,7 @@ function spawnFly() {
   const v = viewBox(), side = Math.random() < 0.5;
   return { kind: bugKind(), x: side ? v.x0 : v.x1, y: v.y0 + Math.random() * (v.y1 - v.y0), vx: 0, vy: 0, tx: null, ty: null, ph: Math.random() * 6, state: "fly", t: 0, respawn: 0, byBabies: false, web: null };
 }
-function resetFlies() { flies = []; if (S.prey) { S.prey = null; if (S.mode === "hunt" || S.mode === "eat") S.mode = S.huntFrom || "walk"; } for (let i = 0; i < (cfg.flies | 0); i++) flies.push(spawnFly()); }
+function resetFlies() { if (S.prey) endHunt(); flies = []; for (let i = 0; i < (cfg.flies | 0); i++) flies.push(spawnFly()); }
 function nearestFly(x, y, max, states = ["fly"]) {
   let best = null, bd = max;
   for (const f of flies) { if (!states.includes(f.state) || f.hunted) continue; const d = Math.hypot(f.x - x, f.y - y); if (d < bd) { bd = d; best = f; } }
@@ -2558,6 +2644,7 @@ function updateFlies(dt) {
     f.ph += dt; f.t += dt;
     if (f.state === "gone") { f.respawn -= dt; if (f.respawn <= 0) Object.assign(f, spawnFly()); continue; }
     if (f.state === "wrapped") { if (f.byBabies && !f.hunted && f.t > 30) { f.state = "gone"; f.respawn = 4; } continue; }
+    if (f.state === "squashed") { if (f.t > 1.4) { f.state = "gone"; f.respawn = 6 + Math.random() * 6; } continue; }
     if (f.state === "stuck" || f.state === "held") continue;
     if (inCornerWeb(f) && Math.random() < dt * 2.5) { f.state = "stuck"; f.t = 0; f.web = cwLocal(f); if (!S.snagNote) { S.snagNote = true; log("FLY", "A fly got stuck in the web"); } continue; }
     // wander toward random spots in view; drift back if you scroll away
@@ -2595,7 +2682,7 @@ function huntStep(fl, dt) {
       if (p.t >= 1) { S.pounce = null; S.hopZ = 0; landFeet(); if (Math.hypot(fl.x - S.x, fl.y - S.y) < 30) { fl.x = S.x + Math.cos(S.a) * 6; fl.y = S.y + Math.sin(S.a) * 6; } }
       return Math.hypot(fl.x - S.x, fl.y - S.y);
     }
-    if (dist < 130 && dist > 22) { face(); S.pounce = { t: 0, fx: S.x, fy: S.y, tx: fl.x, ty: fl.y, len: dist }; sfx("pounce"); return dist; }
+    if (dist < 130 && dist > 22 && !S.hop) { face(); S.pounce = { t: 0, fx: S.x, fy: S.y, tx: fl.x, ty: fl.y, len: dist }; sfx("pounce"); return dist; }
   } else if (style === "lasso") {
     if (S.lasso) {
       S.lasso.t += dt; S.v = 0; face();
@@ -2612,12 +2699,21 @@ function huntStep(fl, dt) {
 }
 function endHunt() {
   if (S.prey && S.prey.state === "held") S.prey.state = "fly";
-  S.pounce = S.lasso = null; S.ambushT = 0; if (!S.hop) S.hopZ = 0;
+  S.pounce = S.lasso = null; S.ambushT = 0;
+  if (S.hop) { S.hop = null; landFeet(); }
+  S.hopZ = 0;
   if (S.prey) S.prey.hunted = false;
   S.prey = null; S.mode = S.huntFrom === "done" ? "done" : S.huntFrom === "sit" ? "toWeb" : "walk"; S.huntFrom = null; S.keep = false;
 }
 function drawFly(f, now) {
   if (f.state === "gone") return;
+  if (f.state === "squashed") { // a little splat that fades
+    const k = clamp(f.t / 1.4, 0, 1);
+    ctx.save(); ctx.globalAlpha = 1 - k; ctx.translate(f.x, f.y); ctx.fillStyle = f.kind === "ladybug" ? "#9e1f17" : f.kind === "bee" ? "#a8861c" : f.kind === "firefly" ? "#9cbf3a" : "#3a3a2e";
+    ell(0, 0, 4.5, 3.5); ctx.fill();
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2 + f.ph, r = 6 + (i % 3) * 2; ell(Math.cos(a) * r, Math.sin(a) * r, 1.1, 1.1); ctx.fill(); }
+    ctx.restore(); return;
+  }
   if (f.state === "wrapped") {
     const k = S.prey === f && S.mode === "eat" ? clamp(S.eatT / 1.8, 0.15, 1) : 1;
     ctx.fillStyle = C.silk; ctx.strokeStyle = C.silk; ctx.globalAlpha = 0.85;
@@ -2761,7 +2857,11 @@ function updateCornerWeb(dt) {
   if (S.mode === "sit") S.sitT = (S.sitT || 0) + dt;
   if (["build", "sit", "toWeb", "patrol", "trick"].includes(S.mode)) {
     S.workCheck = (S.workCheck || 0) - dt;
-    if (S.workCheck <= 0) { S.workCheck = 0.5; if (freeWork() || S.sacQueue.length || [...webs.values()].some(l => cfg.sacs && l.length >= cfg.cap)) { S.mode = "walk"; return; } }
+    if (S.workCheck <= 0) {
+      S.workCheck = 0.5;
+      const helpersDone = crawled > 0 && S.doneAt !== crawled && !helpers.some(h => h.target) && !freeWork() && S.mode !== "done";
+      if (freeWork() || S.sacQueue.length || [...webs.values()].some(l => cfg.sacs && l.length >= cfg.cap) || helpersDone) { if (S.mode === "trick") endTrick(); S.mode = "walk"; return; }
+    }
   }
   if (reduce || paused || cfg.bored === "rest") return;
   // taking turns: after sitting in a finished web for a while, it goes for a walk around the screen
@@ -2946,7 +3046,7 @@ function toggleStats(on) {
   if (show) { SP.dirty = true; renderStatsPanel(); }
 }
 $("bStats").onclick = () => { toggleStats(); if ($("dSettings").open) $("dSettings").close(); };
-$("spClose").onclick = () => { toggleStats(false); $("bStats").focus(); };
+$("spClose").onclick = () => { toggleStats(false); $("bSettings").focus(); };
 setInterval(() => { if (!$("statsPanel").hidden && (SP.dirty || performance.now() - SP.last > 1500)) renderStatsPanel(); }, 400);
 function spCanvas(id) {
   const cv = $(id), r = cv.getBoundingClientRect(), d = devicePixelRatio || 1;
@@ -3180,6 +3280,7 @@ function restart() {
 }
 
 function loadDoc(d) {
+  ORB.path = []; ORB.hover = ORB.focus = -1;
   DOC = d; DOC.highlights = DOC.highlights || []; DOC.asks = DOC.asks || []; DOC.libId = DOC.libId || null;
   document.documentElement.lang = d.lang || "en";
   DOC.sources = DOC.sources && DOC.sources.length ? DOC.sources : [{ title: d.title, cite: d.cite || "", author: "", year: "" }];
@@ -3289,6 +3390,7 @@ function update(dt, now) {
   if (paused) { S.v = 0; return; }
   const sp = speedNow();
   if (["done", "sit", "build", "toWeb", "patrol", "trick"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) { if (S.mode === "trick") endTrick(); S.mode = "walk"; }
+  if (S.mode !== "trick" && S.trick) { S.hopZ = 0; S.trick = null; } // a trick that was cut short doesn't leave it floating
   if (S.mode === "gone") { if (hasWork()) enter(); else return; }
   if (S.mode === "done" && cfg.exit === "wander" && !S.goto) {
     S.wanderT -= dt;
@@ -3665,7 +3767,8 @@ function drawSpider(now) {
     ctx.globalAlpha = 1;
   }
   if (S.mode === "patrol" && !reduce && drawSideSpider(col, legCol, now)) return;
-  ctx.save(); ctx.globalAlpha = alpha * (look === "ghost" ? 0.72 : 1); ctx.translate(0, -S.hopZ);
+  const upset = S.upsetAt && performance.now() - S.upsetAt < 1200 && !reduce ? Math.sin((performance.now() - S.upsetAt) * 0.05) * 2.2 : 0; // stamping
+  ctx.save(); ctx.globalAlpha = alpha * (look === "ghost" ? 0.72 : 1); ctx.translate(upset, -S.hopZ - Math.abs(upset) * 0.6);
   if (scale !== 1) { ctx.translate(S.x, S.y); ctx.scale(scale, scale); ctx.translate(-S.x, -S.y); }
   ctx.lineCap = look === "pixel" ? "butt" : "round"; ctx.lineJoin = "round";
   if (look === "neon" || look === "crystal") { ctx.shadowColor = col; ctx.shadowBlur = look === "crystal" ? 7 : 10; }
@@ -3745,6 +3848,16 @@ function drawSpider(now) {
     ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(S.x - 8, top - 18 - bob, 16, 18, 5); ctx.fill();
     ctx.fillStyle = C.paper; ctx.font = "600 13px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("!", S.x, top - 9 - bob);
     ctx.textAlign = "start"; ctx.globalAlpha = 1;
+  }
+  if (S.upsetAt && now - S.upsetAt < 1600 && !reduce) {
+    const p = (now - S.upsetAt) / 1600;
+    if (p < 0.08 && !S.grumbled) { S.grumbled = true; sfx("grumble"); }
+    if (p > 0.95) S.grumbled = false;
+    ctx.save(); ctx.globalAlpha = 1 - Math.max(0, p - 0.75) / 0.25; ctx.strokeStyle = "#c8321e"; ctx.lineWidth = 1.6;
+    const bx = S.x + 16, by = top - 6 - Math.sin(p * Math.PI) * 6; // an angry little scribble
+    ctx.beginPath(); for (let i = 0; i <= 12; i++) { const a = i * 1.3 + now * 0.02, r = 4 + (i % 2) * 2; i ? ctx.lineTo(bx + Math.cos(a) * r, by + Math.sin(a) * r) : ctx.moveTo(bx + Math.cos(a) * r, by + Math.sin(a) * r); } ctx.stroke();
+    ctx.fillStyle = "#c8321e"; ctx.font = `700 14px ${MONO}`; ctx.textAlign = "center"; ctx.fillText("!!", S.x - 10, top - 10 - Math.sin(p * Math.PI) * 4); ctx.textAlign = "start";
+    ctx.restore();
   }
   if (S.mode === "trick") {
     const t = S.trickT;
@@ -4572,7 +4685,7 @@ function showSpiderPop() {
 }
 const hideSpiderPop = () => { $("spiderPop").hidden = true; };
 addEventListener("click", e => {
-  if (WV.open || document.querySelector("dialog[open]") || overUi(e) || e.target.closest("#spiderPop")) return;
+  if (WV.open || explaining || document.querySelector("dialog[open]") || overUi(e) || e.target.closest("#spiderPop")) return;
   if (spiderAt(e)) { e.preventDefault(); e.stopPropagation(); showSpiderPop(); }
   else hideSpiderPop();
 }, true);
@@ -4582,6 +4695,9 @@ $("spiderPop").addEventListener("click", e => {
   const act = b.dataset.sp; hideSpiderPop();
   if (act === "pause") togglePause();
   else if (act === "fly") { // a fly appears right next to it, and it goes after it
+    if (!["walk", "done", "sit", "toWeb", "build", "patrol", "trick", "hunt", "eat"].includes(S.mode) || S.sacQueue.length || S.appear) { flash(`${spiderName()} is busy right now. Try again in a moment.`); return; }
+    if (S.mode === "trick") endTrick();
+    if (S.mode === "eat") { flash(`${spiderName()} is still eating.`); return; }
     if (!flies.length) { cfg.flies = 1; saveCfg(); syncSettings(); resetFlies(); }
     const fl = flies.find(x => x.state === "fly" || x.state === "gone") || flies[0];
     Object.assign(fl, { x: S.x + 70, y: S.y - 30, vx: 0, vy: 0, state: "fly", hunted: false, t: 0, web: null });
@@ -4947,9 +5063,25 @@ function sacAt(e) {
   const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
   return sacs.find(s => (s.state === "full" || s.state === "hatched") && Math.hypot(s.x - x, s.y - y) < s.r + 14) || null;
 }
-const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini, .tb-menu, .xp-bar, .xp-tip");
+// tap a bug to squash it. If the spider is close enough to see, it isn't happy about losing its dinner.
+function squashAt(e) {
+  if (WV.open || explaining || document.querySelector("dialog[open]")) return false;
+  const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
+  const f = flies.find(fl => ["fly", "stuck", "held"].includes(fl.state) && Math.hypot(fl.x - x, fl.y - y) < 18);
+  if (!f) return false;
+  if (S.prey === f) endHunt();
+  f.state = "squashed"; f.t = 0; f.web = null; sfx("squash");
+  const d = Math.hypot(S.x - f.x, S.y - f.y);
+  if (d < 260 && S.mode !== "gone" && S.mode !== "sleep") {
+    S.upsetAt = performance.now(); S.upsetAt0 = S.a;
+    log("BUG", d < 90 ? `${spiderName()} saw that, and stamps its feet. That was its fly!` : `${spiderName()} noticed. It wanted that one.`);
+  }
+  return true;
+}
+addEventListener("click", e => { if (!overUi(e) && squashAt(e)) { e.preventDefault(); e.stopPropagation(); } }, true);
+const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini, .tb-menu, .xp-bar, .xp-tip, #storePage, .st-sheet, .sp, .findp, .barshow, .toast");
 addEventListener("click", e => {
-  if (WV.open || document.querySelector("dialog[open]") || overUi(e)) return;
+  if (WV.open || explaining || document.querySelector("dialog[open]") || overUi(e)) return;
   const s = sacAt(e);
   if (s) { e.preventDefault(); e.stopPropagation(); hidePop(); openSac(s); }
 }, true);
@@ -4969,13 +5101,17 @@ function refreshWeb(full) {
   const cats = [...new Set(ks.map(k => k.cat))].sort((a, b) => a - b);
   WV.centers = {};
   cats.forEach((c, i) => {
-    const ang = i / cats.length * Math.PI * 2 - Math.PI / 2, R = cats.length > 1 ? 340 : 0;
+    const ang = i / cats.length * Math.PI * 2 - Math.PI / 2, R = cats.length > 1 ? 560 : 0;
     WV.centers[c] = { x: Math.cos(ang) * R, y: Math.sin(ang) * R };
   });
   WV.byKey = new Map();
   WV.nodes = ks.map(k => {
     let n = WV.pos.get(k.key);
-    if (!n) { const c = WV.centers[k.cat]; n = { x: c.x + (Math.random() - .5) * 80, y: c.y + (Math.random() - .5) * 80, vx: 0, vy: 0 }; WV.pos.set(k.key, n); }
+    if (!n) {
+      const c = WV.centers[k.cat], pin = DOC.nestPins && DOC.nestPins[k.key];
+      n = pin ? { x: pin[0], y: pin[1], vx: 0, vy: 0, pin: true } : { x: c.x + (Math.random() - .5) * 120, y: c.y + (Math.random() - .5) * 120, vx: 0, vy: 0 };
+      WV.pos.set(k.key, n);
+    }
     n.k = k; WV.byKey.set(k.key, n); return n;
   });
   const seen = new Set(); WV.edges = [];
@@ -5002,12 +5138,14 @@ function refreshWeb(full) {
   if (WV.tab === "timeline") drawTimeline();
   if (full && WV.tab === "compare") renderCompare();
   if (full && WV.tab === "cards") renderCards();
+  if (full && WV.tab === "chart") renderChart();
   if (full && WV.tab === "site") renderSiteMap();
 }
 function setTab(tab) {
   WV.tab = tab;
   for (const b of $("wvTabs").children) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
-  $("pOrb").hidden = tab !== "orb"; $("pGraph").hidden = tab !== "graph"; $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
+  $("pOrb").hidden = tab !== "orb"; $("pGraph").hidden = tab !== "graph"; $("pChart").hidden = tab !== "chart";
+  if (tab === "chart") renderChart(); $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
   if (tab === "site") renderSiteMap();
   if (tab === "timeline") drawTimeline();
   if (tab === "compare") renderCompare();
@@ -5016,6 +5154,25 @@ function setTab(tab) {
 $("wvTabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
 const hasSiteMap = () => (DOC.sources || []).some(x => x.depth > 0);
 // the site map: the first page in the middle, each level of links on a ring around it
+// the Graph: real charts of what the spider found, each bar opens that keyword in the web
+function renderChart() {
+  const el = $("pChart"), ks = [...DOC.kw.values()].filter(k => k.crawled || k.rel > 0);
+  if (!ks.length) { el.innerHTML = '<p class="meta">Charts appear once the spider has found some keywords.</p>'; return; }
+  const topics = DOC.cats.map((c, i) => { const list = ks.filter(k => k.cat === i); return { c, i, n: list.length, m: list.reduce((t, k) => t + k.count, 0) }; }).filter(t => t.n).sort((a, b) => b.m - a.m);
+  const maxM = Math.max(...topics.map(t => t.m)), top = [...ks].sort((a, b) => b.count - a.count).slice(0, 20), maxK = top[0].count;
+  const thirds = [0, 1, 2].map(p => { const lo = DOC.sents.length * p / 3, hi = DOC.sents.length * (p + 1) / 3; return ks.reduce((t, k) => t + k.si.filter(i => i >= lo && i < hi).length, 0); });
+  const maxT = Math.max(1, ...thirds);
+  el.innerHTML = `<div class="chart">
+    <h3>Topics, by how often they come up</h3><div class="cbars">${topics.map((t, n) => `<button type="button" class="cbar" data-chart-cat="${t.i}" style="--dot:${catColorVar(t.i)};--n:${n}"><span>${esc(t.c.name)}</span><i style="width:${(t.m / maxM * 100).toFixed(1)}%"></i><b>${t.m} mentions · ${plural(t.n, "keyword")}</b></button>`).join("")}</div>
+    <h3>Most-mentioned keywords</h3><div class="cbars">${top.map((k, n) => `<button type="button" class="cbar" data-chart-key="${esc(k.key)}" style="--dot:${catColorVar(k.cat)};--n:${n}"><span>${esc(k.label)}</span><i style="width:${(k.count / maxK * 100).toFixed(1)}%"></i><b>${k.count}</b></button>`).join("")}</div>
+    <h3>Keywords through the text</h3><div class="cbars">${["Beginning", "Middle", "End"].map((l, n) => `<div class="cbar" style="--dot:var(--link);--n:${n};cursor:default"><span>${l}</span><i style="width:${(thirds[n] / maxT * 100).toFixed(1)}%"></i><b>${thirds[n]}</b></div>`).join("")}</div>
+    <p class="meta" style="margin-top:12px">Tap a keyword to open it in the web. Tap a topic to show only that topic.</p></div>`;
+}
+$("pChart").addEventListener("click", e => {
+  const k = e.target.closest("[data-chart-key]"), c = e.target.closest("[data-chart-cat]");
+  if (k) { setTab("orb"); ORB.path = []; orbOpen(k.dataset.chartKey); }
+  else if (c) { WV.filter = new Set([+c.dataset.chartCat]); refreshWeb(true); setTab("orb"); }
+});
 function renderSiteMap() {
   const el = $("pSite"), P = DOC.sources || [];
   if (!hasSiteMap()) { el.innerHTML = '<p class="meta">The site map appears when you load a web page and let the spider follow its links (Source → A web page → Crawl further).</p>'; return; }
@@ -5160,16 +5317,16 @@ function simStep() {
   for (const n of N) { n.fx = 0; n.fy = 0; }
   for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
     const a = N[i], b = N[j]; const dx = a.x - b.x, dy = a.y - b.y;
-    const d2 = Math.max(dx * dx + dy * dy, 30), f = 3400 / d2, d = Math.sqrt(d2);
+    const d2 = Math.max(dx * dx + dy * dy, 30), f = 6200 / d2, d = Math.sqrt(d2);
     a.fx += dx / d * f; a.fy += dy / d * f; b.fx -= dx / d * f; b.fy -= dy / d * f;
   }
   for (const e of WV.edges) {
     const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.hypot(dx, dy) || 1;
-    const f = (d - 110) * 0.005 * Math.min(3, e.w);
+    const f = (d - 170) * 0.005 * Math.min(3, e.w);
     e.a.fx += dx / d * f; e.a.fy += dy / d * f; e.b.fx -= dx / d * f; e.b.fy -= dy / d * f;
   }
   for (const n of N) {
-    if (n === WV.drag) continue;
+    if (n === WV.drag || n.pin) continue;
     const c = WV.centers[n.k.cat] || { x: 0, y: 0 };
     n.fx += (c.x - n.x) * 0.012; n.fy += (c.y - n.y) * 0.012;
     n.vx = clamp((n.vx + n.fx) * 0.82, -12, 12); n.vy = clamp((n.vy + n.fy) * 0.82, -12, 12);
@@ -5180,7 +5337,7 @@ function simStep() {
 // Opening a keyword spins a new web with that keyword at the hub and its connected keywords around it.
 const ORB = { path: [], born: 0, layout: null, hover: -1, focus: -1 };
 function orbCenterLabel() {
-  if (ORB.path.length) return DOC.kw.get(ORB.path[ORB.path.length - 1]).label;
+  if (ORB.path.length) return (DOC.kw.get(ORB.path[ORB.path.length - 1]) || { label: DOC.title || "" }).label;
   return DOC.title || "This text";
 }
 // the keywords on the current web, grouped by topic: [{ cat, list: [k…] }]
@@ -5229,26 +5386,45 @@ function drawOrb(now) {
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   const L = ORB.layout = orbLayout(w, h, g), { cx, cy, R, hub } = L;
-  const grow = reduce ? 1 : ease(clamp((now - ORB.born) / 650, 0, 1));
-  const pt = (r, a) => [cx + Math.cos(a) * r * grow, cy + Math.sin(a) * r * grow];
+  // it spins itself: spokes first, then the spiral from the middle out, then the labels; afterwards it sways a little
+  const age = reduce ? 9999 : now - ORB.born, grow = ease(clamp(age / 500, 0, 1)), spiralP = clamp((age - 250) / 900, 0, 1), labelA = clamp((age - 700) / 400, 0, 1);
+  const sway = reduce ? 0 : Math.sin(now * 0.0007) * 0.012, breathe = reduce ? 1 : 1 + Math.sin(now * 0.0011) * 0.004;
+  const pt = (r, a) => [cx + Math.cos(a + sway) * r * grow * breathe, cy + Math.sin(a + sway) * r * grow * breathe];
   const sel = WV.sel;
+  // anchor threads from the frame out to the edges of the screen
+  g.strokeStyle = C.silk; g.lineWidth = 0.8; g.globalAlpha = 0.45;
+  for (const sct of L.sectors) { const [x, y] = pt(R + 14, sct.a0); const far = Math.hypot(w, h); g.beginPath(); g.moveTo(x, y); g.lineTo(cx + Math.cos(sct.a0 + sway) * far, cy + Math.sin(sct.a0 + sway) * far); g.stroke(); }
+  g.globalAlpha = 1;
   // cells: a soft fill in the topic's color; brighter for the one you're on
   L.cells.forEach((c, i) => {
     const on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
     g.beginPath(); const [x0, y0] = pt(c.r0, c.b0), [x1, y1] = pt(c.r1, c.b0), [x2, y2] = pt(c.r1, c.b1), [x3, y3] = pt(c.r0, c.b1);
     g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x2, y2); g.lineTo(x3, y3); g.closePath();
-    g.fillStyle = catColor(c.cat); g.globalAlpha = on ? 0.42 : c.k.crawled ? 0.13 : 0.06; g.fill(); g.globalAlpha = 1;
+    g.fillStyle = catColor(c.cat); g.globalAlpha = (on ? 0.38 : c.k.crawled ? 0.08 : 0.035) * labelA; g.fill(); g.globalAlpha = 1;
   });
   // silk: the frame ring, the spokes, and the spiral (straight threads between spokes, like a real orb web)
   g.strokeStyle = C.silk; g.lineCap = "round";
   const spokes = [];
   for (const s of L.sectors) for (let j = 0; j <= s.cols; j++) spokes.push({ a: s.a0 + (s.a1 - s.a0) * j / s.cols, major: j === 0 });
   for (const sp of spokes) { g.lineWidth = sp.major ? 1.6 : 0.8; g.globalAlpha = sp.major ? 0.95 : 0.6; const [ax, ay] = pt(hub, sp.a), [bx, by] = pt(R + 14, sp.a); g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke(); }
-  g.lineWidth = 0.9; g.globalAlpha = 0.75;
+  // the sticky spiral: each thread between two spokes sags a little toward the middle, with dew on some of them
+  g.lineWidth = 0.9; g.globalAlpha = 0.8;
+  const ringsShown = L.rings * spiralP, dew = [];
   for (let r = 0; r <= L.rings; r++) {
-    const rr = hub + (R - hub) * r / L.rings;
-    g.beginPath(); spokes.forEach((sp, i) => { const [x, y] = pt(rr, sp.a); i ? g.lineTo(x, y) : g.moveTo(x, y); }); if (spokes.length) g.closePath(); g.stroke();
+    if (r > ringsShown + 0.001) break;
+    const rr = hub + (R - hub) * r / L.rings, n = spokes.length;
+    const upto = r + 1 > ringsShown ? Math.floor(n * (ringsShown - r)) : n;
+    g.beginPath();
+    for (let i = 0; i < Math.min(upto, n); i++) {
+      const a1 = spokes[i].a, a2 = i + 1 < n ? spokes[i + 1].a : spokes[0].a + Math.PI * 2, [x1, y1] = pt(rr, a1), [x2, y2] = pt(rr, a2), [qx, qy] = pt(rr * (r === L.rings ? 0.99 : 0.93), (a1 + a2) / 2);
+      if (i === 0) g.moveTo(x1, y1);
+      g.quadraticCurveTo(qx, qy, x2, y2);
+      if ((i * 7 + r * 3) % 5 === 0 && r > 0) dew.push(pt(rr * 0.955, (a1 + a2) / 2));
+    }
+    g.stroke();
   }
+  g.globalAlpha = 1;
+  for (const [x, y] of dew) { g.fillStyle = C.silk; g.globalAlpha = 0.55; g.beginPath(); g.arc(x, y, 1.8, 0, 7); g.fill(); g.fillStyle = "#fff"; g.globalAlpha = 0.7; g.beginPath(); g.arc(x - 0.5, y - 0.6, 0.6, 0, 7); g.fill(); }
   g.globalAlpha = 1;
   // labels: keywords in their cells, topics around the rim
   g.textAlign = "center"; g.textBaseline = "middle";
@@ -5256,7 +5432,7 @@ function drawOrb(now) {
     const am = (c.b0 + c.b1) / 2, rm = (c.r0 + c.r1) / 2, [x, y] = pt(rm, am);
     const arc = rm * (c.b1 - c.b0), room = Math.min(arc, c.r1 - c.r0 + 40), on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
     const size = clamp(room / 7, 9, 13);
-    g.font = `${on ? 700 : c.k.crawled ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = on || c.k.crawled ? 1 : 0.65;
+    g.font = `${on ? 700 : c.k.crawled ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = (on || c.k.crawled ? 1 : 0.65) * labelA;
     const maxChars = Math.max(3, Math.floor(room / (size * 0.62)));
     g.fillText(on ? c.k.label : trunc(c.k.label, maxChars), x, y);
     if (DOC.notes && DOC.notes.k[c.k.key]) { g.fillText("✎", x + Math.min(room / 2, 40), y - size); }
@@ -5274,6 +5450,9 @@ function drawOrb(now) {
   // the hub: the main topic, or the keyword you opened
   g.textAlign = "center";
   g.beginPath(); g.arc(cx, cy, hub * grow, 0, 7); g.fillStyle = C.panel; g.fill(); g.strokeStyle = C.silk; g.lineWidth = 1.6; g.stroke();
+  g.lineWidth = 0.6; g.globalAlpha = 0.5;
+  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + sway * 3; g.beginPath(); g.moveTo(cx + Math.cos(a) * hub * 0.95 * grow, cy + Math.sin(a) * hub * 0.95 * grow); g.lineTo(cx + Math.cos(a + 2.4) * hub * 0.95 * grow, cy + Math.sin(a + 2.4) * hub * 0.95 * grow); g.stroke(); }
+  g.globalAlpha = 0.92; g.fillStyle = C.panel; g.beginPath(); g.arc(cx, cy, hub * 0.72 * grow, 0, 7); g.fill(); g.globalAlpha = 1;
   const label = orbCenterLabel(), hs = clamp(hub / 4, 11, 18);
   g.font = `600 ${hs}px ${SERIF}`; g.fillStyle = C.ink;
   const words = label.split(/\s+/), lines = []; let cur = "";
@@ -5291,6 +5470,7 @@ function orbHit(x, y) {
   return L.cells.findIndex(c => r >= c.r0 && r < c.r1 && a >= c.b0 && a < c.b1);
 }
 function renderOrbTrail() {
+  ORB.path = ORB.path.filter(k => DOC.kw.has(k));
   const crumbs = [["", DOC.title || "This text"], ...ORB.path.map(k => [k, DOC.kw.get(k).label])];
   $("orbTrail").innerHTML = crumbs.map(([k, l], i) => `${i ? "<span>›</span>" : ""}<button type="button" data-orb-to="${i}" aria-current="${i === crumbs.length - 1}">${esc(trunc(l, 28))}</button>`).join("");
   $("orbHint").textContent = ORB.path.length ? "The keyword you opened is in the middle, with the keywords it connects to around it. Tap one to go further." : "The main topic is in the middle. Each section is a topic and each cell a keyword. Tap one to see its notes and its own web.";
@@ -5334,8 +5514,16 @@ function drawGraph() {
   if (N.length) {
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const n of N) { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y); }
-    const s = clamp(Math.min(w / (x1 - x0 + 260), h / (y1 - y0 + 140)), 0.25, 1.6);
+    const s = clamp(Math.min(w / (x1 - x0 + 320), h / (y1 - y0 + 200)), 0.15, 1.6) * 0.85;
     WV.cam.x += ((x0 + x1) / 2 - WV.cam.x) * 0.08; WV.cam.y += ((y0 + y1) / 2 - WV.cam.y) * 0.08; WV.cam.s += (s - WV.cam.s) * 0.08;
+  }
+  // tapping a keyword zooms in on it; tapping the background zooms back out
+  if (WV.zoomTo) {
+    const z = WV.zoomTo, tgt = z.key && WV.byKey.get(z.key), k = 0.12;
+    WV.zoom += (z.zoom - WV.zoom) * k;
+    const S3 = WV.cam.s * WV.zoom, px = tgt ? -(tgt.x - WV.cam.x) * S3 : 0, py = tgt ? -(tgt.y - WV.cam.y) * S3 : 0;
+    WV.panX += (px - WV.panX) * k; WV.panY += (py - WV.panY) * k;
+    if (Math.abs(z.zoom - WV.zoom) < 0.01 && Math.abs(px - WV.panX) < 1 && Math.abs(py - WV.panY) < 1) WV.zoomTo = null;
   }
   const S2 = WV.cam.s * WV.zoom;
   for (const n of N) { n.sx = (n.x - WV.cam.x) * S2 + w / 2 + WV.panX; n.sy = (n.y - WV.cam.y) * S2 + h / 2 + WV.panY; }
@@ -5398,6 +5586,7 @@ gcv.addEventListener("pointermove", e => {
     WV.drag.vx = WV.drag.vy = 0; WV.moved = true; return;
   }
   if (WV.panning) {
+    WV.zoomTo = null;
     const p = WV.panning; WV.panX = p.px + e.clientX - p.x; WV.panY = p.py + e.clientY - p.y;
     if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > 4) WV.moved = true;
     return;
@@ -5411,12 +5600,17 @@ gcv.addEventListener("pointerdown", e => {
 });
 gcv.addEventListener("pointerup", () => {
   const n = WV.drag, panned = WV.panning && WV.moved; WV.drag = null; WV.panning = null;
+  if (n && WV.moved) { // dropped somewhere new: it stays there, and saving the crawl keeps it
+    n.pin = true; DOC.nestPins = DOC.nestPins || {}; DOC.nestPins[n.k.key] = [Math.round(n.x), Math.round(n.y)];
+  }
   if (n && !WV.moved) {
     if (WV.pickMode) { togglePick(n.k.key); renderSide(); return; }
     WV.sel = WV.sel === n.k.key ? null : n.k.key; renderSide(); $("wvSide").scrollTop = 0;
-  } else if (!n && !panned && WV.sel) { WV.sel = null; renderSide(); }
+    WV.zoomTo = WV.sel ? { key: WV.sel, zoom: 2.4 } : { zoom: 1 };
+  } else if (!n && !panned) { if (WV.sel) { WV.sel = null; renderSide(); } WV.zoomTo = { zoom: 1 }; }
 });
 gcv.addEventListener("pointerleave", () => { WV.hover = null; });
+gcv.addEventListener("pointercancel", () => { WV.drag = null; WV.panning = null; });
 function describeKw(k) {
   const nb = [...k.nb].sort((a, b) => b[1] - a[1]).map(([key]) => WV.byKey.get(key)).filter(Boolean).slice(0, 4).map(n => n.k.label);
   return `${k.label}. ${DOC.cats[k.cat].name}. In ${plural(k.count, "sentence")}${k.crawled ? "" : ", not crawled yet"}.${nb.length ? " Connected to " + nb.join(", ") + "." : ""}`;
@@ -5470,7 +5664,10 @@ function zoomBy(f, cx, cy) {
 gcv.addEventListener("wheel", e => { e.preventDefault(); const r = gcv.getBoundingClientRect(); zoomBy(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 $("gZoomIn").onclick = () => zoomBy(1.3);
 $("gZoomOut").onclick = () => zoomBy(1 / 1.3);
-$("gFit").onclick = () => { WV.zoom = 1; WV.panX = 0; WV.panY = 0; };
+$("gFit").onclick = () => { WV.zoomTo = { zoom: 1 }; };
+// put every keyword back where the nest would place it
+$("gFit").insertAdjacentHTML("afterend", '<button class="btn" type="button" id="gReset" title="Let go of the keywords you moved">Reset layout</button>');
+$("gReset").onclick = () => { DOC.nestPins = {}; for (const n of WV.pos.values()) n.pin = false; WV.zoomTo = { zoom: 1 }; flash("Every keyword is back where the nest puts it."); };
 $("gLabels").onclick = () => { WV.allLabels = !WV.allLabels; $("gLabels").setAttribute("aria-pressed", String(!!WV.allLabels)); };
 $("gNotes").onclick = () => { const hide = !$("wv").classList.contains("nonotes"); $("wv").classList.toggle("nonotes", hide); $("gNotes").textContent = hide ? "Show notes" : "Hide notes"; if (WV.tab === "timeline") drawTimeline(); };
 
@@ -5963,7 +6160,7 @@ function captureState(name) {
     cite: DOC.cite || "",
     asks: DOC.asks.slice(-30).map(a => ({ q: a.q, a: trunc(a.a || "", 4000), si: a.si || [] })),
     compareTitle: DOC.compare ? DOC.compare.title : "", words: DOC.words, kwCount: DOC.kw.size,
-    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || []
+    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || [], nestPins: DOC.nestPins || {}
   };
 }
 function restoreState(st, raw, craw, id) {
@@ -5976,6 +6173,7 @@ function restoreState(st, raw, craw, id) {
   if (st.notes) d.notes = st.notes;
   if (st.srs) d.srs = st.srs;
   if (st.extNotes) d.extNotes = st.extNotes;
+  if (st.nestPins) d.nestPins = st.nestPins;
   if (craw) d.compare = buildCompare(craw, st.compareTitle);
   loadDoc(d);
   for (const t of st.highlights || []) addHighlight(t, null, true);
@@ -6643,6 +6841,18 @@ $("bFollow").onclick = () => setFollow(!follow);
 $("bRestart").onclick = () => { paused = false; restart(); $("dSettings").close(); };
 $("bWeb").onclick = () => openWeb();
 $("bHelp").onclick = () => openHelp();
+for (const d of document.querySelectorAll("dialog.page")) {
+  const box = d.firstElementChild, back = document.createElement("button");
+  back.type = "button"; back.className = "btn page-back"; back.textContent = "← Back"; back.onclick = () => d.close();
+  box.insertBefore(back, box.firstChild);
+}
+addEventListener("pointerdown", e => {
+  if (reduce || !e.isPrimary) return;
+  const t = e.target.closest && e.target.closest(".btn, .tb-btn, .tb-item, .st-card, .chip, .tabs button, .set-help");
+  if (!t) return;
+  const r = document.createElement("span"); r.className = "webrip"; r.style.left = e.clientX + "px"; r.style.top = e.clientY + "px";
+  (e.target.closest("dialog[open]") || document.body).appendChild(r); setTimeout(() => r.remove(), 600);
+}, { capture: true, passive: true });
 // ---- support: an ID for this install, issue reports, and fixes we can send to one app without an update
 const SUPPORT = (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.support) || null; // { url, key } (a public, insert-only key)
 function supportId() {
@@ -6786,7 +6996,7 @@ const FAQ = [
   ["Why didn't it find a keyword I expected?", "It looks for words and phrases that are frequent and specific to the text. Select any word on the page to add it yourself; it goes in the “My highlights” topic."],
   ["What do the colors mean?", "Each topic has a color. A keyword's underline, its threads and its sacs share that color. Open Help → Legend to see the topics in the current text."],
   ["What do purchases unlock, and do I keep them?", "Store items change how the spider and the page look and behave; every reading and study feature is free. Purchases belong to your Google account and come back after a reinstall. A bundle also includes anything added to its sections later."],
-  ["How do I make the spider calmer or quieter?", "Settings → Effects: turn off sounds and effects, or pick the Study mode preset. If your device asks for reduced motion, the app keeps animation to a minimum."]
+  ["How do I make the spider calmer or quieter?", "Settings → Web & effects → Effects & sound: turn off sounds and effects, or pick the Study mode preset. If your device asks for reduced motion, the app keeps animation to a minimum."]
 ];
 function renderFaq() { $("helpFaq").innerHTML = `<dl class="hw-list faq">${FAQ.map(([q, a]) => `<div><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join("")}</dl>`; }
 function renderAbout() {
@@ -7036,8 +7246,14 @@ function closeStore() {
   if (storeFromSettings) { storeFromSettings = false; $("bSettings").click(); }
 }
 $("bStore").onclick = () => openStore();
+// pressing Enter in a field submits the form, which would close the page: send it to the right button instead
+for (const form of document.querySelectorAll("#dSettings form, #dLib form")) form.addEventListener("submit", e => { if (!e.submitter) e.preventDefault(); });
+const enterTo = (ids, btn) => ids.forEach(id => $(id) && $(id).addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); $(btn).click(); } }));
+enterTo(["aiKey", "aiModel", "aiHost", "aiBase"], "aiSave");
+enterTo(["libName"], "libSave");
+enterTo(["repContact"], "repSend");
 $("stBack").onclick = closeStore;
-$("stRestore").onclick = async () => { try { await BILLING.restore(); flash("Checked Google Play for your purchases."); } catch (e) { flash("Couldn't reach Google Play. Try again later."); } };
+$("stRestore").onclick = async () => { try { await BILLING.restore(); toast("Checked Google Play for your purchases."); } catch (e) { toast("Couldn't reach Google Play. Try again later."); } };
 $("stTabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; storeTab = b.dataset.cat; renderStore(); $("stTabs").querySelector(`[data-cat="${storeTab}"]`).focus(); $("stBody").scrollTop = 0; });
 $("stBody").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if (c) openSheet(c.dataset.open); });
 $("stSheet").addEventListener("click", async e => {
@@ -7240,7 +7456,7 @@ function applyWordColor() { document.body.classList.toggle("wc-highlight", cfg.w
 function settingChanged(key) {
   if (["sound", "steps", "ambience", "music", "volume"].includes(key)) { audioOn(); AUDIO.sync(); }
   if (key === "bugLook") resetFlies();
-  if (key === "webStyle" && CW) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; }
+  if (key === "webStyle" && CW) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; if (S.mode === "zip" && S.zip && ["build", "toWeb", "sit"].includes(S.zip.next)) { S.zip = null; S.mode = "walk"; } }
   if (key === "hunt" && S.prey) endHunt();
   if (key === "type" || key === "size" || key === "look") { buildLegs(); if (!["drop", "zip", "balloonIn", "gone"].includes(S.mode)) plantFeet(); }
   if (key === "sort") $("topicsField").hidden = cfg.sort !== "topics";
@@ -7256,7 +7472,7 @@ function settingChanged(key) {
   if (key === "citeStyle" && WV.open) renderSide();
   if (key === "flies") resetFlies();
   if (key === "purpose") purposeChanged();
-  if (key === "bored" && cfg.bored !== "web" && cfg.bored !== "both") { CW = null; webCatch = []; if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; }
+  if (key === "bored" && cfg.bored !== "web" && cfg.bored !== "both") { CW = null; webCatch = []; if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; if (S.mode === "trick") endTrick(); if (S.mode === "zip" && S.zip && ["build", "toWeb", "sit"].includes(S.zip.next)) { S.zip = null; S.mode = "walk"; } }
 }
 function fillVoices() {
   const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
@@ -7327,11 +7543,18 @@ $("surprise").onclick = () => {
     ambient: pick("cfgAmbient"), entrance: pick("cfgEntrance"), exit: pick("cfgExit"), breeze: Math.random() < 0.5, dew: Math.random() < 0.6 });
   applyAll(); flash("Shuffled the style. Press Surprise me again for another.");
 };
-$("setTabs").addEventListener("click", e => {
-  const b = e.target.closest("[data-g]"); if (!b) return;
-  for (const t of $("setTabs").children) t.setAttribute("aria-selected", String(t === b));
-  for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== b.dataset.g;
-});
+// Settings sections: a main row of tabs, a second row for the parts of the one you're on, and ? for help
+const SET_GROUP = { spider: "spider", moves: "spider", babies: "spider", web: "webfx", fx: "webfx", theme: "theme", research: "research", support: "support" };
+function showSetPane(g) {
+  const grp = SET_GROUP[g] || "spider";
+  for (const t of document.querySelectorAll("#setTabs .set-main [data-p]")) t.setAttribute("aria-selected", String(t.dataset.p === grp));
+  for (const row of document.querySelectorAll("#setTabs .set-sub")) { row.hidden = row.dataset.of !== grp; for (const t of row.children) t.setAttribute("aria-selected", String(t.dataset.g === g)); }
+  $("setHelp").setAttribute("aria-pressed", String(g === "support"));
+  for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== g;
+  $("dSettings").querySelector(".set-body").scrollTop = 0;
+}
+$("setTabs").addEventListener("click", e => { const b = e.target.closest("[data-g]"); if (b) showSetPane(b.dataset.g); });
+$("setHelp").onclick = () => showSetPane($("setHelp").getAttribute("aria-pressed") === "true" ? "spider" : "support");
 $("replay").onclick = () => { $("dSettings").close(); enter(); };
 // anything saved before a pack was locked goes back to the free choice
 { let changed = false; for (const k of Object.keys(FREE_FALLBACK)) if (locked(k, cfg[k])) { cfg[k] = FREE_FALLBACK[k]; changed = true; } if (changed) saveCfg(); }
@@ -7865,8 +8088,8 @@ $("fSource").addEventListener("submit", async e => {
 
 // keyboard
 addEventListener("keydown", e => {
-  if (e.key === "Escape") { hidePop(); stopSpeaking(); $("hlBtn").hidden = true; if (!findP.hidden && !document.querySelector("dialog[open]")) { closeFind(); return; } if (WV.open && !document.querySelector("dialog[open]")) closeWeb(); return; }
-  if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]")) return;
+  if (e.key === "Escape") { hidePop(); stopSpeaking(); $("hlBtn").hidden = true; if (!$("statsPanel").hidden && !document.querySelector("dialog[open]") && !WV.open && findP.hidden && !storeOpen()) { toggleStats(false); return; } if (!findP.hidden && !document.querySelector("dialog[open]")) { closeFind(); return; } if (WV.open && !document.querySelector("dialog[open]")) closeWeb(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]") || storeOpen() || explaining) return;
   const t = e.target; if (t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
   if (WV.open && WV.tab === "cards") {
     if (e.key === " ") { e.preventDefault(); fcAct("flip"); return; }
@@ -7893,13 +8116,20 @@ addEventListener("keydown", e => {
 
 // ---------------- boot ----------------
 let prev = performance.now(), frameN = 0;
+let frameErrors = 0;
 function frame(now) {
+  requestAnimationFrame(frame); // scheduled first, so a problem below can't stop the animation
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
-  update(dt, now);
-  if (!WV.open) updAmbient(dt, now);
-  if (WV.open) { if (WV.tab === "graph") drawGraph(); else if (WV.tab === "orb") drawOrb(now); }
-  else { draw(now); if (++frameN % 6 === 0) drawMini(); }
-  requestAnimationFrame(frame);
+  try {
+    update(dt, now);
+    if (!WV.open) updAmbient(dt, now);
+    if (WV.open) { if (WV.tab === "graph") drawGraph(); else if (WV.tab === "orb") drawOrb(now); }
+    else { draw(now); if (++frameN % 6 === 0) drawMini(); }
+  } catch (e) {
+    // put the spider back on its feet and carry on; report once so it can be fixed
+    if (frameErrors++ < 3) console.error(e);
+    try { if (S.mode !== "gone") { S.zip = null; S.pounce = S.lasso = null; S.hopZ = 0; S.hop = null; if (!["walk", "done"].includes(S.mode)) S.mode = "walk"; } ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.shadowBlur = 0; } catch (e2) {}
+  }
 }
 setFollow(follow);
 resize();

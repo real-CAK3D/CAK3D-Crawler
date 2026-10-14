@@ -17,7 +17,7 @@ const tab = name => page.locator('#wvTabs [role="tab"]', { hasText: name });
 test("web view: graph works from the keyboard", async () => {
   await page.locator("#bWeb").click();
   await expect(page.locator("#wv")).toBeVisible();
-  await tab("Graph").click();
+  await tab("Nest").click();
   await page.locator("#wvCanvas").focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#announce")).toContainText(/In \d+ sentences?/);
@@ -38,10 +38,10 @@ test("web view: list view lists every topic", async () => {
 });
 
 test("tabs move with the arrow keys", async () => {
-  await tab("Graph").focus();
+  await tab("Nest").focus();
   await page.keyboard.press("ArrowRight");
-  await expect(tab("Timeline")).toHaveAttribute("aria-selected", "true");
-  await expect(tab("Timeline")).toBeFocused();
+  await expect(tab("Graph")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Graph")).toBeFocused();
 });
 
 test("study session schedules cards", async () => {
@@ -109,7 +109,7 @@ test("citation style changes the bibliography", async () => {
 
 test("no serious accessibility problems", async () => {
   const views = [["main page", async () => {}], ["web view", async () => { await page.locator("#bWeb").click(); }],
-    ["list view", async () => { await tab("Graph").click(); await page.locator("#gListBtn").click(); }]];
+    ["list view", async () => { await tab("Nest").click(); await page.locator("#gListBtn").click(); }]];
   for (const [name, open] of views) {
     await open();
     const r = await new AxeBuilder({ page }).analyze();
