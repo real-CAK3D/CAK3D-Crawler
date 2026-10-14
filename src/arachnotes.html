@@ -2730,7 +2730,7 @@ function startTrick() {
 }
 function endTrick() { S.hopZ = 0; S.a = S.trickA; S.mode = S.trickFrom || "walk"; S.idleT = 0; S.trick = null; }
 function updateCornerWeb(dt) {
-  const idle = S.mode === "done" || (S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && !S.manual.length);
+  const idle = !S.visit && (S.mode === "done" || (S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && !S.manual.length));
   if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat", "patrol", "trick"].includes(S.mode)) S.idleT = 0;
   // flies stuck in the web move with it when you scroll
   if (CW) for (const fl of flies) if (fl.state === "stuck" && fl.web) { const p = cwPage(fl.web); fl.x = p.x; fl.y = p.y; }
@@ -3211,13 +3211,35 @@ function travel(tx, ty, dt) {
 const far = (x, y) => Math.hypot(x - S.x, y - S.y) > Math.max(900, H * 1.3);
 function startZip(to, next) { S.zip = { from: { x: S.x, y: S.y }, to, next }; S.mode = "zip"; S.hop = null; S.hopZ = 0; }
 
+// when you tap the page, the spider comes over, waits, walks a slow circle round the spot, pauses, then gets back
+// to what it was doing (crawling, or being bored) instead of leaving
+function visit(dt) {
+  const V = S.visit; V.t += dt;
+  const WAIT = 1.5, CIRCLE = 2.4, AFTER = 1.2, R = 24 * clamp(cfg.size, 0.8, 1.6);
+  if (V.t < WAIT || V.t > WAIT + CIRCLE) { // still, turning a little to look around
+    S.v = 0; S.a += Math.sin(V.t * 2.2) * 0.4 * dt;
+  } else {
+    const p = (V.t - WAIT) / CIRCLE, th = V.th0 + ease(p) * Math.PI * 2;
+    const ox = V.x + Math.cos(th) * R - Math.cos(V.th0) * R, oy = V.y + Math.sin(th) * R - Math.sin(V.th0) * R;
+    S.x += (ox - S.x) * Math.min(1, dt * 10); S.y += (oy - S.y) * Math.min(1, dt * 10);
+    S.a = th + Math.PI / 2; S.v = R * 2.6;
+  }
+  if (V.t > WAIT + CIRCLE + AFTER) {
+    S.visit = null; S.v = 0; S.idleT = 0;
+    if (V.from === "done") S.mode = "done"; // the crawl was already over: go back to resting or being bored
+  }
+}
 function walk(dt) {
+  if (S.visit) { visit(dt); return; }
   if (S.wait > 0) { S.wait -= dt; S.v = 0; return; }
   if (S.goto) {
     const g = S.goto;
     if (far(g.x, g.y)) { startZip(() => S.goto || { x: S.x, y: S.y }, "walk"); return; }
     const d = travel(g.x, g.y, dt);
-    if (d < 12 && !S.hop) { S.goto = null; S.wait = 0.4; }
+    if (d < 12 && !S.hop) {
+      S.goto = null; S.wait = 0.4;
+      if (g.user) { S.wait = 0; S.visit = { x: S.x, y: S.y, t: 0, th0: S.a - Math.PI / 2, from: g.from }; }
+    }
     return;
   }
   if (!S.target) {
@@ -3242,7 +3264,7 @@ function update(dt, now) {
   AUDIO.steps(dt);
   if (paused) { S.v = 0; return; }
   const sp = speedNow();
-  if (["done", "sit", "build", "toWeb", "patrol"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
+  if (["done", "sit", "build", "toWeb", "patrol", "trick"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) { if (S.mode === "trick") endTrick(); S.mode = "walk"; }
   if (S.mode === "gone") { if (hasWork()) enter(); else return; }
   if (S.mode === "done" && cfg.exit === "wander" && !S.goto) {
     S.wanderT -= dt;
@@ -4559,7 +4581,10 @@ page.addEventListener("click", e => {
   if (e.target.closest("a, button, input")) return;
   const sel = getSelection(); if (sel && !sel.isCollapsed) return;
   const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
-  S.goto = { x, y }; rings.push({ x, y, born: performance.now() }); wake();
+  if (S.visit) S.visit = null;
+  const from = ["done", "sit", "build", "toWeb", "patrol", "trick"].includes(S.mode) || (S.goto && S.goto.from === "done") ? "done" : "walk";
+  if (S.mode === "trick") endTrick();
+  S.goto = { x, y, user: true, from }; rings.push({ x, y, born: performance.now() }); wake();
 });
 page.addEventListener("keydown", e => { const s = e.target.closest("span.kw"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showPop(s); } });
 document.addEventListener("click", e => { if (POP && !e.target.closest(".pop, .kw")) hidePop(); });
