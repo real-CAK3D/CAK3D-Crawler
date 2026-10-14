@@ -16,11 +16,11 @@ Made by CAK3D_Creations. **Android:** coming to Google Play (package `com.arachn
 
 ## The spider and the store
 
-The spider is drawn and animated in code. It walks on its eight legs, spins threads between keywords, wraps finished topics into egg sacs, hatches spiderlings, hunts flies, and spins a web in a corner of the screen when it has nothing to do.
+The spider is drawn and animated in code. It walks on its eight legs, spins threads between keywords, wraps finished topics into egg sacs, hatches spiderlings, hunts flies (chasing, pouncing, lassoing them with silk or waiting in ambush), spins a web in a corner of the screen when it has nothing to do, and now and then walks along the screen's edges, drawn from the side. Optional sounds and music are made by the app itself, with no sound files.
 
 The basics are free: the cobweb weaver, the classic silhouette, slow and normal speed, a few kinds of weather, the Auto, Paper, Night and High contrast themes, and the Classic and Study presets. Every reading and study feature is free.
 
-Extra spider kinds, looks, colors, hats and seasonal looks, weather, bored behaviors, page themes and presets are sold in the Android app through Google Play, singly or in bundles. The full list, with prices, is the `storeCatalog` block in `src/arachnotes.html`. `npm run play-products` turns it into `play-products.csv` for creating the in-app products in the Play Console; the product ids must match.
+Extra spider kinds, looks (including a lobster), colors, hats and seasonal looks, weather, bored behaviors, hunting styles, web styles, bugs to catch, page themes and presets are sold in the Android app through Google Play, singly or in bundles. A bundle includes anything added to its sections later. The full list, with prices, is the `storeCatalog` block in `src/arachnotes.html`. `npm run play-products` turns it into `play-products.csv` for creating the in-app products in the Play Console; the product ids must match.
 
 While the app is in development everything is unlocked. Build with `CRAWLER_LOCK_PAID=1` to switch the locks on.
 

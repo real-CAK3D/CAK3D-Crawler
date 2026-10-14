@@ -48,7 +48,7 @@ test("help explains whatever you point at", async ({ page }) => {
   await page.locator("#bWeb").click();
   await expect(page.locator("#xpTitle")).toHaveText("Web view");
   await expect(page.locator("#wv")).toBeHidden(); // pointing doesn't press the button
-  await page.locator("#page .kw").first().click();
+  await page.locator("#page p .kw").first().click();
   await expect(page.locator("#xpTitle")).toHaveText(/^(Keyword|The spider)$/); // the spider may be standing on it
   await page.keyboard.press("Escape");
   await expect(page.locator("#xpBar")).toBeHidden();

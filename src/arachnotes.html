@@ -57,6 +57,9 @@
 :root[data-skin="sunset"] {
   --paper: #fdf0e4; --panel: #f9e1cc; --ink: #3a1e14; --muted: #84584a; --rule: #efc6a8; --link: #b8461f; --grip: #ffc98a; --silk: #c97b5a; --spider: #2e160f;
   --c0: #3b62a8; --c1: #c4421a; --c2: #3f7d3a; --c3: #8a3f8f; --c4: #a6740c; --c5: #1f7a78; --c6: #c23b6a; --c7: #7d6a62; color-scheme: light; }
+:root[data-skin="lobster"] {
+  --paper: #fbf3e6; --panel: #f3e4cc; --ink: #1d2a3a; --muted: #5f6b78; --rule: #e3cfae; --link: #c8321e; --grip: #ffd7a8; --silk: #8a9bb0; --spider: #c8321e;
+  --c0: #2f5f9e; --c1: #c8321e; --c2: #3d7a52; --c3: #7d4a8f; --c4: #a8700f; --c5: #1f7a7a; --c6: #c2427a; --c7: #6b6f76; color-scheme: light; }
 :root[data-skin="contrast"] {
   --paper: #ffffff; --panel: #f0f0f0; --ink: #000000; --muted: #333333; --rule: #000000; --link: #0033cc; --grip: #ffd400; --silk: #000000; --spider: #000000;
   --c0: #0047b3; --c1: #b33000; --c2: #00702e; --c3: #6b1fa3; --c4: #7a5c00; --c5: #006b6b; --c6: #a3004f; --c7: #444444; color-scheme: light; }
@@ -134,6 +137,7 @@ dialog.help { width: min(46rem, calc(100vw - 24px)); }
 .hw-list dt { font-weight: 600; } .hw-list dd { margin: 0; color: var(--ink); }
 .hw-sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--sw); }
 .hw-line { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--sw); vertical-align: 3px; margin-right: 6px; }
+.hw-list.faq > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 @media (max-width: 520px) { .hw-list > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
 /* "point at anything": a strip at the top, a ring around what you tapped, and a note that drops down on a thread */
 .xp-bar { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 12px;
@@ -141,7 +145,7 @@ dialog.help { width: min(46rem, calc(100vw - 24px)); }
 .xp-bar .btn { background: var(--paper); color: var(--ink); border-color: var(--paper); }
 body.explain, body.explain * { cursor: help !important; }
 .xp-ring { position: fixed; z-index: 58; pointer-events: none; border: 2px dashed var(--link); border-radius: 8px; transition: all .18s ease; }
-.xp-tip { position: fixed; z-index: 59; width: min(20rem, calc(100vw - 20px)); padding: 12px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule);
+.xp-tip { pointer-events: none; position: fixed; z-index: 59; width: min(20rem, calc(100vw - 20px)); padding: 12px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule);
   border-radius: 12px; box-shadow: 0 14px 34px rgba(0,0,0,.22); animation: xpDrop .32s cubic-bezier(.2,1.3,.4,1); }
 .xp-tip b { display: block; font: 600 13px var(--mono); margin-bottom: 4px; }
 .xp-tip p { margin: 0; font-size: .95rem; line-height: 1.45; }
@@ -804,7 +808,8 @@ body.bar-off .bar { display: none; }
       { "id": "look_peacock", "field": "look", "values": ["peacock"], "name": "Peacock spider", "desc": "Fans out its colors on a catch.", "price": "0.99" },
       { "id": "look_ghost", "field": "look", "values": ["ghost"], "name": "Ghost", "desc": "See-through and spooky.", "price": "0.99" },
       { "id": "look_pixel", "field": "look", "values": ["pixel"], "name": "Pixel art", "desc": "An 8-bit spider.", "price": "0.99" },
-      { "id": "look_crystal", "field": "look", "values": ["crystal"], "name": "Crystal", "desc": "Faceted and twinkling.", "price": "0.99" } ] },
+      { "id": "look_crystal", "field": "look", "values": ["crystal"], "name": "Crystal", "desc": "Faceted and twinkling.", "price": "0.99" },
+      { "id": "look_lobster", "field": "look", "values": ["lobster"], "name": "Lobster", "desc": "Snapping claws, a segmented tail and long feelers.", "price": "0.99" } ] },
     { "key": "premium", "name": "Premium looks", "items": [
       { "id": "look_realistic", "field": "look", "values": ["realistic"], "name": "Realistic", "desc": "Shaded body, banded legs, eight eyes.", "price": "1.99" },
       { "id": "look_skeleton", "field": "look", "values": ["skeleton"], "name": "Skeleton", "desc": "Ribs, skull and bony legs.", "price": "1.99" },
@@ -865,7 +870,7 @@ body.bar-off .bar { display: none; }
       { "id": "bored_nap", "field": "bored", "values": ["nap"], "name": "Takes naps", "desc": "Tucks its legs in and dozes off until there's work to do.", "price": "0.99" },
       { "id": "bored_groom", "field": "bored", "values": ["groom"], "name": "Cleans its legs", "desc": "Stops to tidy up, one leg at a time.", "price": "0.99" },
       { "id": "bored_yoyo", "field": "bored", "values": ["yoyo"], "name": "Bounces on a thread", "desc": "Hangs from a strand of silk and bounces like a yo-yo.", "price": "0.99" },
-      { "id": "bored_tricks", "field": "bored", "values": ["tricks"], "name": "A bit of everything", "desc": "Dances, naps, cleans up and bounces, taking turns.", "price": "0.99" } ] },
+      { "id": "bored_tricks", "field": "bored", "values": ["tricks"], "name": "A bit of everything", "desc": "Dances, naps, cleans up, bounces, and now and then crawls up the edges of the screen.", "price": "0.99" } ] },
     { "key": "themes", "name": "Page themes", "items": [
       { "id": "theme_sepia", "field": "skin", "values": ["sepia"], "name": "Sepia", "price": "0.99" },
       { "id": "theme_blueprint", "field": "skin", "values": ["blueprint"], "name": "Blueprint", "price": "0.99" },
@@ -875,7 +880,24 @@ body.bar-off .bar { display: none; }
       { "id": "theme_ocean", "field": "skin", "values": ["ocean"], "name": "Ocean", "price": "0.99" },
       { "id": "theme_candy", "field": "skin", "values": ["candy"], "name": "Candy", "price": "0.99" },
       { "id": "theme_terminal", "field": "skin", "values": ["terminal"], "name": "Terminal", "price": "0.99" },
-      { "id": "theme_sunset", "field": "skin", "values": ["sunset"], "name": "Sunset", "price": "0.99" } ] }
+      { "id": "theme_sunset", "field": "skin", "values": ["sunset"], "name": "Sunset", "price": "0.99" },
+      { "id": "theme_lobster", "field": "skin", "values": ["lobster"], "name": "Lobster shack", "price": "0.99" } ] },
+    { "key": "hunting", "name": "Hunting styles", "items": [
+      { "id": "hunt_pounce", "field": "hunt", "values": ["pounce"], "name": "Pounces", "desc": "Creeps close, then leaps onto the fly.", "price": "0.99" },
+      { "id": "hunt_lasso", "field": "hunt", "values": ["lasso"], "name": "Silk lasso", "desc": "Shoots a strand of silk and reels the fly in.", "price": "0.99" },
+      { "id": "hunt_ambush", "field": "hunt", "values": ["ambush"], "name": "Ambush", "desc": "Waits perfectly still, then lunges.", "price": "0.99" } ] },
+    { "key": "webs", "name": "Web styles", "items": [
+      { "id": "web_funnel", "field": "webStyle", "values": ["funnel"], "name": "Funnel web", "desc": "A sheet that leads into a silk tube in the corner.", "price": "0.99" },
+      { "id": "web_sheet", "field": "webStyle", "values": ["sheet"], "name": "Sheet web", "desc": "A flat, close-woven mat.", "price": "0.99" },
+      { "id": "web_tangle", "field": "webStyle", "values": ["tangle"], "name": "Tangle web", "desc": "A messy cobweb of crisscrossed threads.", "price": "0.99" },
+      { "id": "web_zigzag", "field": "webStyle", "values": ["zigzag"], "name": "Zigzag orb", "desc": "An orb web with a bright zigzag band through the middle.", "price": "0.99" } ] },
+    { "key": "bugs", "name": "Bugs to catch", "items": [
+      { "id": "bug_mosquito", "field": "bugLook", "values": ["mosquito"], "name": "Mosquitoes", "price": "0.99" },
+      { "id": "bug_moth", "field": "bugLook", "values": ["moth"], "name": "Moths", "price": "0.99" },
+      { "id": "bug_ladybug", "field": "bugLook", "values": ["ladybug"], "name": "Ladybugs", "price": "0.99" },
+      { "id": "bug_bee", "field": "bugLook", "values": ["bee"], "name": "Bees", "price": "0.99" },
+      { "id": "bug_butterfly", "field": "bugLook", "values": ["butterfly"], "name": "Butterflies", "price": "0.99" },
+      { "id": "bug_firefly", "field": "bugLook", "values": ["firefly"], "name": "Fireflies", "desc": "They glow, and the spider catches them anyway.", "price": "0.99" } ] }
   ],
   "presets": [
     { "id": "preset_spooky", "preset": "spooky", "name": "Spooky night preset", "price": "1.99" },
@@ -887,13 +909,15 @@ body.bar-off .bar { display: none; }
     { "id": "preset_pixel", "preset": "pixel", "name": "Pixel preset", "price": "1.99" },
     { "id": "preset_ocean", "preset": "ocean", "name": "Deep sea preset", "price": "1.99" },
     { "id": "preset_terminal", "preset": "terminal", "name": "Hacker terminal preset", "price": "1.99" },
-    { "id": "preset_candy", "preset": "candy", "name": "Candy land preset", "price": "1.99" }
+    { "id": "preset_candy", "preset": "candy", "name": "Candy land preset", "price": "1.99" },
+    { "id": "preset_lobster", "preset": "lobster", "name": "Lobster shack preset", "price": "1.99" }
   ],
   "bundles": [
     { "id": "bundle_starter", "name": "Starter bundle", "price": "4.99", "groups": ["kinds", "colors", "extras"], "desc": "Every spider kind, every color, a spider for each topic, flies and faster speeds." },
     { "id": "bundle_hats", "name": "Hat pack", "price": "4.99", "groups": ["hats"], "desc": "All eight hats: top hat, cowboy hat, crown, party hat, graduation cap, chef's hat, pirate hat and propeller cap." },
-    { "id": "bundle_collector", "name": "Collector bundle", "price": "9.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes"], "desc": "The Starter bundle, plus every $0.99 look, the seasonal looks and hats, all the weather, the bored modes and the page themes." },
-    { "id": "bundle_deluxe", "name": "Deluxe bundle", "price": "14.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes", "premium"], "desc": "The Collector bundle, plus the premium looks: realistic, skeleton and all four heroes." },
+    { "id": "bundle_bugs", "name": "Bug pack", "price": "2.99", "groups": ["bugs"], "desc": "All six bugs to catch: mosquitoes, moths, ladybugs, bees, butterflies and fireflies." },
+    { "id": "bundle_collector", "name": "Collector bundle", "price": "9.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes", "hunting", "webs", "bugs"], "desc": "The Starter bundle, plus every $0.99 look, the seasonal looks and hats, all the weather, bored modes, page themes, hunting styles, web styles and bugs." },
+    { "id": "bundle_deluxe", "name": "Deluxe bundle", "price": "14.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes", "hunting", "webs", "bugs", "premium"], "desc": "The Collector bundle, plus the premium looks: realistic, skeleton and all four heroes." },
     { "id": "bundle_everything", "name": "Everything", "price": "19.99", "all": true, "desc": "Every item and every preset, and everything added later." }
   ]
 }
@@ -1040,6 +1064,7 @@ body.bar-off .bar { display: none; }
           <option value="ocean">Deep sea: a pearl spider under the waves</option>
           <option value="terminal">Hacker terminal: green code on black</option>
           <option value="candy">Candy land: rainbow cartoon and party hats</option>
+          <option value="lobster">Lobster shack: a lobster by the sea</option>
           <option value="study">Study mode: high contrast, calm, focused</option>
         </select></label>
       <button class="btn" type="button" id="surprise">Surprise me</button>
@@ -1079,7 +1104,7 @@ body.bar-off .bar { display: none; }
               <option value="tarantula">Hairy tarantula</option>
               <option value="peacock">Peacock spider (fans out on a catch)</option>
               <option value="ghost">Ghost</option>
-              <option value="pixel">Pixel art</option>
+              <option value="pixel">Pixel art</option><option value="lobster">Lobster</option>
               <option value="realistic">Realistic</option>
               <option value="hero">Web-slinger hero (red and blue)</option>
               <option value="heroyb">Web-slinger hero (yellow and blue)</option>
@@ -1114,6 +1139,15 @@ body.bar-off .bar { display: none; }
         <label class="field"><span>Flies to hunt</span>
           <div class="range"><input type="range" id="cfgFlies" min="0" max="6" step="1"><output id="oFlies"></output></div>
           <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
+        <div class="row2">
+          <label class="field"><span>Bugs to catch</span>
+            <select id="cfgBugLook"><option value="fly">Flies</option><option value="mosquito">Mosquitoes</option><option value="moth">Moths</option><option value="ladybug">Ladybugs</option>
+              <option value="bee">Bees</option><option value="butterfly">Butterflies</option><option value="firefly">Fireflies</option><option value="mixed">A mix of the ones I have</option></select></label>
+          <label class="field"><span>How it catches them</span>
+            <select id="cfgHunt"><option value="chase">Chases them</option><option value="pounce">Pounces</option><option value="lasso">Silk lasso</option><option value="ambush">Waits, then lunges</option></select></label>
+        </div>
+        <label class="field"><span>Its corner web</span>
+          <select id="cfgWebStyle"><option value="orb">Orb web</option><option value="funnel">Funnel web</option><option value="sheet">Sheet web</option><option value="tangle">Tangle web</option><option value="zigzag">Zigzag orb</option></select></label>
         <div class="row2">
           <label class="field"><span>When it's bored</span>
             <select id="cfgBored"><option value="rest">Just rests</option><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option><option value="dance">Dances</option><option value="nap">Takes naps</option><option value="groom">Cleans its legs</option><option value="yoyo">Bounces on a thread</option><option value="tricks">A bit of everything</option></select></label>
@@ -1183,12 +1217,24 @@ body.bar-off .bar { display: none; }
       <section data-g="fx" hidden>
         <label class="field"><span>When it catches a keyword</span>
           <select id="cfgCatchFx">
-            <option value="ripple">Ripple</option><option value="sparkle">Sparkles</option><option value="label">The word floats up</option>
+            <option value="ripple">Ripple</option><option value="sparkle">Sparkles</option><option value="label">The word floats up</option><option value="letters">The letters fly into the spider</option><option value="wrap">It wraps the word in silk</option><option value="pull">It reels the word in on a thread</option>
             <option value="all">All of them</option><option value="none">Nothing</option>
           </select></label>
         <label class="chk"><input type="checkbox" id="cfgNotice"> Show “!” when it spots its next keyword</label>
         <label class="chk"><input type="checkbox" id="cfgFootprints"> Leave fading footprints</label>
-        <label class="chk"><input type="checkbox" id="cfgSound"> Soft sound effects</label>
+        <fieldset>
+          <legend>Sound</legend>
+          <label class="chk"><input type="checkbox" id="cfgSound"> Sound effects</label>
+          <label class="chk"><input type="checkbox" id="cfgSteps"> Crawling sounds (tiny footsteps)</label>
+          <div class="row2">
+            <label class="field"><span>Background sound</span>
+              <select id="cfgAmbience"><option value="none">None</option><option value="rain">Rain on the window</option><option value="night">Night crickets</option><option value="wind">Wind</option><option value="room">Quiet library</option><option value="fire">Crackling fire</option></select></label>
+            <label class="field"><span>Music</span>
+              <select id="cfgMusic"><option value="off">Off</option><option value="musicbox">Music box</option><option value="lofi">Lo-fi study</option><option value="spooky">Spooky crawl</option><option value="sea">Sea shanty</option></select></label>
+          </div>
+          <label class="field"><span>Volume</span><div class="range"><input type="range" id="cfgVolume" min="0" max="1" step="0.05"><output id="oVolume"></output></div></label>
+          <small>Sounds start after you tap the screen once, and pause when the app is in the background.</small>
+        </fieldset>
       </section>
       <section data-g="babies" hidden>
         <label class="chk"><input type="checkbox" id="cfgSacs"> Wrap the web into an egg sac when it fills up</label>
@@ -1226,7 +1272,7 @@ body.bar-off .bar { display: none; }
           <select id="cfgSkin">
             <option value="auto">Match my device (light or dark)</option><option value="paper">Paper (light)</option><option value="night">Night (dark)</option>
             <option value="sepia">Sepia</option><option value="blueprint">Blueprint</option><option value="forest">Forest</option>
-            <option value="spooky">Spooky</option><option value="neon">Neon</option><option value="ocean">Ocean</option><option value="candy">Candy</option><option value="terminal">Terminal</option><option value="sunset">Sunset</option><option value="contrast">High contrast</option>
+            <option value="spooky">Spooky</option><option value="neon">Neon</option><option value="ocean">Ocean</option><option value="candy">Candy</option><option value="terminal">Terminal</option><option value="sunset">Sunset</option><option value="lobster">Lobster shack</option><option value="contrast">High contrast</option>
           </select></label>
         <label class="field"><span>Weather</span>
           <select id="cfgAmbient">
@@ -1325,6 +1371,7 @@ body.bar-off .bar { display: none; }
       <button type="button" role="tab" data-h="what" aria-selected="true">What's what</button>
       <button type="button" role="tab" data-h="legend" aria-selected="false">Legend</button>
       <button type="button" role="tab" data-h="keys" aria-selected="false">Shortcuts</button>
+      <button type="button" role="tab" data-h="faq" aria-selected="false">FAQ</button>
       <button type="button" role="tab" data-h="about" aria-selected="false">About</button>
     </div>
     <div class="help-body">
@@ -1356,6 +1403,7 @@ body.bar-off .bar { display: none; }
           <dt>In flashcards</dt><dd>Space flips the card, ← and → move between cards, 1 to 4 rate how well you knew it.</dd>
         </dl>
       </section>
+      <section data-h="faq" id="helpFaq" hidden></section>
       <section data-h="about" id="helpAbout"></section>
     </div>
     <div class="actions"><button class="btn primary" type="submit">Got it</button></div>
@@ -1454,7 +1502,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2154,23 +2202,103 @@ function catchFx(n, k) {
     fx.push({ type: "spark", x: n.cx, y: n.cy, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, born: now, col });
   }
   if (m === "label" || m === "all") fx.push({ type: "label", x: n.cx, y: n.cy - 12, born: now, col, text: k.label });
+  if (m === "letters") { const t = k.label.slice(0, 14); [...t].forEach((ch, i) => fx.push({ type: "letter", ch, x: n.cx + (i - t.length / 2) * 7, y: n.cy, born: now + i * 35, col })); }
+  if (m === "wrap") { const r = n.el.getBoundingClientRect(); fx.push({ type: "wrap", x: n.cx, y: n.cy, w: r.width / 2 + 4, h: r.height / 2 + 3, born: now, col }); }
+  if (m === "pull") fx.push({ type: "pull", x: n.cx, y: n.cy, born: now, col, text: k.label });
 }
+const FX_LIFE = { label: 1400, letter: 900, wrap: 900, pull: 1000 };
 let AC = null;
-function audioOn() { if (!cfg.sound) return; try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) { AC = null; } }
+const wantsAudio = () => cfg.sound || cfg.steps || (cfg.ambience && cfg.ambience !== "none") || (cfg.music && cfg.music !== "off");
+function audioOn() { if (!wantsAudio()) return; try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) { AC = null; } }
 addEventListener("pointerdown", audioOn, { capture: true });
 function sfx(kind) {
   if (!cfg.sound || !AC || paused) return;
   try {
     const P = { catch: [880, 0.07, "sine"], notice: [1320, 0.05, "triangle"], sac: [220, 0.28, "sine"], hatch: [520, 0.14, "square"],
-      enter: [440, 0.14, "triangle"], seed: [990, 0.05, "sine"], exit: [330, 0.18, "triangle"] }[kind] || [600, 0.05, "sine"];
+      enter: [440, 0.14, "triangle"], seed: [990, 0.05, "sine"], exit: [330, 0.18, "triangle"], pounce: [300, 0.12, "triangle"], lasso: [1500, 0.16, "sine"] }[kind] || [600, 0.05, "sine"];
     const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = P[2]; o.frequency.setValueAtTime(P[0], t);
     if (kind === "hatch" || kind === "enter") o.frequency.exponentialRampToValueAtTime(P[0] * 2, t + P[1]);
     if (kind === "exit") o.frequency.exponentialRampToValueAtTime(P[0] / 2, t + P[1]);
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.045, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + P[1]);
-    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + P[1] + 0.03);
+    if (kind === "lasso") o.frequency.exponentialRampToValueAtTime(P[0] / 3, t + P[1]);
+    o.connect(g); g.connect(AUDIO.out()); o.start(t); o.stop(t + P[1] + 0.03);
   } catch (e) { /* audio is optional */ }
 }
+// ---- background sounds and music, all made on the device (no sound files). Volume, footsteps, ambience and
+// music are separate switches in Settings → Effects.
+const AUDIO = (() => {
+  let master = null, amb = null, mus = null, noiseBuf = null, ambKindNow = "none", musKindNow = "off";
+  const out = () => { if (!master) { master = AC.createGain(); master.connect(AC.destination); } master.gain.value = clamp(+cfg.volume || 0, 0, 1); return master; };
+  const noise = () => {
+    if (noiseBuf) return noiseBuf;
+    noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const d = noiseBuf.getChannelData(0);
+    let b = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = w * 0.5 + b * 3; }
+    return noiseBuf;
+  };
+  const env = (node, t, a, peak, dur) => { node.gain.setValueAtTime(0.0001, t); node.gain.exponentialRampToValueAtTime(peak, t + a); node.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
+  function blip(f, t, dur, type, vol, dest) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); env(g, t, 0.01, vol, dur); o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05); }
+  function burst(t, dur, freq, q, vol, dest) { const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(); n.buffer = noise(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q; env(g, t, 0.005, vol, dur); n.connect(bp); bp.connect(g); g.connect(dest); n.start(t, Math.random()); n.stop(t + dur + 0.05); }
+  function stopAmb() { if (amb) { clearInterval(amb.timer); try { amb.src.stop(); } catch (e) {} amb.gain.disconnect(); amb = null; } ambKindNow = "none"; }
+  function startAmb(kind) {
+    stopAmb(); if (kind === "none") return;
+    const gain = AC.createGain(), src = AC.createBufferSource(), filt = AC.createBiquadFilter();
+    src.buffer = noise(); src.loop = true; gain.connect(out());
+    const set = { rain: ["bandpass", 2600, 0.5, 0.05], wind: ["lowpass", 420, 0.8, 0.07], night: ["lowpass", 300, 0.7, 0.012], room: ["lowpass", 220, 0.7, 0.035], fire: ["lowpass", 900, 0.6, 0.025] }[kind];
+    filt.type = set[0]; filt.frequency.value = set[1]; filt.Q.value = set[2]; gain.gain.value = set[3];
+    src.connect(filt); filt.connect(gain); src.start();
+    let lfoT = 0;
+    const timer = setInterval(() => {
+      const t = AC.currentTime + 0.05;
+      if (kind === "rain" && Math.random() < 0.7) blip(2200 + Math.random() * 2400, t + Math.random() * 0.2, 0.05, "sine", 0.006, out());
+      if (kind === "wind") { lfoT += 0.25; filt.frequency.setTargetAtTime(300 + 260 * (0.5 + 0.5 * Math.sin(lfoT * 0.7)), t, 0.6); }
+      if (kind === "night" && Math.random() < 0.35) for (let i = 0; i < 3; i++) blip(4300, t + i * 0.06, 0.035, "square", 0.004, out());
+      if (kind === "room" && Math.random() < 0.02) burst(t, 0.35, 1500, 0.8, 0.03, out()); // a page turning
+      if (kind === "fire" && Math.random() < 0.8) burst(t + Math.random() * 0.2, 0.02, 3000, 2, 0.02 + Math.random() * 0.03, out());
+    }, 250);
+    amb = { src, gain, timer }; ambKindNow = kind;
+  }
+  // music: short loops of my own, scheduled a little ahead
+  const N = n => 440 * Math.pow(2, (n - 69) / 12);
+  const TRACKS = {
+    musicbox: { bpm: 100, len: 16, play(i, t, b, d) { const mel = [72, 76, 79, 84, 79, 76, 74, 77, 81, 77, 74, 71, 72, 79, 76, 72]; blip(N(mel[i]), t, b * 1.8, "triangle", 0.05, d); if (i % 4 === 0) blip(N([48, 53, 55, 48][i / 4]), t, b * 3.5, "sine", 0.04, d); } },
+    lofi: { bpm: 72, len: 16, play(i, t, b, d) {
+      const chords = [[60, 64, 67, 71], [57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65]], c = chords[Math.floor(i / 4)];
+      if (i % 4 === 0) for (const n of c) blip(N(n), t, b * 3.8, "sine", 0.018, d);
+      if (i % 4 === 0) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.15); env(g, t, 0.005, 0.12, 0.25); o.connect(g); g.connect(d); o.start(t); o.stop(t + 0.3); }
+      if (i % 2 === 1) burst(t, 0.04, 8000, 1, 0.012, d);
+      if ([2, 7, 10, 14].includes(i)) blip(N(c[3] + 12), t, b * 1.5, "triangle", 0.025, d);
+    } },
+    spooky: { bpm: 84, len: 16, play(i, t, b, d) { const mel = [69, 72, 76, 75, 76, 72, 69, 68, 69, 72, 77, 76, 74, 71, 68, 64]; blip(N(mel[i]), t, b * 1.4, "sawtooth", 0.012, d); blip(N(mel[i]), t + b * 0.75, b, "sine", 0.01, d); if (i % 8 === 0) blip(N(45), t, b * 7, "sine", 0.05, d); } },
+    sea: { bpm: 110, len: 12, play(i, t, b, d) { const mel = [67, 67, 67, 72, 74, 76, 74, 72, 71, 72, 74, 67]; blip(N(mel[i]), t, b * 0.9, "square", 0.012, d); if (i % 3 === 0) blip(N([48, 48, 43, 48][i / 3]), t, b * 1.2, "triangle", 0.05, d); } }
+  };
+  function stopMus() { if (mus) { clearInterval(mus.timer); mus.gain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.2); const g = mus.gain; setTimeout(() => g.disconnect(), 800); mus = null; } musKindNow = "off"; }
+  function startMus(kind) {
+    stopMus(); const tr = TRACKS[kind]; if (!tr) return;
+    const gain = AC.createGain(); gain.gain.value = 1; gain.connect(out());
+    const beat = 60 / tr.bpm / 2; let step = 0, next = AC.currentTime + 0.1;
+    const timer = setInterval(() => { while (next < AC.currentTime + 0.4) { tr.play(step % tr.len, next, beat, gain); step++; next += beat; } }, 100);
+    mus = { gain, timer }; musKindNow = kind;
+  }
+  let stepAcc = 0;
+  return {
+    out: () => out(),
+    sync() {
+      if (!AC) return; out();
+      const a = reduce ? "none" : cfg.ambience || "none", m = cfg.music || "off";
+      if (a !== ambKindNow) startAmb(a);
+      if (m !== musKindNow) startMus(m);
+    },
+    // tiny ticks of feet on paper while it walks
+    steps(dt) {
+      if (!cfg.steps || !AC || paused || document.hidden || S.v < 4) return;
+      stepAcc += dt * (3 + S.v / 25);
+      if (stepAcc >= 1) { stepAcc = 0; burst(AC.currentTime + 0.01, 0.018, 5200 + Math.random() * 1500, 3, 0.012, out()); }
+    }
+  };
+})();
+document.addEventListener("visibilitychange", () => { if (!AC) return; if (document.hidden) AC.suspend(); else if (wantsAudio()) AC.resume(); });
+addEventListener("pointerdown", () => { if (AC) AUDIO.sync(); }, { capture: true });
 
 // ---------------- crawl actions ----------------
 function catchNode(n, silent, by) {
@@ -2382,9 +2510,15 @@ const hasWork = () => S.goto || S.sacQueue.length || nextTarget();
 // nothing to crawl (waiting for helpers, or done), and spiderlings wrap any they bump into for the spider to eat.
 let flies = [], fliesEaten = 0;
 function viewBox() { const pr = pageBox(), vw = document.documentElement.clientWidth; return { x0: -pr.left + 24, x1: vw - pr.left - 24, y0: -pr.top + 80, y1: H - pr.top - 30 }; }
+const BUG_KINDS = ["fly", "mosquito", "moth", "ladybug", "bee", "butterfly", "firefly"];
+function bugKind() {
+  if (cfg.bugLook !== "mixed") return cfg.bugLook || "fly";
+  const mine = BUG_KINDS.filter(k => !locked("bugLook", k));
+  return mine[Math.floor(Math.random() * mine.length)] || "fly";
+}
 function spawnFly() {
   const v = viewBox(), side = Math.random() < 0.5;
-  return { x: side ? v.x0 : v.x1, y: v.y0 + Math.random() * (v.y1 - v.y0), vx: 0, vy: 0, tx: null, ty: null, ph: Math.random() * 6, state: "fly", t: 0, respawn: 0, byBabies: false, web: null };
+  return { kind: bugKind(), x: side ? v.x0 : v.x1, y: v.y0 + Math.random() * (v.y1 - v.y0), vx: 0, vy: 0, tx: null, ty: null, ph: Math.random() * 6, state: "fly", t: 0, respawn: 0, byBabies: false, web: null };
 }
 function resetFlies() { flies = []; if (S.prey) { S.prey = null; if (S.mode === "hunt" || S.mode === "eat") S.mode = S.huntFrom || "walk"; } for (let i = 0; i < (cfg.flies | 0); i++) flies.push(spawnFly()); }
 function nearestFly(x, y, max, states = ["fly"]) {
@@ -2400,7 +2534,7 @@ function updateFlies(dt) {
     f.ph += dt; f.t += dt;
     if (f.state === "gone") { f.respawn -= dt; if (f.respawn <= 0) Object.assign(f, spawnFly()); continue; }
     if (f.state === "wrapped") { if (f.byBabies && !f.hunted && f.t > 30) { f.state = "gone"; f.respawn = 4; } continue; }
-    if (f.state === "stuck") continue;
+    if (f.state === "stuck" || f.state === "held") continue;
     if (inCornerWeb(f) && Math.random() < dt * 2.5) { f.state = "stuck"; f.t = 0; f.web = cwLocal(f); if (!S.snagNote) { S.snagNote = true; log("FLY", "A fly got stuck in the web"); } continue; }
     // wander toward random spots in view; drift back if you scroll away
     if (f.tx == null || Math.hypot(f.tx - f.x, f.ty - f.y) < 24 || Math.random() < dt * 0.25 || f.ty < v.y0 - 200 || f.ty > v.y1 + 200) {
@@ -2427,7 +2561,34 @@ function startHunt() {
   if (!f) return;
   S.prey = f; f.hunted = true; S.huntFrom = S.mode; S.mode = "hunt"; S.huntT = 0;
 }
+// how it closes in on a bug: chase it down, pounce from a little way off, lasso it with silk, or wait and lunge
+function huntStep(fl, dt) {
+  const style = cfg.hunt || "chase", dist = Math.hypot(fl.x - S.x, fl.y - S.y), face = () => { S.a = Math.atan2(fl.y - S.y, fl.x - S.x); };
+  if (style === "pounce") {
+    if (S.pounce) {
+      const p = S.pounce; p.t = Math.min(1, p.t + dt / 0.38); const e = ease(p.t);
+      S.x = p.fx + (p.tx - p.fx) * e; S.y = p.fy + (p.ty - p.fy) * e; S.hopZ = Math.sin(Math.PI * p.t) * Math.min(34, p.len * 0.3); S.v = 0;
+      if (p.t >= 1) { S.pounce = null; S.hopZ = 0; landFeet(); if (Math.hypot(fl.x - S.x, fl.y - S.y) < 30) { fl.x = S.x + Math.cos(S.a) * 6; fl.y = S.y + Math.sin(S.a) * 6; } }
+      return Math.hypot(fl.x - S.x, fl.y - S.y);
+    }
+    if (dist < 130 && dist > 22) { face(); S.pounce = { t: 0, fx: S.x, fy: S.y, tx: fl.x, ty: fl.y, len: dist }; sfx("pounce"); return dist; }
+  } else if (style === "lasso") {
+    if (S.lasso) {
+      S.lasso.t += dt; S.v = 0; face();
+      if (S.lasso.t > 0.3) { fl.state = "held"; const k = Math.min(1, dt * 5); fl.x += (S.x - fl.x) * k; fl.y += (S.y - fl.y) * k; }
+      return Math.hypot(fl.x - S.x, fl.y - S.y);
+    }
+    if (dist < 180 && fl.state === "fly") { face(); S.lasso = { t: 0 }; sfx("lasso"); return dist; }
+  } else if (style === "ambush") {
+    S.ambushT = (S.ambushT || 0) + dt;
+    if (dist > 90 && S.ambushT < 5 && fl.state === "fly") { S.v = 0; S.a += clamp(wrapA(Math.atan2(fl.y - S.y, fl.x - S.x) - S.a), -3 * dt, 3 * dt); return dist; }
+    travel(fl.x, fl.y, dt); // the lunge: twice as fast
+  }
+  return travel(fl.x, fl.y, dt);
+}
 function endHunt() {
+  if (S.prey && S.prey.state === "held") S.prey.state = "fly";
+  S.pounce = S.lasso = null; S.ambushT = 0; if (!S.hop) S.hopZ = 0;
   if (S.prey) S.prey.hunted = false;
   S.prey = null; S.mode = S.huntFrom === "done" ? "done" : S.huntFrom === "sit" ? "toWeb" : "walk"; S.huntFrom = null; S.keep = false;
 }
@@ -2443,12 +2604,46 @@ function drawFly(f, now) {
   const a = Math.atan2(f.vy, f.vx), flap = Math.abs(Math.sin(now * (f.state === "stuck" ? 0.18 : 0.09) + f.ph * 10));
   const jx = f.state === "stuck" ? Math.sin(now * 0.07) * 1.2 : 0;
   ctx.save(); ctx.translate(f.x + jx, f.y); ctx.rotate(f.state === "stuck" ? Math.sin(now * 0.02) * 0.6 : a);
-  ctx.globalAlpha = 0.45; ctx.fillStyle = C.silk;
-  for (const y of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-1, y * (2 + flap * 1.5), 3.6, 1.5 + flap, y * 0.5, 0, 7); ctx.fill(); }
-  ctx.globalAlpha = 1; ctx.fillStyle = C.ink;
-  ell(-1.2, 0, 3.2, 2.2); ctx.fill(); ell(2.3, 0, 1.6, 1.7); ctx.fill();
-  ctx.fillStyle = "#b3261e"; for (const y of [-0.9, 0.9]) { ell(2.9, y, 0.7, 0.7); ctx.fill(); }
+  drawBug(f.kind || "fly", flap, now, f.ph);
   ctx.restore();
+}
+// one bug, facing +x, about 10 px long
+function drawBug(kind, flap, now, ph = 0) {
+  const A0 = ctx.globalAlpha, wing = (rx, ry, y, tilt, col, al) => { ctx.globalAlpha = A0 * al; ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(-1, y, rx, ry, tilt, 0, 7); ctx.fill(); ctx.globalAlpha = A0; };
+  if (kind === "mosquito") {
+    for (const y of [-1, 1]) wing(4.2, 1 + flap * 0.6, y * (1.6 + flap), y * 0.35, C.silk, 0.4);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 0.45;
+    for (const y of [-1, 1]) for (const x of [-2, 0, 2]) seg(x, 0, x - 2.5, y * 5.5);
+    ctx.fillStyle = C.ink; ell(-2, 0, 3.6, 0.9); ctx.fill(); ell(2, 0, 1.2, 1.1); ctx.fill(); ctx.lineWidth = 0.5; seg(3, 0, 7, 0);
+  } else if (kind === "moth") {
+    for (const y of [-1, 1]) { wing(4.8, 3.6 * (0.6 + flap * 0.4), y * 3.2, y * 0.6, "#b49a7a", 0.95); wing(3, 2.2 * (0.6 + flap * 0.4), y * 2.4, -y * 0.5, "#8f7a5e", 0.95); }
+    ctx.fillStyle = "#6b5a44"; ell(-1, 0, 3.4, 1.4); ctx.fill(); ell(2.4, 0, 1.3, 1.3); ctx.fill();
+    ctx.strokeStyle = "#6b5a44"; ctx.lineWidth = 0.4; for (const y of [-1, 1]) seg(3, y * 0.6, 5.4, y * 2.2);
+  } else if (kind === "ladybug") {
+    if (flap > 0.5) for (const y of [-1, 1]) wing(3.4, 1.4, y * 3.2, y * 0.6, C.silk, 0.35);
+    ctx.fillStyle = "#d42a1f"; ell(-0.5, 0, 3.8, 3.3); ctx.fill();
+    ctx.fillStyle = "#151515"; ell(3, 0, 1.4, 1.8); ctx.fill(); ctx.strokeStyle = "#151515"; ctx.lineWidth = 0.4; seg(-4.2, 0, 1.8, 0);
+    for (const [x, y] of [[-1.5, 1.7], [-1.5, -1.7], [0.8, 1.2], [0.8, -1.2], [-3, 0.7], [-3, -0.7]]) { ell(x, y, 0.6, 0.6); ctx.fill(); }
+  } else if (kind === "bee") {
+    for (const y of [-1, 1]) wing(3.4, 1.4 + flap, y * (2.2 + flap), y * 0.4, C.silk, 0.5);
+    ctx.fillStyle = "#f2c230"; ell(-1, 0, 3.8, 2.4); ctx.fill();
+    ctx.fillStyle = "#1b1b1b"; for (const x of [-3, -1, 1]) ctx.fillRect(x - 0.45, -2.2, 0.9, 4.4);
+    ell(2.8, 0, 1.4, 1.5); ctx.fill(); ctx.strokeStyle = "#1b1b1b"; ctx.lineWidth = 0.5; seg(-4.8, 0, -5.8, 0);
+  } else if (kind === "butterfly") {
+    const h = (ph * 47) % 360, up = 0.35 + flap * 0.65;
+    for (const y of [-1, 1]) { wing(4.4, 4 * up, y * 3.6 * up, y * 0.3, `hsl(${h} 75% 58%)`, 0.95); wing(3, 2.6 * up, y * 2.2 * up, -y * 0.5, `hsl(${(h + 40) % 360} 75% 48%)`, 0.95); }
+    ctx.fillStyle = "#222"; ell(-1, 0, 3.4, 0.9); ctx.fill(); ctx.strokeStyle = "#222"; ctx.lineWidth = 0.4; for (const y of [-1, 1]) seg(2, 0, 5, y * 2);
+  } else if (kind === "firefly") {
+    const glow = reduce ? 0.8 : 0.45 + 0.55 * Math.abs(Math.sin(now * 0.003 + ph * 3));
+    for (const y of [-1, 1]) wing(3.2, 1.3 + flap * 0.6, y * (1.8 + flap), y * 0.4, C.silk, 0.4);
+    ctx.save(); ctx.shadowColor = "#d8ff6a"; ctx.shadowBlur = 10 * glow; ctx.fillStyle = `rgba(216,255,106,${glow})`; ell(-3, 0, 2.4, 1.9); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#3a3220"; ell(0.4, 0, 2.4, 1.6); ctx.fill(); ctx.fillStyle = "#d65b2a"; ell(2.6, 0, 1.1, 1.2); ctx.fill();
+  } else {
+    for (const y of [-1, 1]) wing(3.6, 1.5 + flap, y * (2 + flap * 1.5), y * 0.5, C.silk, 0.45);
+    ctx.fillStyle = C.ink; ell(-1.2, 0, 3.2, 2.2); ctx.fill(); ell(2.3, 0, 1.6, 1.7); ctx.fill();
+    ctx.fillStyle = "#b3261e"; for (const y of [-0.9, 0.9]) { ell(2.9, y, 0.7, 0.7); ctx.fill(); }
+  }
+  ctx.globalAlpha = A0;
 }
 
 // ---- corner web: after sitting still for a while the spider spins an orb web in a top corner of the screen
@@ -2479,16 +2674,28 @@ function planCornerWeb() {
   // smaller on phones so it doesn't cover half the screen
   const D = 62 * clamp(cfg.size, 0.85, 1.3) * clamp(F.vw / 700, 0.62, 1);
   const C0 = { x: 1, y: 1 }, A1 = { x: D * 2.8, y: 1 }, A2 = { x: 1, y: D * 2.8 }, hub = { x: D, y: D };
-  const N = 14, spokes = [];
-  for (let i = 0; i < N; i++) { const e = rayTri(hub, i / N * Math.PI * 2 + 0.1, [C0, A1, A2]); if (e) spokes.push(e); }
-  const path = [];
-  for (const e of spokes) path.push(e, hub); // out and back along every spoke
-  const rings = 7;
-  for (let r = rings; r >= 1; r--) for (let i = 0; i < spokes.length; i++) { // then the sticky spiral, from the outside in
-    const fr = (r - i / spokes.length) / (rings + 0.4) * 0.94, e = spokes[i];
-    path.push({ x: hub.x + (e.x - hub.x) * fr, y: hub.y + (e.y - hub.y) * fr });
+  const style = cfg.webStyle || "orb", T = [C0, A1, A2], inside = (x, y) => x > 2 && y > 2 && x + y < D * 2.8 - 2;
+  let spokes = [], path = [], h = hub;
+  if (style === "sheet" || style === "tangle") {
+    if (style === "sheet") { // a flat mat: rows back and forth, then a cross-weave
+      let dir = 1; for (let y = 8; y < D * 2.6; y += 7) { const xe = D * 2.8 - y - 4; path.push(dir > 0 ? { x: 4, y } : { x: xe, y }, dir > 0 ? { x: xe, y } : { x: 4, y }); dir = -dir; }
+      for (let x = 10; x < D * 2.5; x += 12) path.push({ x, y: 4 }, { x, y: D * 2.8 - x - 4 });
+    } else { // a tangle: threads between random points in the corner
+      for (let i = 0; i < 46; i++) { let x, y; do { x = 4 + Math.random() * D * 2.6; y = 4 + Math.random() * D * 2.6; } while (!inside(x, y)); path.push({ x, y }); }
+    }
+    h = { x: D * 0.8, y: D * 0.8 };
+  } else {
+    if (style === "funnel") h = { x: D * 0.45, y: D * 0.45 }; // the hub sits at the mouth of a silk tube in the corner
+    const N = style === "funnel" ? 10 : 14;
+    for (let i = 0; i < N; i++) { const e = rayTri(h, i / N * Math.PI * 2 + 0.1, T); if (e) spokes.push(e); }
+    for (const e of spokes) path.push(e, h); // out and back along every spoke
+    const rings = style === "funnel" ? 9 : 7;
+    for (let r = rings; r >= 1; r--) for (let i = 0; i < spokes.length; i++) { // then the sticky spiral, from the outside in
+      const fr = (r - i / spokes.length) / (rings + 0.4) * 0.94, e = spokes[i];
+      path.push({ x: h.x + (e.x - h.x) * fr, y: h.y + (e.y - h.y) * fr });
+    }
   }
-  CW = { right, C0, A1, A2, hub, spokes, path, step: 0, done: false, R: D * 1.45 };
+  CW = { right, C0, A1, A2, hub: h, spokes, path, step: 0, done: false, R: D * 1.45, style };
   webCatch = [];
   log("WEB", `${spiderName()} is spinning a web in the ${right ? "top right" : "top left"} corner of the screen`);
 }
@@ -2515,7 +2722,8 @@ function startPatrol() {
 // little things it does when it's bored and has nowhere to be
 const TRICK_TEXT = { dance: "dancing", nap: "taking a nap", groom: "cleaning its legs", yoyo: "bouncing on a thread" };
 function startTrick() {
-  const pick = cfg.bored === "tricks" ? ["dance", "nap", "groom", "yoyo"][Math.floor(Math.random() * 4)] : cfg.bored;
+  const pick = cfg.bored === "tricks" ? ["dance", "nap", "groom", "yoyo", "edges"][Math.floor(Math.random() * 5)] : cfg.bored;
+  if (pick === "edges") { startPatrol(); return; }
   S.trickFrom = S.mode === "done" ? "done" : "walk"; S.mode = "trick"; S.trick = pick; S.trickT = 0;
   S.trickLen = pick === "nap" ? 14 : pick === "yoyo" ? 8 : 6; S.trickA = S.a; S.v = 0;
   log("BORED", `${spiderName()} is ${TRICK_TEXT[pick]}`);
@@ -2557,6 +2765,17 @@ function drawCornerWeb() {
     ctx.stroke();
   }
   ctx.restore();
+  if (CW.style === "funnel") { // the tube the spider hides in
+    const c = P({ x: CW.hub.x * 0.55, y: CW.hub.y * 0.55 });
+    ctx.save(); ctx.fillStyle = C.ink; ctx.globalAlpha = 0.35; ell(c.x, c.y, 9, 9); ctx.fill(); ctx.globalAlpha = 0.8; ctx.strokeStyle = C.silk; ctx.lineWidth = 0.7;
+    for (const r of [5, 8, 11]) { ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, 7); ctx.stroke(); } ctx.restore();
+  }
+  if (CW.style === "zigzag" && CW.done) { // the bright zigzag band (a stabilimentum) across the hub
+    const hub = P(CW.hub), L = CW.R * 0.7;
+    ctx.save(); ctx.strokeStyle = C.silk; ctx.lineWidth = 1.8; ctx.globalAlpha = 0.95; ctx.beginPath();
+    for (let i = -6; i <= 6; i++) { const t = i / 6 * L, off = (i % 2 ? 4 : -4); const x = hub.x + t * 0.707 + off * 0.707, y = hub.y + t * 0.707 - off * 0.707; i === -6 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.stroke(); ctx.restore();
+  }
   for (const w of webCatch) { // flies wrapped and left hanging in the web
     const p = P(w);
     ctx.fillStyle = C.silk; ctx.strokeStyle = C.silk; ctx.globalAlpha = 0.9; ell(p.x, p.y, 4.2, 3.2); ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = 0.7;
@@ -3020,6 +3239,7 @@ function walk(dt) {
 }
 
 function update(dt, now) {
+  AUDIO.steps(dt);
   if (paused) { S.v = 0; return; }
   const sp = speedNow();
   if (["done", "sit", "build", "toWeb", "patrol"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) S.mode = "walk";
@@ -3126,8 +3346,8 @@ function update(dt, now) {
     const fl = S.prey; S.huntT += dt;
     if (!fl || fl.state === "gone" || S.huntT > 14 || (S.huntFrom === "walk" && (S.sacQueue.length || S.manual.some(n => !n.caught)))) endHunt();
     else {
-      const d = travel(fl.x, fl.y, dt);
-      if (d < 12 && !S.hop) { S.keep = fl.state === "stuck" && !!CW; fl.state = "wrapped"; fl.t = 0; S.mode = "eat"; S.eatT = 1.8; S.v = 0; sfx("seed"); }
+      const d = huntStep(fl, dt);
+      if (d < 12 && !S.hop && !S.pounce) { S.lasso = null; S.ambushT = 0; S.keep = fl.state === "stuck" && !!CW; fl.state = "wrapped"; fl.t = 0; S.mode = "eat"; S.eatT = 1.8; S.v = 0; sfx("seed"); }
     }
   } else if (S.mode === "eat") {
     const fl = S.prey; S.v = 0; S.eatT -= dt * Math.min(speedNow(), 2);
@@ -3355,6 +3575,7 @@ function spiderPalette(now) {
   if (t === "auto" && cfg.look === "realistic") return { body: "#5e4532", legs: "#4b3727", trim: "#d8bf98" };
   if (t === "auto" && cfg.look === "crystal") return { body: "#86d8ff", legs: "#b9e9ff", trim: "#ffffff", shine: true };
   if (t === "auto" && cfg.look === "skeleton") return { body: "#ece6d4", legs: "#ece6d4", trim: "#26221c" };
+  if (t === "auto" && cfg.look === "lobster") return { body: "#c8321e", legs: "#a8281a", trim: "#f6d8b4" };
   const c = /^c\d$/.test(t) ? C.cats[+t.slice(1)] || C.spider : C.spider;
   return { body: c, legs: c, trim: C.paper };
 }
@@ -3365,7 +3586,7 @@ const LEG_STYLE = {
   realistic: () => ({ w: [2.8, 1.6], bands: true, fine: true }), hero: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
   heroyb: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }), herork: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
   flyer: () => ({ w: [2.6, 1.8], tip: true, outline: true, thin: true }),
-  crystal: () => ({ w: [2, 1.4], glow: true }), skeleton: () => ({ w: [1.7, 1.2], bones: true })
+  crystal: () => ({ w: [2, 1.4], glow: true }), skeleton: () => ({ w: [1.7, 1.2], bones: true }), lobster: () => ({ w: [2.2, 1.6], joints: false })
 };
 function drawSpider(now) {
   if (S.mode === "gone") return;
@@ -3386,11 +3607,18 @@ function drawSpider(now) {
   }
   if (scale <= 0.02 || alpha <= 0.02) return;
   if (S.hopZ > 0) { ctx.fillStyle = col; ctx.globalAlpha = 0.12; ell(S.x, S.y + 4, 14, 6); ctx.fill(); ctx.globalAlpha = 1; }
+  if (S.lasso && S.prey) {
+    const k = Math.min(1, S.lasso.t / 0.3), fx = S.x + (S.prey.x - S.x) * k, fy = S.y + (S.prey.y - S.y) * k;
+    ctx.strokeStyle = C.silk; ctx.lineWidth = 1; ctx.globalAlpha = 0.9; seg(S.x + Math.cos(S.a) * 8, S.y + Math.sin(S.a) * 8, fx, fy);
+    if (k >= 1) { ctx.beginPath(); ctx.arc(fx, fy, 6, 0, 7); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
   if (S.mode === "balloonIn" || S.mode === "exitBalloon") {
     ctx.strokeStyle = C.silk; ctx.lineWidth = 0.9; ctx.globalAlpha = 0.75;
     for (const k of [-1, -0.45, 0.2, 0.8]) { ctx.beginPath(); ctx.moveTo(S.x, S.y - 4); ctx.quadraticCurveTo(S.x + k * 10, S.y - 40, S.x + k * 30 + Math.sin(now * 0.002 + k * 3) * 6, S.y - 78); ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
+  if (S.mode === "patrol" && !reduce && drawSideSpider(col, legCol, now)) return;
   ctx.save(); ctx.globalAlpha = alpha * (look === "ghost" ? 0.72 : 1); ctx.translate(0, -S.hopZ);
   if (scale !== 1) { ctx.translate(S.x, S.y); ctx.scale(scale, scale); ctx.translate(-S.x, -S.y); }
   ctx.lineCap = look === "pixel" ? "butt" : "round"; ctx.lineJoin = "round";
@@ -3459,6 +3687,7 @@ function drawSpider(now) {
   else if (look === "flyer") drawFlyerBody(P, now);
   else if (look === "crystal") drawCrystalBody(P, now);
   else if (look === "skeleton") drawSkeletonBody(P);
+  else if (look === "lobster") drawLobsterBody(P, now);
   else drawClassicBody(type, col);
   drawAccessory();
   ctx.restore();
@@ -3498,6 +3727,32 @@ function drawSpider(now) {
     }
     ctx.globalAlpha = 1;
   }
+}
+// on a walk around the screen, the spider is drawn from the side, feet on the screen's edge, legs arching over its body
+function drawSideSpider(col, legCol, now) {
+  const F = cornerFrame(), sx = S.x + F.pr.left, sy = S.y + F.pr.top;
+  const edges = [[sx, -1, 0], [F.vw - sx, 1, 0], [sy - F.top, 0, -1], [innerHeight - sy, 0, 1]].sort((a, b) => a[0] - b[0]);
+  if (edges[0][0] > 48) return false;
+  const gx = edges[0][1], gy = edges[0][2], dx = Math.cos(S.a), dy = Math.sin(S.a);
+  let tx = -gy, ty = gx; if (tx * dx + ty * dy < 0) { tx = -tx; ty = -ty; }
+  const s = cfg.size, ph = now * 0.012 * Math.max(0.6, speedNow()), moving = S.v > 1;
+  ctx.save(); ctx.transform(tx, ty, gx, gy, S.x, S.y); ctx.scale(s, s);
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const leg = (i, near) => {
+    const hip = [6 - i * 3.2, 1], step = moving ? Math.sin(ph + i * Math.PI / 2 + (near ? 0 : Math.PI / 4)) : 0, lift = moving ? Math.max(0, Math.cos(ph + i * Math.PI / 2)) * 2.5 : 0;
+    const foot = [hip[0] + [17, 8, -5, -15][i] + step * 4, 11 - lift], knee = [(hip[0] + foot[0]) / 2 + [3, 1, -1, -3][i], -9 - (near ? 1 : 0)];
+    ctx.strokeStyle = legCol; ctx.lineWidth = 2; seg(hip[0], hip[1], knee[0], knee[1]); ctx.lineWidth = 1.4; seg(knee[0], knee[1], foot[0], foot[1]);
+  };
+  ctx.globalAlpha = 0.5; for (let i = 0; i < 4; i++) leg(i, false);
+  ctx.globalAlpha = 1; ctx.fillStyle = col;
+  ell(-11, -2.5, 11, 8); ctx.fill();                       // abdomen, raised off the edge
+  ell(4.5, 0.5, 7, 5.2); ctx.fill();                       // head and thorax
+  ctx.strokeStyle = col; ctx.lineWidth = 1.2; seg(10, 2, 13, 5); // fangs and palps
+  ctx.fillStyle = C.paper; ell(9, -1.6, 1.1, 1.1); ctx.fill(); ell(7, -2.6, 0.8, 0.8); ctx.fill();
+  ctx.fillStyle = col; for (let i = 0; i < 4; i++) leg(i, true);
+  ctx.strokeStyle = C.silk; ctx.globalAlpha = 0.6; ctx.lineWidth = 0.7; seg(-21, -1, -30, 10); // its safety line, stuck to the edge behind it
+  ctx.restore();
+  return true;
 }
 // soft light from the top left and shade underneath, over any color
 function shadeEll(x, y, rx, ry, col) {
@@ -3636,6 +3891,31 @@ function drawSwordSuit(P) {
     ctx.fillStyle = "#fff"; ell(trx * 0.12, 0, Math.max(1.1, trx * 0.2), Math.max(0.8, try_ * 0.13)); ctx.fill();
     ctx.restore();
   }
+}
+// the lobster: two big snapping claws out front, a hard shell, a tail of overlapping plates with a fan, and long feelers
+function drawLobsterBody(P, now) {
+  const snap = reduce ? 0.3 : 0.25 + 0.25 * Math.max(0, Math.sin(now * 0.004)), dark = "rgba(0,0,0,.28)";
+  ctx.strokeStyle = P.body; ctx.lineWidth = 0.8;
+  for (const y of [-1, 1]) { // feelers
+    ctx.beginPath(); ctx.moveTo(10, y * 2.5); ctx.bezierCurveTo(22, y * 6, 30, y * (14 + Math.sin(now * 0.003 + y) * 2), 40, y * 22); ctx.stroke();
+  }
+  for (const y of [-1, 1]) { // arms and claws
+    ctx.strokeStyle = P.body; ctx.lineWidth = 2.6; seg(5, y * 4, 12, y * 10); seg(12, y * 10, 17, y * 12);
+    ctx.save(); ctx.translate(21, y * 13); ctx.rotate(y * 0.25);
+    ctx.fillStyle = P.body; ell(0, 0, 6.5, 4.2); ctx.fill();
+    ctx.save(); ctx.rotate(-y * snap); ell(6, -y * 1.6, 4.6, 1.8); ctx.fill(); ctx.restore(); // the moving pincer
+    ctx.save(); ctx.rotate(y * snap * 0.4); ell(6, y * 1.8, 4.6, 1.8); ctx.fill(); ctx.restore();
+    ctx.fillStyle = dark; ell(-1.5, 0, 3, 1.4); ctx.fill();
+    ctx.restore();
+  }
+  // tail: plates getting smaller toward the fan
+  for (let i = 4; i >= 0; i--) { ctx.fillStyle = P.body; ell(-9 - i * 5.2, 0, 5.4 - i * 0.35, 6.6 - i * 0.55); ctx.fill(); ctx.strokeStyle = dark; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(-9 - i * 5.2 + 3.2, 0, 6.4 - i * 0.5, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke(); }
+  ctx.fillStyle = P.body; for (const a of [-0.55, 0, 0.55]) { ctx.save(); ctx.translate(-33, 0); ctx.rotate(Math.PI + a); ell(4.5, 0, 4.8, 2.4); ctx.fill(); ctx.restore(); }
+  // shell
+  ctx.fillStyle = P.body; ell(2, 0, 9.5, 7); ctx.fill();
+  ctx.strokeStyle = dark; ctx.lineWidth = 0.9; seg(-5, 0, 9, 0);
+  ctx.fillStyle = "rgba(255,255,255,.25)"; ell(0, -3, 5, 1.6); ctx.fill();
+  ctx.fillStyle = "#1a1210"; for (const y of [-1, 1]) { ell(10.5, y * 3.2, 1.4, 1.4); ctx.fill(); }
 }
 // the caped flyer: a blue suit, a red belt, and a red cape over its back whose hem ripples as it crawls
 // burrowing: the page tears open, the torn paper curls back, the spider crawls in, and the page closes after it
@@ -3915,11 +4195,22 @@ function draw(now) {
   drawCornerWeb();
   for (const b of babies) if (vis(b.y, b.y)) drawBaby(b, now);
   for (const fl of flies) if (vis(fl.y, fl.y)) drawFly(fl, now);
-  fx = fx.filter(f => now - f.born < (f.type === "label" ? 1400 : 750));
+  fx = fx.filter(f => now - f.born < (FX_LIFE[f.type] || 750));
   for (const f of fx) {
-    const t = (now - f.born) / (f.type === "label" ? 1400 : 750);
+    const t = (now - f.born) / (FX_LIFE[f.type] || 750);
+    if (t < 0) continue;
     ctx.globalAlpha = 1 - t; ctx.strokeStyle = f.col; ctx.fillStyle = f.col;
-    if (f.type === "ring") { ctx.lineWidth = 2 * (1 - t) + 0.5; ctx.beginPath(); ctx.arc(f.x, f.y, 6 + t * 34, 0, 7); ctx.stroke(); }
+    if (f.type === "letter") { // each letter arcs over into the spider
+      const e = ease(t), x = f.x + (S.x - f.x) * e, y = f.y + (S.y - f.y) * e - Math.sin(Math.PI * t) * 30;
+      ctx.globalAlpha = 1 - t * 0.6; ctx.font = `600 ${13 - t * 6}px ${SERIF}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(f.ch, x, y); ctx.textAlign = "start";
+    } else if (f.type === "wrap") { // silk winds around the word
+      ctx.globalAlpha = t < 0.7 ? 1 : (1 - t) / 0.3; ctx.strokeStyle = C.silk; ctx.lineWidth = 0.9;
+      for (let k = 0; k < 4; k++) { const tilt = (k - 1.5) * 0.18, end = Math.min(1, t * 1.6 - k * 0.12) * Math.PI * 2; if (end > 0) { ctx.beginPath(); ctx.ellipse(f.x, f.y, f.w, f.h, tilt, 0, end); ctx.stroke(); } }
+    } else if (f.type === "pull") { // a thread from the spider reels the word in
+      const e = ease(Math.min(1, t * 1.2)), x = f.x + (S.x - f.x) * e, y = f.y + (S.y - f.y) * e;
+      ctx.strokeStyle = C.silk; ctx.lineWidth = 0.9; seg(S.x, S.y, x, y);
+      ctx.fillStyle = f.col; ctx.font = `600 ${13 - e * 5}px ${SERIF}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(f.text, x, y); ctx.textAlign = "start";
+    } else if (f.type === "ring") { ctx.lineWidth = 2 * (1 - t) + 0.5; ctx.beginPath(); ctx.arc(f.x, f.y, 6 + t * 34, 0, 7); ctx.stroke(); }
     else if (f.type === "spark") {
       const x = f.x + f.vx * t * (1 - t * 0.4), y = f.y + f.vy * t * (1 - t * 0.4), r = 2.6 * (1 - t) + 0.6;
       ctx.beginPath(); for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + t * 3; ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r * 2, y + Math.sin(a) * r * 2); }
@@ -3932,7 +4223,7 @@ function draw(now) {
   ctx.globalAlpha = 1; ctx.lineWidth = 1;
   ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2;
   rings = rings.filter(r => now - r.born < 700);
-  for (const r of rings) { const p = (now - r.born) / 700; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(r.x, r.y, 4 + p * 22, 0, 7); ctx.stroke(); }
+  for (const r of rings) { const p = Math.max(0, (now - r.born) / 700); ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(r.x, r.y, 4 + p * 22, 0, 7); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const h of helpers) if (vis(h.y, h.y)) drawHelper(h);
   drawHole(now);
@@ -6256,7 +6547,7 @@ function helpFor(sel) { return HELP.find(h => h[1] === sel); }
 function openHelp(tab) {
   $("helpWhat").innerHTML = [...new Set(HELP.map(h => h[0]))].map(g => `<div class="hw-group"><h3>${g}</h3><dl class="hw-list">${
     HELP.filter(h => h[0] === g).map(h => `<div><dt>${h[2]}</dt><dd>${h[3]}</dd></div>`).join("")}</dl></div>`).join("");
-  renderLegend(); renderAbout();
+  renderLegend(); renderFaq(); renderAbout();
   setHelpTab(tab || "what");
   if (!$("dHelp").open) $("dHelp").showModal();
 }
@@ -6283,6 +6574,21 @@ function renderLegend() {
       <div><dt>→ Rules ✓</dt><dd>Decided by the spider's own rules. → AI means it asked your AI. → You means it's waiting for you to decide.</dd></div>
     </dl></div>`;
 }
+const FAQ = [
+  ["Does it work without the internet?", "Yes. Reading, finding keywords and topics, the web view, flashcards, study guides from the text, citations and Ask all work offline. You only need the internet to open a web page, search the web for more pages, or use an AI service."],
+  ["Do I need an AI to use it?", "No. Without one, Ask shows the passages that answer your question, with their sources. An AI only adds a short written answer, summaries and a fuller study guide."],
+  ["How do I connect my own AI?", "Settings → Research → Your AI. Pick a service, paste your API key and press Save. You can also use a free model on your own computer with Ollama or LM Studio. Your key stays on this device."],
+  ["Can I use my ChatGPT Plus or Claude Pro subscription?", "No. Those subscriptions can't be connected to other apps. Use an API key from the same company instead; most cost a few cents for a study session."],
+  ["What can I open?", "Web page links, PDFs (including scanned ones), EPUB books, .txt and .md files, photos of pages, and anything you paste in. Use Pages → Open text, a file or a link."],
+  ["Is there an account or login?", "No. Everything stays on your device. To move a crawl to another device, use a weave code or a crawl file in the Library."],
+  ["Where's my support ID?", "Settings → Help & support. Send it with any question so we can find your report and, if needed, send a fix to just your app."],
+  ["How do I report a problem?", "Settings → Help & support → Report an issue. Say what you were doing and what happened. You can add your email if you'd like a reply."],
+  ["Why didn't it find a keyword I expected?", "It looks for words and phrases that are frequent and specific to the text. Select any word on the page to add it yourself; it goes in the “My highlights” topic."],
+  ["What do the colors mean?", "Each topic has a color. A keyword's underline, its threads and its sacs share that color. Open Help → Legend to see the topics in the current text."],
+  ["What do purchases unlock, and do I keep them?", "Store items change how the spider and the page look and behave; every reading and study feature is free. Purchases belong to your Google account and come back after a reinstall. A bundle also includes anything added to its sections later."],
+  ["How do I make the spider calmer or quieter?", "Settings → Effects: turn off sounds and effects, or pick the Study mode preset. If your device asks for reduced motion, the app keeps animation to a minimum."]
+];
+function renderFaq() { $("helpFaq").innerHTML = `<dl class="hw-list faq">${FAQ.map(([q, a]) => `<div><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join("")}</dl>`; }
 function renderAbout() {
   $("helpAbout").innerHTML = `<p><b>${esc(APP.name)}</b> ${esc(APP.version)}. ${esc(APP.tagline)}</p>
     <p class="meta">Your support ID: <b class="mono">${esc(supportId())}</b> (also in Settings → Help &amp; support).</p>
@@ -6392,7 +6698,7 @@ addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
 const CATALOG = JSON.parse($("storeCatalog").textContent);
 const ITEMS = CATALOG.groups.flatMap(g => g.items.map(it => ({ ...it, group: g.key })));
 const PRODUCTS = [...ITEMS, ...CATALOG.presets, ...CATALOG.bundles];
-const FREE_FALLBACK = { type: "cobweb", look: "classic", tint: "auto", season: "off", ambient: "none", skin: "auto", spiders: "one", speed: 1, bored: "rest", flies: 0 };
+const FREE_FALLBACK = { type: "cobweb", look: "classic", tint: "auto", season: "off", ambient: "none", skin: "auto", spiders: "one", speed: 1, bored: "rest", flies: 0, hunt: "chase", webStyle: "orb", bugLook: "fly" };
 // While the app is in development everything stays unlocked. Set lockPaid: true in config.js to switch the locks on.
 const DEV_UNLOCK = !(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.lockPaid);
 const OWNED = new Set(store.get("cak3d-owned") || []);
@@ -6499,7 +6805,7 @@ function openSheet(id) {
   const native = BILLING.ready, play = window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.playUrl, have = unlocked(id);
   let inc = "";
   if (p.all) inc = `<p>Everything in the store, now and later:</p><ul class="st-inc">${CATALOG.groups.map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}<li>Presets (${CATALOG.presets.length})</li></ul>`;
-  else if (p.groups) inc = `<p>Includes:</p><ul class="st-inc">${CATALOG.groups.filter(g => p.groups.includes(g.key)).map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}</ul>`;
+  else if (p.groups) inc = `<p>Includes everything in these sections, and anything added to them later:</p><ul class="st-inc">${CATALOG.groups.filter(g => p.groups.includes(g.key)).map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}</ul>`;
   else if (p.preset) inc = `<p>Also unlocks:</p><ul class="st-inc">${presetItems(p).map(i => `<li>${esc(productById(i).name)}</li>`).join("")}</ul>`;
   const value = p.all || p.groups || p.preset ? `<p class="st-worth">$${worth(p).toFixed(2)} if bought one by one</p>` : "";
   const action = have ? `<span class="st-price owned">${ownedText(p)}</span>`
@@ -6510,7 +6816,7 @@ function openSheet(id) {
   $("stSheet").hidden = false;
   const cv = $("stSheetBody").querySelector("canvas"), it = ITEMS.find(x => x.id === id);
   // spiders move in the big preview: capes wave, rainbows shift, the peacock fans out
-  const live = !reduce && (p.groups || p.all || (it && ["type", "look", "tint", "season", "spiders", "flies", "speed"].includes(it.field)));
+  const live = !reduce && (p.groups || p.all || (it && ["type", "look", "tint", "season", "spiders", "flies", "speed", "bugLook", "hunt"].includes(it.field)));
   const frame = () => { drawThumb(cv, performance.now()); if (live && sheetId === id) sheetRaf = requestAnimationFrame(frame); };
   frame();
   $("stSheetClose").focus();
@@ -6593,6 +6899,23 @@ function previewWeather(kind, w, h, now) {
     drawAmbient(now);
   } finally { amb = keep.amb; ambKind = keep.ambKind; W = keep.W; H = keep.H; flashAt = keep.flashAt; }
 }
+// a web of the given style across the top-right corner of a thumbnail
+function previewWebStyle(style, w, h) {
+  const D = Math.min(w, h) * 0.36, X = x => w - 4 - x, Y = y => 4 + y, L = D * 2.8;
+  ctx.save(); ctx.strokeStyle = C.silk; ctx.lineWidth = 1; ctx.globalAlpha = 0.9;
+  seg(X(0), Y(0), X(L), Y(0)); seg(X(0), Y(0), X(0), Y(L)); seg(X(L), Y(0), X(0), Y(L));
+  const inT = (x, y) => x > 1 && y > 1 && x + y < L - 1;
+  if (style === "sheet") { for (let y = 8; y < L - 8; y += 6) seg(X(3), Y(y), X(L - y - 3), Y(y)); for (let x = 10; x < L - 10; x += 10) seg(X(x), Y(3), X(x), Y(L - x - 3)); }
+  else if (style === "tangle") { let px = D * 0.7, py = D * 0.7, r = 7; for (let i = 0; i < 40; i++) { r = (r * 9301 + 49297) % 233280; const x = 4 + (r / 233280) * L * 0.9; r = (r * 9301 + 49297) % 233280; const y = 4 + (r / 233280) * L * 0.9; if (!inT(x, y)) continue; seg(X(px), Y(py), X(x), Y(y)); px = x; py = y; } }
+  else {
+    const hub = style === "funnel" ? { x: D * 0.45, y: D * 0.45 } : { x: D, y: D }, n = style === "funnel" ? 10 : 14, sp = [];
+    for (let i = 0; i < n; i++) { const e = rayTri(hub, i / n * Math.PI * 2 + 0.1, [{ x: 1, y: 1 }, { x: L, y: 1 }, { x: 1, y: L }]); if (e) { sp.push(e); seg(X(hub.x), Y(hub.y), X(e.x), Y(e.y)); } }
+    for (let r = 1; r <= (style === "funnel" ? 8 : 6); r++) { ctx.beginPath(); sp.forEach((e, i) => { const fr = r / (style === "funnel" ? 8.5 : 6.5); const x = X(hub.x + (e.x - hub.x) * fr), y = Y(hub.y + (e.y - hub.y) * fr); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }
+    if (style === "funnel") { ctx.fillStyle = C.ink; ctx.globalAlpha = 0.35; ell(X(hub.x * 0.55), Y(hub.y * 0.55), 7, 7); ctx.fill(); }
+    if (style === "zigzag") { ctx.lineWidth = 2; ctx.globalAlpha = 1; ctx.beginPath(); for (let i = -5; i <= 5; i++) { const t = i / 5 * D * 0.7, o = i % 2 ? 3 : -3; const x = X(hub.x + t * 0.707 + o * 0.707), y = Y(hub.y + t * 0.707 - o * 0.707); i === -5 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+  }
+  ctx.restore();
+}
 function previewFlies(w, h, now) {
   for (const [x, y, a] of [[w * 0.18, h * 0.3, 0.4], [w * 0.82, h * 0.25, 2.6], [w * 0.75, h * 0.78, -2.2]]) drawFly({ x, y, vx: Math.cos(a), vy: Math.sin(a), ph: x, state: "fly" }, now);
 }
@@ -6609,6 +6932,17 @@ function previewCornerWeb(g, w, h) {
   return [hub.x, hub.y];
 }
 const THUMB = {
+  bugLook: (it, w, h, now) => { ctx.save(); ctx.translate(w / 2, h / 2); ctx.scale(Math.min(w, h) / 22, Math.min(w, h) / 22); drawBug(it.values[0], Math.abs(Math.sin(now * 0.009)), now, 1.3); ctx.restore(); },
+  hunt: (it, w, h, now) => {
+    const v = it.values[0], sc = Math.min(w, h) / 120, sx = w * 0.28, sy = h * 0.62, fx = w * 0.76, fy = h * 0.32;
+    ctx.strokeStyle = C.silk; ctx.lineWidth = 1.2;
+    if (v === "pounce") { ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo((sx + fx) / 2, fy - h * 0.25, fx, fy); ctx.stroke(); ctx.setLineDash([]); }
+    if (v === "lasso") { seg(sx, sy, fx, fy); ctx.beginPath(); ctx.arc(fx, fy, 9, 0, 7); ctx.stroke(); }
+    if (v === "ambush") { ctx.fillStyle = C.muted; ctx.font = `600 ${14 * sc * 1.6}px ${MONO}`; ctx.fillText("…", sx + 18 * sc, sy - 26 * sc); }
+    previewSpider({ x: sx - 6 * sc, y: sy, a: Math.atan2(fy - sy, fx - sx), scale: sc }, w, h, now);
+    ctx.save(); ctx.translate(fx, fy); ctx.scale(sc * 2, sc * 2); drawBug("fly", Math.abs(Math.sin(now * 0.02)), now); ctx.restore();
+  },
+  webStyle: (it, w, h, now) => { previewWebStyle(it.values[0], w, h); },
   type: (it, w, h, now) => previewSpider({ type: it.values[0] }, w, h, now),
   look: (it, w, h, now) => previewSpider({ look: it.values[0] }, w, h, now),
   tint: (it, w, h, now) => previewSpider({ tint: it.values[0] }, w, h, now),
@@ -6666,6 +7000,10 @@ function drawThumb(cv, now) {
     g.fillStyle = C.paper; g.fillRect(0, 0, w, h);
     if (it && THUMB[it.field]) THUMB[it.field](it, w, h, now);
     else if (pr) drawPreset(pr, w, h, now);
+    else if (id === "bundle_bugs") ["mosquito", "moth", "ladybug", "bee", "butterfly", "firefly"].forEach((k, i) => {
+      ctx.save(); ctx.translate(w * (0.2 + (i % 3) * 0.3), h * (i < 3 ? 0.32 : 0.72)); ctx.scale(Math.min(w, h) / 46, Math.min(w, h) / 46); ctx.rotate(-0.4 + i * 0.3);
+      drawBug(k, Math.abs(Math.sin(now * 0.009 + i)), now, i + 1); ctx.restore();
+    });
     else if (BUNDLE_SHOW[id]) { const list = BUNDLE_SHOW[id], step = w / list.length; list.forEach((o, i) => previewSpider({ ...o, x: step * (i + 0.5) - 6, scale: Math.min(step, h) / 112 }, w, h, now)); }
   });
 }
@@ -6673,11 +7011,12 @@ function drawThumbs(root) { const now = performance.now(); for (const cv of root
 
 const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${v} keywords` : "No limit", k: v => `${v}`,
   size: v => `${(+v).toFixed(1)}×`, babySize: v => `${(+v).toFixed(1)}×`, links: v => `${v}`, fade: v => +v ? `after ${v} s` : "Never",
-  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}`, flies: v => +v ? `${v}` : "None" };
+  ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}`, flies: v => +v ? `${v}` : "None", volume: v => `${Math.round(v * 100)}%` };
 const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String], ["cfgType", "type", String], ["cfgDew", "dew", Boolean],
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
-  ["cfgLook", "look", String], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String],
+  ["cfgLook", "look", String], ["cfgBugLook", "bugLook", String], ["cfgHunt", "hunt", String], ["cfgWebStyle", "webStyle", String],
+  ["cfgSteps", "steps", Boolean], ["cfgAmbience", "ambience", String], ["cfgMusic", "music", String], ["cfgVolume", "volume", Number, "oVolume"], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String],
   ["cfgLayout", "layout", String], ["cfgLinks", "links", Number, "oLinks"], ["cfgThreadColor", "threadColor", String], ["cfgWordColor", "wordColor", String],
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
@@ -6699,6 +7038,10 @@ function cycleTheme() {
 }
 function applyWordColor() { document.body.classList.toggle("wc-highlight", cfg.wordColor === "highlight"); document.body.classList.toggle("wc-off", cfg.wordColor === "off"); }
 function settingChanged(key) {
+  if (["sound", "steps", "ambience", "music", "volume"].includes(key)) { audioOn(); AUDIO.sync(); }
+  if (key === "bugLook") resetFlies();
+  if (key === "webStyle" && CW) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; }
+  if (key === "hunt" && S.prey) endHunt();
   if (key === "type" || key === "size" || key === "look") { buildLegs(); if (!["drop", "zip", "balloonIn", "gone"].includes(S.mode)) plantFeet(); }
   if (key === "sort") $("topicsField").hidden = cfg.sort !== "topics";
   if (key === "topics" || key === "sort") applyTopics();
@@ -6738,6 +7081,8 @@ for (const [id, key, parse, out] of BIND) {
   });
 }
 const PRESETS = {
+  lobster: { look: "lobster", type: "wolf", tint: "auto", skin: "lobster", ambient: "fog", layout: "chain", threadColor: "topic", catchFx: "pull", babyLook: "spiderlings",
+    babyColor: "parent", hatchFx: "gentle", entrance: "bottom", exit: "wander", dew: false, breeze: true, season: "pirate", bored: "dance", hunt: "ambush", music: "sea" },
   ocean: { look: "classic", type: "orb", tint: "pearl", skin: "ocean", ambient: "fog", layout: "orb", threadColor: "silk", catchFx: "ripple", babyLook: "fireflies",
     babyColor: "parent", hatchFx: "gentle", entrance: "drop", exit: "up", dew: true, breeze: true, season: "off", bored: "yoyo" },
   terminal: { look: "pixel", type: "cobweb", tint: "auto", skin: "terminal", ambient: "rain", layout: "meaning", threadColor: "topic", catchFx: "label", babyLook: "clones",

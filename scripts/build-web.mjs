@@ -39,8 +39,17 @@ const head = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script src="config.js"></script>
 <script src="anthropic.js"></script>
-</head><body>`;
-const tail = `<script>if ("serviceWorker" in navigator && !window.Capacitor && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js"));</script>
+<style>#boot{position:fixed;inset:0;z-index:999;background:#111413;color:#e6ebe7;display:flex;align-items:center;justify-content:center;gap:4vmin;padding:24px;flex-wrap:wrap;transition:opacity .45s ease;font-family:Newsreader,Georgia,serif;overflow:hidden}
+#boot.gone{opacity:0;pointer-events:none}#boot svg{position:absolute;inset:0;width:100%;height:100%}#boot img{position:relative;width:min(34vmin,220px);height:auto;border-radius:22%}
+#boot div{position:relative;max-width:30rem}#boot b{display:block;font-size:clamp(40px,9vmin,84px);font-weight:600;letter-spacing:-.01em;line-height:1}#boot span{display:block;margin-top:12px;font-size:clamp(17px,3.4vmin,28px);line-height:1.3;color:#c9d2cc}
+@media (orientation:portrait){#boot{flex-direction:column;text-align:center}}</style>
+</head><body>
+<div id="boot" role="img" aria-label="Arachnotes is loading"><svg viewBox="0 0 1000 1000" preserveAspectRatio="xMaxYMin slice" aria-hidden="true"><g stroke="#2a312e" stroke-width="2" fill="none">${
+  Array.from({ length: 16 }, (_, i) => { const a = i / 16 * Math.PI * 2; return `<line x1="1000" y1="0" x2="${(1000 + Math.cos(a) * 1600).toFixed(0)}" y2="${(Math.sin(a) * 1600).toFixed(0)}"/>`; }).join("")}${
+  Array.from({ length: 12 }, (_, i) => `<circle cx="1000" cy="0" r="${90 + i * 110}"/>`).join("")}</g></svg>
+<img src="icons/icon-512.png" alt=""><div><b>Arachnotes</b><span>A spider reads any text and spins it into study guides, flashcards and notes.</span></div></div>`;
+const tail = `<script>(()=>{const b=document.getElementById("boot");if(!b)return;const go=()=>{b.classList.add("gone");setTimeout(()=>b.remove(),500)};const wait=Math.max(0,900-performance.now());setTimeout(go,wait)})();</script>
+<script>if ("serviceWorker" in navigator && !window.Capacitor && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js"));</script>
 </body></html>`;
 // Release builds hide the app's code: comments are stripped, the CSS is squeezed, and every inline script is
 // minified and obfuscated (renamed variables, encoded strings), so the code in the APK or the website is very

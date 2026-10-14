@@ -1,9 +1,9 @@
-// Draws the app icon (a spider on its web) with no image dependencies and writes the PNGs
+// Draws the app icon (the spider on a web that turns into a sheet of notepaper) with no image dependencies and writes the PNGs
 // the web app and the Android build need. Shapes are rendered with distance-based antialiasing.
 import { deflateSync } from "node:zlib";
 import { writeFileSync, mkdirSync } from "node:fs";
 
-const BG = [17, 20, 19], SILK = [196, 207, 220], BODY = [231, 235, 230], ACCENT = [127, 176, 238];
+const BG = [17, 20, 19], SILK = [196, 207, 220], INK = [24, 28, 27], PAPER = [244, 241, 231], FOLD = [212, 205, 188], RULE = [138, 166, 204], PENCIL = [120, 126, 132], MARGIN = [214, 120, 120];
 
 const CRC = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
 const crc32 = buf => { let c = 0xffffffff; for (const b of buf) c = CRC[(c ^ b) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
@@ -25,17 +25,28 @@ const segDist = (px, py, ax, ay, bx, by) => {
   return Math.hypot(px - ax - dx * t, py - ay - dy * t);
 };
 
+// the paper: the left half of the icon, with a folded top-left corner
+const PAPER_POLY = [[0.21, 0.13], [0.5, 0.13], [0.5, 0.87], [0.13, 0.87], [0.13, 0.21]];
+const inPaper = (x, y) => x >= 0.13 && x <= 0.5 && y >= 0.13 && y <= 0.87 && !(x < 0.21 && y < 0.21 && (0.21 - x) > (y - 0.13));
 // the drawing, in unit coordinates (0..1), center at 0.5
 function shapes({ web }) {
   const s = [];
   if (web) {
+    // left half: a sheet of notepaper, where the web carries on as faint pencil lines; right half: silk
+    s.push({ poly: PAPER_POLY, c: PAPER, a: 1 });
+    s.push({ poly: [[0.21, 0.13], [0.21, 0.21], [0.13, 0.21]], c: FOLD, a: 1 });
+    for (let y = 0.27; y < 0.86; y += 0.068) s.push({ seg: [0.13, y, 0.5, y], r: 0.0028, c: RULE, a: 0.7 });
+    s.push({ seg: [0.2, 0.21, 0.2, 0.87], r: 0.0028, c: MARGIN, a: 0.75 });
     const ring = r => Array.from({ length: 8 }, (_, i) => { const a = i / 8 * Math.PI * 2 + Math.PI / 8; return [0.5 + Math.cos(a) * r, 0.5 + Math.sin(a) * r]; });
-    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + Math.PI / 8; s.push({ seg: [0.5, 0.5, 0.5 + Math.cos(a) * 0.47, 0.5 + Math.sin(a) * 0.47], r: 0.004, c: SILK, a: 0.45 }); }
-    for (const r of [0.17, 0.29, 0.41]) { const p = ring(r); for (let i = 0; i < 8; i++) { const q = p[(i + 1) % 8]; s.push({ seg: [p[i][0], p[i][1], q[0], q[1]], r: 0.004, c: SILK, a: 0.45 }); } }
+    const leftSide = (x) => x > 0.5, onPaper = (x, y) => inPaper(x, y);
+    for (const [clip, c, a, r0] of [[leftSide, SILK, 0.55, 0.0045], [onPaper, PENCIL, 0.45, 0.0032]]) {
+      for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2 + Math.PI / 8; s.push({ seg: [0.5, 0.5, 0.5 + Math.cos(an) * 0.47, 0.5 + Math.sin(an) * 0.47], r: r0, c, a, clip }); }
+      for (const r of [0.17, 0.29, 0.41]) { const p = ring(r); for (let i = 0; i < 8; i++) { const q = p[(i + 1) % 8]; s.push({ seg: [p[i][0], p[i][1], q[0], q[1]], r: r0, c, a, clip }); } }
+    }
   }
   // the cobweb weaver, the app's default spider, built from the app's own measurements (drawClassicBody and
   // buildLegs in src/arachnotes.html). App units point forward along x; here the head points up.
-  const S = 0.0108, P = (f, l) => [0.5 + l * S, 0.52 - f * S];
+  const S = 0.0076, P = (f, l) => [0.5 + l * S, 0.51 - f * S], body = [];
   const FWD = [30, 13, -7, -24], LAT = [30, 37, 37, 31], HIPF = [5, 2, -1, -4];
   for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
     const hip = [HIPF[i], side * 5], foot = [FWD[i], side * LAT[i]];
@@ -43,19 +54,23 @@ function shapes({ web }) {
     const cosA = Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d)));
     const ang = Math.atan2(dy, dx) - side * Math.acos(cosA); // the knee bends outward, as in the app
     const knee = [hip[0] + Math.cos(ang) * L1, hip[1] + Math.sin(ang) * L1];
-    s.push({ seg: [...P(...hip), ...P(...knee)], r: 1.8 * S, c: BODY, a: 1 });
-    s.push({ seg: [...P(...knee), ...P(...foot)], r: 1.2 * S, c: BODY, a: 1 });
-    s.push({ circ: [...P(...foot), 1.6 * S], c: BODY, a: 1 });
+    body.push({ seg: [...P(...hip), ...P(...knee)], r: 1.8 * S, c: INK, a: 1 });
+    body.push({ seg: [...P(...knee), ...P(...foot)], r: 1.2 * S, c: INK, a: 1 });
+    body.push({ circ: [...P(...foot), 1.6 * S], c: INK, a: 1 });
   }
-  s.push({ ell: [...P(-14, 0), 8.5 * S, 12 * S], c: BODY, a: 1 });  // abdomen
-  s.push({ ell: [...P(2, 0), 6 * S, 7.5 * S], c: BODY, a: 1 });     // head
+  body.push({ ell: [...P(-14, 0), 8.5 * S, 12 * S], c: INK, a: 1 });  // abdomen
+  body.push({ ell: [...P(2, 0), 6 * S, 7.5 * S], c: INK, a: 1 });     // head
   for (const x of [-9, -14, -19]) for (const side of [-1, 1])        // the three chevrons down its back
-    s.push({ seg: [...P(x - 3, side * 4), ...P(x, 0)], r: 0.75 * S, c: BG, a: 0.5 });
+    body.push({ seg: [...P(x - 3, side * 4), ...P(x, 0)], r: 0.75 * S, c: SILK, a: 0.55 });
   for (const side of [-1, 1]) {                                       // palps
-    s.push({ seg: [...P(8, side * 2.5), ...P(12, side * 4.5)], r: 0.8 * S, c: BODY, a: 1 });
-    s.push({ seg: [...P(12, side * 4.5), ...P(14, side * 3)], r: 0.8 * S, c: BODY, a: 1 });
+    body.push({ seg: [...P(8, side * 2.5), ...P(12, side * 4.5)], r: 0.8 * S, c: INK, a: 1 });
+    body.push({ seg: [...P(12, side * 4.5), ...P(14, side * 3)], r: 0.8 * S, c: INK, a: 1 });
   }
-  for (const [f, l, r] of [[7, -1.8, 1.25], [7, 1.8, 1.25], [5.5, -3.4, 0.8], [5.5, 3.4, 0.8]]) s.push({ circ: [...P(f, l), r * S], c: BG, a: 1 }); // eyes
+  for (const [f, l, r] of [[7, -1.8, 1.25], [7, 1.8, 1.25], [5.5, -3.4, 0.8], [5.5, 3.4, 0.8]]) body.push({ circ: [...P(f, l), r * S], c: SILK, a: 1 }); // eyes
+  // a light outline first (every body shape, a little bigger), then the dark spider on top
+  const grow = 1.0 * S, solid = body.filter(b => b.c === INK);
+  for (const b of solid) s.push(b.seg ? { seg: b.seg, r: b.r + grow, c: SILK, a: 1 } : b.ell ? { ell: [b.ell[0], b.ell[1], b.ell[2] + grow, b.ell[3] + grow], c: SILK, a: 1 } : { circ: [b.circ[0], b.circ[1], b.circ[2] + grow], c: SILK, a: 1 });
+  s.push(...body);
   return s;
 }
 
@@ -73,6 +88,18 @@ function render(size, { bg = true, web = true, scale = 1 }) {
       const cx = T(sh.ell[0]), cy = T(sh.ell[1]), rx = sh.ell[2] * scale, ry = sh.ell[3] * scale;
       x0 = cx - rx; x1 = cx + rx; y0 = cy - ry; y1 = cy + ry;
       dist = (x, y) => (Math.hypot((x - cx) / rx, (y - cy) / ry) - 1) * Math.min(rx, ry);
+    } else if (sh.poly) {
+      const pts = sh.poly.map(([x, y]) => [T(x), T(y)]);
+      x0 = Math.min(...pts.map(p => p[0])); x1 = Math.max(...pts.map(p => p[0])); y0 = Math.min(...pts.map(p => p[1])); y1 = Math.max(...pts.map(p => p[1]));
+      dist = (x, y) => {
+        let inside = false, d = Infinity;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+          const [xi, yi] = pts[i], [xj, yj] = pts[j];
+          if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+          d = Math.min(d, segDist(x, y, xi, yi, xj, yj));
+        }
+        return inside ? -d : d;
+      };
     } else {
       const cx = T(sh.circ[0]), cy = T(sh.circ[1]), r = sh.circ[2] * scale;
       x0 = cx - r; x1 = cx + r; y0 = cy - r; y1 = cy + r;
@@ -83,6 +110,7 @@ function render(size, { bg = true, web = true, scale = 1 }) {
     for (let y = Y0; y <= Y1; y++) for (let x = X0; x <= X1; x++) {
       const cov = Math.max(0, Math.min(1, 0.5 - dist((x + 0.5) / size, (y + 0.5) / size) * size)) * sh.a;
       if (!cov) continue;
+      if (sh.clip) { const ux = 0.5 + ((x + 0.5) / size - 0.5) / (scale || 1), uy = 0.5 + ((y + 0.5) / size - 0.5) / (scale || 1); if (!sh.clip(ux, uy)) continue; }
       const i = (y * size + x) * 4, da = px[i + 3] / 255, oa = cov + da * (1 - cov);
       for (let k = 0; k < 3; k++) px[i + k] = Math.round((sh.c[k] * cov + px[i + k] * da * (1 - cov)) / (oa || 1));
       px[i + 3] = Math.round(oa * 255);
