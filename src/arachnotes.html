@@ -1,4 +1,4 @@
-<title>CAK3D Crawler</title>
+<title>Arachnotes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -44,6 +44,19 @@
 :root[data-skin="neon"] {
   --paper: #0b0b14; --panel: #12121f; --ink: #e8e8ff; --muted: #8c8cb0; --rule: #26264a; --link: #00e5ff; --grip: #5a1a6e; --silk: #ff4fd8; --spider: #00e5ff;
   --c0: #00e5ff; --c1: #ff7a4f; --c2: #7cff4f; --c3: #b26bff; --c4: #ffd84f; --c5: #4fffd2; --c6: #ff4fd8; --c7: #9a9ab8; color-scheme: dark; }
+:root[data-skin="ocean"] {
+  --paper: #0b2233; --panel: #0f2c41; --ink: #dff1fa; --muted: #8fb3c7; --rule: #1f4660; --link: #5fd4e8; --grip: #1d5a73; --silk: #bfe8f5; --spider: #e6f7ff;
+  --c0: #5fd4e8; --c1: #ff9f80; --c2: #7fe0a8; --c3: #b7a2ff; --c4: #ffd970; --c5: #4fe0c8; --c6: #ff8fc0; --c7: #9fb7c4; color-scheme: dark; }
+:root[data-skin="candy"] {
+  --paper: #fff5fa; --panel: #fde6f1; --ink: #3d1f33; --muted: #8a5f78; --rule: #f2c6dc; --link: #c2338a; --grip: #ffd6ec; --silk: #d98ab8; --spider: #3d1f33;
+  --c0: #3f7fd9; --c1: #e8642f; --c2: #2f9e62; --c3: #9a4fd1; --c4: #b88a00; --c5: #138f8f; --c6: #d42f86; --c7: #8a7a85; color-scheme: light; }
+:root[data-skin="terminal"] {
+  --paper: #050805; --panel: #0b120b; --ink: #9dff9d; --muted: #4fa64f; --rule: #163316; --link: #c8ff6a; --grip: #1d4d1d; --silk: #6aff6a; --spider: #b6ffb6;
+  --c0: #6ae0ff; --c1: #ffb84f; --c2: #9dff9d; --c3: #d29dff; --c4: #f5f56a; --c5: #4fffd2; --c6: #ff8fd2; --c7: #6f9f6f; color-scheme: dark;
+  --serif: "JetBrains Mono", ui-monospace, Consolas, monospace; }
+:root[data-skin="sunset"] {
+  --paper: #fdf0e4; --panel: #f9e1cc; --ink: #3a1e14; --muted: #84584a; --rule: #efc6a8; --link: #b8461f; --grip: #ffc98a; --silk: #c97b5a; --spider: #2e160f;
+  --c0: #3b62a8; --c1: #c4421a; --c2: #3f7d3a; --c3: #8a3f8f; --c4: #a6740c; --c5: #1f7a78; --c6: #c23b6a; --c7: #7d6a62; color-scheme: light; }
 :root[data-skin="contrast"] {
   --paper: #ffffff; --panel: #f0f0f0; --ink: #000000; --muted: #333333; --rule: #000000; --link: #0033cc; --grip: #ffd400; --silk: #000000; --spider: #000000;
   --c0: #0047b3; --c1: #b33000; --c2: #00702e; --c3: #6b1fa3; --c4: #7a5c00; --c5: #006b6b; --c6: #a3004f; --c7: #444444; color-scheme: light; }
@@ -107,6 +120,35 @@ body.sp-open { padding-bottom: min(48vh, 430px); }
 .sp-live { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; } .sp-live dt { color: var(--muted); } .sp-live dd { margin: 0; text-align: right; }
 #weaveOut { width: 100%; font-family: var(--mono); font-size: 11px; resize: vertical; }
 #spiderPop .who { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+/* ---- support */
+.supid { font: 600 15px var(--mono); letter-spacing: .06em; padding: 6px 10px; border: 1px dashed var(--rule); border-radius: 6px; background: var(--paper); user-select: all; }
+/* ---- help */
+dialog.help { width: min(46rem, calc(100vw - 24px)); }
+.help-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-start; justify-content: space-between; }
+.help-head h2 { margin: 0; }
+.help-head .btn svg { width: 16px; height: 16px; vertical-align: -3px; }
+.help-body section { padding-top: 8px; }
+.hw-group h3 { font: 600 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
+.hw-list { display: grid; gap: 8px; margin: 0; }
+.hw-list > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 12px; }
+.hw-list dt { font-weight: 600; } .hw-list dd { margin: 0; color: var(--ink); }
+.hw-sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--sw); }
+.hw-line { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--sw); vertical-align: 3px; margin-right: 6px; }
+@media (max-width: 520px) { .hw-list > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+/* "point at anything": a strip at the top, a ring around what you tapped, and a note that drops down on a thread */
+.xp-bar { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 12px;
+  padding: 8px 8px 8px 14px; border-radius: 999px; background: var(--ink); color: var(--paper); font: 13px var(--mono); box-shadow: 0 8px 24px rgba(0,0,0,.25); max-width: calc(100vw - 20px); }
+.xp-bar .btn { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+body.explain, body.explain * { cursor: help !important; }
+.xp-ring { position: fixed; z-index: 58; pointer-events: none; border: 2px dashed var(--link); border-radius: 8px; transition: all .18s ease; }
+.xp-tip { position: fixed; z-index: 59; width: min(20rem, calc(100vw - 20px)); padding: 12px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule);
+  border-radius: 12px; box-shadow: 0 14px 34px rgba(0,0,0,.22); animation: xpDrop .32s cubic-bezier(.2,1.3,.4,1); }
+.xp-tip b { display: block; font: 600 13px var(--mono); margin-bottom: 4px; }
+.xp-tip p { margin: 0; font-size: .95rem; line-height: 1.45; }
+.xp-silk { position: absolute; left: 50%; bottom: 100%; width: 1px; height: var(--silk, 40px); background: var(--muted); transform-origin: top; animation: tbSilk .25s ease-out; }
+.xp-silk::after { content: ""; position: absolute; left: -4px; top: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+@keyframes xpDrop { from { opacity: 0; transform: translateY(-24px); } }
+@media (prefers-reduced-motion: reduce) { .xp-tip, .xp-silk { animation: none; } .xp-ring { transition: none; } }
 /* ---- the store page */
 .store { position: fixed; inset: 0; z-index: 45; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
 body.store-open { overflow: hidden; }
@@ -185,7 +227,49 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .focus input { flex: 1; min-width: 0; padding: 5px 9px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); }
 .stats { display: flex; gap: 12px; color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
 .stats b { color: var(--ink); font-weight: 600; }
-.controls { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.controls { display: flex; gap: 4px; margin-left: auto; align-items: stretch; }
+.tb { position: relative; display: flex; }
+.tb-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 5px 10px; cursor: pointer; font: 12.5px var(--mono); white-space: nowrap; }
+.tb-btn svg { width: 18px; height: 18px; flex: none; }
+.tb-btn .tb-caret { width: 10px; height: 10px; margin-left: -2px; transition: transform .2s; }
+.tb-btn[aria-expanded="true"] .tb-caret { transform: rotate(180deg); }
+.tb-btn:hover { border-color: var(--muted); }
+.tb-btn.primary, .tb-btn[aria-expanded="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.tb-btn.icon span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.tb-btn.icon { padding: 5px 7px; }
+.tb-btn.ready { animation: ready 1.4s ease-in-out infinite; }
+/* menus hang from their button on a strand of silk, with a little web in the corner */
+.tb-menu { position: fixed; z-index: 40; min-width: 15rem; padding: 6px; display: grid; gap: 2px; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.18); transform-origin: var(--tx, 50%) 0; animation: tbDrop .24s cubic-bezier(.2,.9,.3,1.2); isolation: isolate; }
+.tb-menu::before { content: ""; position: absolute; left: var(--tx, 50%); top: -14px; width: 1px; height: 14px; background: var(--muted); transform-origin: top; animation: tbSilk .18s ease-out; }
+.tb-menu::after { content: ""; position: absolute; right: 0; bottom: 0; width: 76px; height: 76px; z-index: -1; opacity: .5; pointer-events: none; border-radius: 0 0 10px 0;
+  background: repeating-radial-gradient(circle at 100% 100%, transparent 0 11px, var(--rule) 11px 12px), repeating-conic-gradient(from 270deg at 100% 100%, var(--rule) 0 .8deg, transparent .8deg 15deg);
+  -webkit-mask: radial-gradient(circle at 100% 100%, #000 40%, transparent 72%); mask: radial-gradient(circle at 100% 100%, #000 40%, transparent 72%); }
+.tb-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; width: 100%; padding: 9px 10px; border: 0; border-radius: 7px;
+  background: transparent; color: inherit; font: 13px var(--mono); cursor: pointer; opacity: 0; animation: tbItem .2s ease-out forwards; animation-delay: calc(var(--i, 0) * 40ms + 90ms); }
+.tb-item:hover, .tb-item:focus-visible { background: color-mix(in srgb, var(--ink) 8%, transparent); outline: none; }
+.tb-item kbd { font: 11px var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; }
+.tb-item[aria-pressed]::after { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); margin-left: auto; }
+.tb-item[aria-pressed="true"]::after { background: var(--link); border-color: var(--link); }
+.tb-item[aria-pressed] kbd { margin-left: 0; }
+@keyframes tbDrop { from { opacity: 0; transform: translateY(-8px) scaleY(.6); } }
+@keyframes tbSilk { from { transform: scaleY(0); } }
+@keyframes tbItem { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .tb-menu, .tb-menu::before, .tb-item { animation: none; opacity: 1; } }
+/* phones: one row of icons with a small label under each, no sideways scrolling */
+@media (max-width: 640px) {
+  .bar { gap: 6px 10px; padding: 8px 10px; }
+  .controls { width: 100%; margin-left: 0; justify-content: space-between; gap: 2px; }
+  .tb { flex: 1 1 0; min-width: 0; }
+  .tb-btn { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 1px; padding: 5px 2px 4px; font-size: 10px; border-color: transparent; background: transparent; }
+  .tb-btn.icon span { position: static; width: auto; height: auto; clip-path: none; overflow: visible; }
+  .tb-btn.icon { padding: 5px 2px 4px; }
+  .tb-btn svg { width: 21px; height: 21px; }
+  .tb-btn .tb-caret { display: none; }
+  .tb-btn.primary { background: var(--ink); color: var(--paper); }
+  .tb-menu { min-width: 0; width: min(18rem, calc(100vw - 20px)); }
+}
 .btn {
   color: var(--ink); background: var(--paper); border: 1px solid var(--rule);
   padding: 5px 11px; border-radius: 4px; cursor: pointer; font-family: var(--mono); font-size: 12.5px; white-space: nowrap;
@@ -222,7 +306,7 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 
 .infobox { float: right; width: 15rem; margin: 4px 0 16px 24px; border: 1px solid var(--rule); background: var(--panel); font-size: .85rem; line-height: 1.45; }
 .infobox .ib-title { margin: 0; padding: 6px 10px; font-size: .95rem; font-weight: 600; text-align: center; border-bottom: 1px solid var(--rule); }
-.infobox .sp { padding: 10px; text-align: center; font-style: italic; color: var(--muted); border-bottom: 1px solid var(--rule); }
+.infobox .ib-sub { padding: 10px; text-align: center; font-style: italic; color: var(--muted); border-bottom: 1px solid var(--rule); }
 .infobox table { width: 100%; border-collapse: collapse; }
 .infobox td { padding: 3px 10px; vertical-align: top; }
 .infobox td:first-child { color: var(--muted); width: 42%; }
@@ -475,30 +559,44 @@ body.bar-off .bar { display: none; }
 <a class="skip" href="#page">Skip to the text</a>
 <button class="barshow" id="bShowBar" type="button" hidden aria-label="Show the toolbar" title="Show the toolbar (H)">▼ Toolbar</button>
 <header class="bar" id="bar">
-  <div class="brand">CAK3D Crawler<small id="docTitle">Spider</small></div>
-  <label class="focus"><span>Focus</span><input id="focus" type="search" placeholder="research topic, e.g. silk" autocomplete="off"></label>
+  <div class="brand">Arachnotes<small id="docTitle">Spider</small></div>
+  <label class="focus" id="focusBox"><span>Focus</span><input id="focus" type="search" placeholder="research topic, e.g. silk" autocomplete="off"></label>
   <div class="stats">
     <span>crawled <b id="sCrawled">0</b>/<b id="sTotal">0</b></span>
     <span>threads <b id="sThreads">0</b></span>
     <span>sacs <b id="sSacs">0</b></span>
     <span>topics <b id="sGrips">0</b></span>
   </div>
-  <div class="controls">
-    <button class="btn" id="bPause" type="button">Pause</button>
-    <button class="btn" id="bFollow" type="button" aria-pressed="true">Follow</button>
-    <button class="btn primary" id="bWeb" type="button">Web view</button>
-    <button class="btn" id="bAsk" type="button">Ask</button>
-    <button class="btn" id="bGuide" type="button">Study guide</button>
-    <button class="btn" id="bFind" type="button">Find</button>
-    <button class="btn" id="bLib" type="button">Library</button>
-    <button class="btn" id="bSource" type="button">Source</button>
-    <button class="btn" id="bMore" type="button" title="Search the web for more pages on this and add them to the crawl">More pages</button>
-    <button class="btn" id="bTheme" type="button" title="Switch between light, dark and your device's setting">Light</button>
-    <button class="btn" id="bStats" type="button" aria-pressed="false" aria-controls="statsPanel">Stats</button>
-    <button class="btn" id="bSettings" type="button">Settings</button>
-    <button class="btn" id="bHelp" type="button" aria-label="Keyboard shortcuts and tips">?</button>
-    <button class="btn" id="bHideBar" type="button" aria-label="Hide the toolbar" title="Hide the toolbar (H)">▲ Hide</button>
-  </div>
+  <nav class="controls" id="tools" aria-label="Tools">
+    <div class="tb">
+      <button class="tb-btn" type="button" id="mbSpider" aria-haspopup="menu" aria-expanded="false" aria-controls="mSpider"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 10 4 6M9 12H3M9 14l-5 4M10 16l-3 5M15 10l5-4M15 12h6M15 14l5 4M14 16l3 5"/></g><ellipse cx="12" cy="9.5" rx="2.6" ry="2.4" fill="currentColor"/><ellipse cx="12" cy="15" rx="3.4" ry="4" fill="currentColor"/></svg><span>Spider</span><svg class="tb-caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+      <div class="tb-menu" role="menu" id="mSpider" aria-labelledby="mbSpider" hidden>
+        <button type="button" role="menuitem" class="tb-item" id="bPause"><span class="tb-lbl">Pause the crawl</span><kbd>Space</kbd></button>
+        <button type="button" role="menuitem" class="tb-item" id="bFollow" aria-pressed="true"><span class="tb-lbl">Follow the spider</span><kbd>F</kbd></button>
+        <button type="button" role="menuitem" class="tb-item" id="bRestartTb"><span class="tb-lbl">Restart the crawl</span><kbd>R</kbd></button>
+      </div>
+    </div>
+    <button class="tb-btn primary" type="button" id="bWeb"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9 4.9 19.1"/><path d="M12 5.5 16.6 7.4 18.5 12 16.6 16.6 12 18.5 7.4 16.6 5.5 12 7.4 7.4Z"/><path d="M12 9 14.1 9.9 15 12 14.1 14.1 12 15 9.9 14.1 9 12 9.9 9.9Z"/></g></svg><span>Web</span></button>
+    <div class="tb">
+      <button class="tb-btn" type="button" id="mbAsk" aria-haspopup="menu" aria-expanded="false" aria-controls="mAsk"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5h16v11H10l-5 4v-4H4z"/></g><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.6.3-.8.7-.8 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="14" r="1" fill="currentColor"/></svg><span>Ask</span><svg class="tb-caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+      <div class="tb-menu" role="menu" id="mAsk" aria-labelledby="mbAsk" hidden>
+        <button type="button" role="menuitem" class="tb-item" id="bAsk"><span class="tb-lbl">Ask a question</span><kbd>A</kbd></button>
+        <button type="button" role="menuitem" class="tb-item" id="bFind"><span class="tb-lbl">Find in the text</span><kbd>/</kbd></button>
+        <button type="button" role="menuitem" class="tb-item" id="bGuide"><span class="tb-lbl">Make a study guide</span><kbd>G</kbd></button>
+      </div>
+    </div>
+    <div class="tb">
+      <button class="tb-btn" type="button" id="mbPages" aria-haspopup="menu" aria-expanded="false" aria-controls="mPages"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 3h8l4 4v12H7z"/><path d="M15 3v4h4M4 6v15h12"/><path d="M10 11h6M10 14h6" stroke-linecap="round"/></g></svg><span>Pages</span><svg class="tb-caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+      <div class="tb-menu" role="menu" id="mPages" aria-labelledby="mbPages" hidden>
+        <button type="button" role="menuitem" class="tb-item" id="bSource"><span class="tb-lbl">Open text, a file or a link</span></button>
+        <button type="button" role="menuitem" class="tb-item" id="bMore"><span class="tb-lbl">Search the web for more pages</span></button>
+        <button type="button" role="menuitem" class="tb-item" id="bLib"><span class="tb-lbl">Library</span><kbd>L</kbd></button>
+      </div>
+    </div>
+    <button class="tb-btn icon" type="button" id="bSettings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M10.3 2.5h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9-2.6-.5v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8z"/><g fill="none" stroke="currentColor" stroke-width=".9"><path d="M12 7v10M7 12h10M8.5 8.5l7 7M15.5 8.5l-7 7"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="3.9"/></g></svg><span>Settings</span></button>
+    <button class="tb-btn icon" type="button" id="bHelp" aria-label="Help: what is everything on this screen?" title="Help (?)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor"/></svg><span>Help</span></button>
+    <button class="tb-btn icon" type="button" id="bHideBar" aria-label="Hide the toolbar" title="Hide the toolbar (H)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hide</span></button>
+  </nav>
   <div class="status" id="status" aria-live="off"></div>
 </header>
 
@@ -509,7 +607,7 @@ body.bar-off .bar { display: none; }
 
   <div class="infobox" role="group" aria-label="Spiders at a glance">
     <p class="ib-title">Spiders</p>
-    <div class="sp">Order Araneae</div>
+    <div class="ib-sub">Order Araneae</div>
     <table>
       <tr><td>Kingdom</td><td><a data-c="0" data-w="Animal">Animalia</a></td></tr>
       <tr><td>Phylum</td><td><a data-c="0" data-w="Arthropod">Arthropoda</a></td></tr>
@@ -619,7 +717,6 @@ body.bar-off .bar { display: none; }
       <button class="btn" id="exRis" type="button">Zotero (RIS)</button>
       <button class="btn" id="exBib" type="button">BibTeX</button>
       <button class="btn" id="wvCopy" type="button">Copy notes</button>
-      <button class="btn" id="wvGuide" type="button">Study guide</button>
     </div>
     </details>
   </div>
@@ -751,16 +848,34 @@ body.bar-off .bar { display: none; }
       { "id": "weather_fog", "field": "ambient", "values": ["fog"], "name": "Fog", "price": "0.99" },
       { "id": "weather_stars", "field": "ambient", "values": ["stars"], "name": "Starry night", "price": "0.99" },
       { "id": "weather_season", "field": "ambient", "values": ["season"], "name": "Weather that matches the season", "price": "0.99" } ] },
+    { "key": "hats", "name": "Hats", "items": [
+      { "id": "hat_top", "field": "season", "values": ["tophat"], "name": "Top hat", "price": "0.99" },
+      { "id": "hat_cowboy", "field": "season", "values": ["cowboy"], "name": "Cowboy hat", "price": "0.99" },
+      { "id": "hat_crown", "field": "season", "values": ["crown"], "name": "Gold crown", "price": "0.99" },
+      { "id": "hat_party", "field": "season", "values": ["party"], "name": "Party hat", "price": "0.99" },
+      { "id": "hat_grad", "field": "season", "values": ["grad"], "name": "Graduation cap", "price": "0.99" },
+      { "id": "hat_chef", "field": "season", "values": ["chef"], "name": "Chef's hat", "price": "0.99" },
+      { "id": "hat_pirate", "field": "season", "values": ["pirate"], "name": "Pirate hat", "price": "0.99" },
+      { "id": "hat_propeller", "field": "season", "values": ["propeller"], "name": "Propeller cap", "desc": "The propeller spins as it crawls.", "price": "0.99" } ] },
     { "key": "bored", "name": "When it's bored", "items": [
       { "id": "bored_web", "field": "bored", "values": ["web"], "name": "Spins a corner web", "desc": "Spins an orb web in a corner of the screen and catches flies in it.", "price": "0.99" },
       { "id": "bored_edges", "field": "bored", "values": ["edges"], "name": "Walks the screen edges", "desc": "Crawls up the sides and along the top and bottom of the screen.", "price": "0.99" },
-      { "id": "bored_both", "field": "bored", "values": ["both"], "name": "Web and walks, taking turns", "desc": "Spins its corner web, then goes for walks around the screen.", "price": "0.99" } ] },
+      { "id": "bored_both", "field": "bored", "values": ["both"], "name": "Web and walks, taking turns", "desc": "Spins its corner web, then goes for walks around the screen.", "price": "0.99" },
+      { "id": "bored_dance", "field": "bored", "values": ["dance"], "name": "Dances", "desc": "Sways and spins to a tune only it can hear.", "price": "0.99" },
+      { "id": "bored_nap", "field": "bored", "values": ["nap"], "name": "Takes naps", "desc": "Tucks its legs in and dozes off until there's work to do.", "price": "0.99" },
+      { "id": "bored_groom", "field": "bored", "values": ["groom"], "name": "Cleans its legs", "desc": "Stops to tidy up, one leg at a time.", "price": "0.99" },
+      { "id": "bored_yoyo", "field": "bored", "values": ["yoyo"], "name": "Bounces on a thread", "desc": "Hangs from a strand of silk and bounces like a yo-yo.", "price": "0.99" },
+      { "id": "bored_tricks", "field": "bored", "values": ["tricks"], "name": "A bit of everything", "desc": "Dances, naps, cleans up and bounces, taking turns.", "price": "0.99" } ] },
     { "key": "themes", "name": "Page themes", "items": [
       { "id": "theme_sepia", "field": "skin", "values": ["sepia"], "name": "Sepia", "price": "0.99" },
       { "id": "theme_blueprint", "field": "skin", "values": ["blueprint"], "name": "Blueprint", "price": "0.99" },
       { "id": "theme_forest", "field": "skin", "values": ["forest"], "name": "Forest", "price": "0.99" },
       { "id": "theme_spooky", "field": "skin", "values": ["spooky"], "name": "Spooky", "price": "0.99" },
-      { "id": "theme_neon", "field": "skin", "values": ["neon"], "name": "Neon", "price": "0.99" } ] }
+      { "id": "theme_neon", "field": "skin", "values": ["neon"], "name": "Neon", "price": "0.99" },
+      { "id": "theme_ocean", "field": "skin", "values": ["ocean"], "name": "Ocean", "price": "0.99" },
+      { "id": "theme_candy", "field": "skin", "values": ["candy"], "name": "Candy", "price": "0.99" },
+      { "id": "theme_terminal", "field": "skin", "values": ["terminal"], "name": "Terminal", "price": "0.99" },
+      { "id": "theme_sunset", "field": "skin", "values": ["sunset"], "name": "Sunset", "price": "0.99" } ] }
   ],
   "presets": [
     { "id": "preset_spooky", "preset": "spooky", "name": "Spooky night preset", "price": "1.99" },
@@ -769,12 +884,16 @@ body.bar-off .bar { display: none; }
     { "id": "preset_forest", "preset": "forest", "name": "Forest preset", "price": "1.99" },
     { "id": "preset_blueprint", "preset": "blueprint", "name": "Blueprint preset", "price": "1.99" },
     { "id": "preset_party", "preset": "party", "name": "Party preset", "price": "1.99" },
-    { "id": "preset_pixel", "preset": "pixel", "name": "Pixel preset", "price": "1.99" }
+    { "id": "preset_pixel", "preset": "pixel", "name": "Pixel preset", "price": "1.99" },
+    { "id": "preset_ocean", "preset": "ocean", "name": "Deep sea preset", "price": "1.99" },
+    { "id": "preset_terminal", "preset": "terminal", "name": "Hacker terminal preset", "price": "1.99" },
+    { "id": "preset_candy", "preset": "candy", "name": "Candy land preset", "price": "1.99" }
   ],
   "bundles": [
     { "id": "bundle_starter", "name": "Starter bundle", "price": "4.99", "groups": ["kinds", "colors", "extras"], "desc": "Every spider kind, every color, a spider for each topic, flies and faster speeds." },
-    { "id": "bundle_collector", "name": "Collector bundle", "price": "9.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "weather", "bored", "themes"], "desc": "The Starter bundle, plus every $0.99 look, the seasonal looks, all the weather, the bored modes and the page themes." },
-    { "id": "bundle_deluxe", "name": "Deluxe bundle", "price": "14.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "weather", "bored", "themes", "premium"], "desc": "The Collector bundle, plus the premium looks: realistic, skeleton and all four heroes." },
+    { "id": "bundle_hats", "name": "Hat pack", "price": "4.99", "groups": ["hats"], "desc": "All eight hats: top hat, cowboy hat, crown, party hat, graduation cap, chef's hat, pirate hat and propeller cap." },
+    { "id": "bundle_collector", "name": "Collector bundle", "price": "9.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes"], "desc": "The Starter bundle, plus every $0.99 look, the seasonal looks and hats, all the weather, the bored modes and the page themes." },
+    { "id": "bundle_deluxe", "name": "Deluxe bundle", "price": "14.99", "groups": ["kinds", "colors", "extras", "looks", "seasons", "hats", "weather", "bored", "themes", "premium"], "desc": "The Collector bundle, plus the premium looks: realistic, skeleton and all four heroes." },
     { "id": "bundle_everything", "name": "Everything", "price": "19.99", "all": true, "desc": "Every item and every preset, and everything added later." }
   ]
 }
@@ -918,9 +1037,13 @@ body.bar-off .bar { display: none; }
           <option value="blueprint">Blueprint: robot on drafting paper</option>
           <option value="party">Party: peacock spider and confetti</option>
           <option value="pixel">Pixel: 8-bit spider in the snow</option>
+          <option value="ocean">Deep sea: a pearl spider under the waves</option>
+          <option value="terminal">Hacker terminal: green code on black</option>
+          <option value="candy">Candy land: rainbow cartoon and party hats</option>
           <option value="study">Study mode: high contrast, calm, focused</option>
         </select></label>
       <button class="btn" type="button" id="surprise">Surprise me</button>
+      <button class="btn" type="button" id="bStats" aria-pressed="false" aria-controls="statsPanel" title="Show or hide the live crawl stats (S)">Live stats</button>
       <button class="btn" type="button" id="bStore">✦ Store</button>
     </div>
     <div class="tabs" id="setTabs" role="tablist">
@@ -931,7 +1054,7 @@ body.bar-off .bar { display: none; }
       <button type="button" role="tab" data-g="babies" aria-selected="false">Sacs &amp; babies</button>
       <button type="button" role="tab" data-g="theme" aria-selected="false">Theme</button>
       <button type="button" role="tab" data-g="research" aria-selected="false">Research</button>
-      <button type="button" role="tab" data-g="store" aria-selected="false">✦ Store</button>
+      <button type="button" role="tab" data-g="support" aria-selected="false">Help &amp; support</button>
     </div>
     <div class="set-body">
       <section data-g="spider">
@@ -979,11 +1102,13 @@ body.bar-off .bar { display: none; }
         <div class="row2">
           <label class="field"><span>How many spiders</span>
             <select id="cfgSpiders"><option value="one">Just one</option><option value="topics">One more for each topic (up to 6)</option></select></label>
-          <label class="field"><span>Seasonal look</span>
+          <label class="field"><span>Hat or seasonal look</span>
             <select id="cfgSeason"><option value="off">None</option><option value="auto">Match today's date</option><option value="spring">Spring flower crown</option>
               <option value="summer">Summer sunglasses</option><option value="autumn">Autumn leaf</option><option value="halloween">Halloween witch hat</option>
               <option value="valentine">Valentine's heart antennae</option><option value="stpatrick">St. Patrick's shamrock hat</option><option value="easter">Easter bunny ears</option>
               <option value="thanksgiving">Thanksgiving pilgrim hat</option><option value="christmas">Christmas reindeer antlers</option>
+              <option value="tophat">Top hat</option><option value="cowboy">Cowboy hat</option><option value="crown">Gold crown</option><option value="party">Party hat</option>
+              <option value="grad">Graduation cap</option><option value="chef">Chef's hat</option><option value="pirate">Pirate hat</option><option value="propeller">Propeller cap</option>
               <option value="winter">Winter hat</option></select></label>
         </div>
         <label class="field"><span>Flies to hunt</span>
@@ -991,8 +1116,8 @@ body.bar-off .bar { display: none; }
           <small>Flies buzz around the page. The spider eats them while it waits and when it's done, and spiderlings catch them too.</small></label>
         <div class="row2">
           <label class="field"><span>When it's bored</span>
-            <select id="cfgBored"><option value="rest">Just rests</option><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option></select></label>
-          <label class="field"><span>When the crawl is done</span>
+            <select id="cfgBored"><option value="rest">Just rests</option><option value="both">Spins a corner web and crawls the screen edges, taking turns</option><option value="web">Spins a web in a corner of the screen</option><option value="edges">Crawls around the edges of the screen</option><option value="dance">Dances</option><option value="nap">Takes naps</option><option value="groom">Cleans its legs</option><option value="yoyo">Bounces on a thread</option><option value="tricks">A bit of everything</option></select></label>
+          <label class="field"><span>When the crawl is done, the web…</span>
             <select id="cfgDetach"><option value="detach">The web lets go of the words and floats away</option><option value="stay">The web stays on the page</option></select></label>
         </div>
         <p class="hintline">Extra spiders each hunt one topic and spin it in that topic's color.</p>
@@ -1008,7 +1133,7 @@ body.bar-off .bar { display: none; }
               <option value="balloon">Floats down on silk (ballooning)</option><option value="hatch">Hatches out of an egg</option>
               <option value="fade">Fades in</option><option value="random">Surprise me each time</option>
             </select></label>
-          <label class="field"><span>When it's done</span>
+          <label class="field"><span>When the crawl is done, the spider…</span>
             <select id="cfgExit">
               <option value="stay">Stays put</option><option value="wander">Wanders around its web</option><option value="sleep">Falls asleep</option>
               <option value="left">Walks off to the left</option><option value="right">Walks off to the right</option>
@@ -1094,7 +1219,6 @@ body.bar-off .bar { display: none; }
           <label class="field"><span>Spiderling size</span>
             <div class="range"><input type="range" id="cfgBabySize" min="0.6" max="2" step="0.1"><output id="oBabySize"></output></div></label>
         </div>
-        <label class="chk"><input type="checkbox" id="cfgWorkers"> Spiderlings mark related keywords for the spider to crawl next</label>
         <p class="hintline">Bridge builders run silk to other sacs that share ideas with theirs. Open a sac to see what connects them, with the passages where the two topics meet.</p>
       </section>
       <section data-g="theme" hidden>
@@ -1102,11 +1226,11 @@ body.bar-off .bar { display: none; }
           <select id="cfgSkin">
             <option value="auto">Match my device (light or dark)</option><option value="paper">Paper (light)</option><option value="night">Night (dark)</option>
             <option value="sepia">Sepia</option><option value="blueprint">Blueprint</option><option value="forest">Forest</option>
-            <option value="spooky">Spooky</option><option value="neon">Neon</option><option value="contrast">High contrast</option>
+            <option value="spooky">Spooky</option><option value="neon">Neon</option><option value="ocean">Ocean</option><option value="candy">Candy</option><option value="terminal">Terminal</option><option value="sunset">Sunset</option><option value="contrast">High contrast</option>
           </select></label>
         <label class="field"><span>Weather</span>
           <select id="cfgAmbient">
-            <option value="none">Clear</option><option value="season">Match the season</option><option value="dust">Floating dust</option><option value="fireflies">Fireflies</option>
+            <option value="none">Clear</option><option value="season">Match today's date</option><option value="dust">Floating dust</option><option value="fireflies">Fireflies</option>
             <option value="rain">Rain</option><option value="storm">Thunderstorm</option><option value="snow">Snow</option><option value="leaves">Falling leaves</option>
             <option value="blossoms">Cherry blossoms</option><option value="fog">Fog</option><option value="stars">Starry night</option>
           </select></label>
@@ -1168,43 +1292,78 @@ body.bar-off .bar { display: none; }
           <small id="aiNote" aria-live="polite">Saved only on this device. Requests go straight from this device to the AI you choose, and any usage is billed to your own account.</small>
         </fieldset>
       </section>
+      <section data-g="support" hidden>
+        <div class="field"><span>Your support ID</span>
+          <div class="rowi"><code class="supid" id="supId"></code><button class="btn" type="button" id="supCopy">Copy</button></div>
+          <small>If you contact us about a problem, send this ID. It lets us find your report and send a fix to just your app. It isn't linked to your name or Google account.</small></div>
+        <fieldset id="repBox">
+          <legend>Report an issue</legend>
+          <label class="field"><span>What went wrong?</span><textarea id="repMsg" rows="4" maxlength="4000" placeholder="What were you doing, and what happened?"></textarea></label>
+          <label class="field"><span>Email, if you'd like a reply (optional)</span><input type="email" id="repContact" maxlength="200" autocomplete="email"></label>
+          <label class="chk"><input type="checkbox" id="repCfg" checked> Include my app settings (no texts, notes or API keys)</label>
+          <div class="rowi"><button class="btn primary" type="button" id="repSend">Send report</button><span class="meta" id="repNote" aria-live="polite"></span></div>
+        </fieldset>
+        <div class="field"><span>Updates</span>
+          <div class="rowi"><button class="btn" type="button" id="updCheck">Check for updates</button><span class="meta" id="updNote" aria-live="polite"></span></div>
+          <small>On Android, Google Play updates the app automatically. This checks right now.</small></div>
+        <div class="rowi"><button class="btn" type="button" id="supHelp">Open help</button><button class="btn" type="button" id="supTour">Point at anything</button></div>
+        <p class="meta" id="supLegal"></p>
+      </section>
     </div>
     <div class="actions"><button class="btn" type="button" id="bRestart">Restart crawl</button><button class="btn primary" type="submit">Done</button></div>
   </form>
 </dialog>
 
-<!-- Help dialog -->
-<dialog id="dHelp" aria-labelledby="helpH">
+<!-- Help: what everything is, a legend, shortcuts, and "point at anything" -->
+<dialog id="dHelp" class="help" aria-labelledby="helpH">
   <form method="dialog">
-    <h2 id="helpH">Tips and shortcuts</h2>
-    <dl class="kbd">
-      <dt>Click text</dt><dd>Send the spider to that spot.</dd>
-      <dt>Click a keyword</dt><dd>See its topic, crawl it now, or pick it for a sac.</dd>
-      <dt>Select words</dt><dd>Add them as your own keyword. They go in the “My highlights” topic.</dd>
-      <dt>Click a sac</dt><dd>Open its keyword tree, summary, merge and split.</dd>
-      <dt>Space</dt><dd>Pause or resume the crawl.</dd>
-      <dt>W</dt><dd>Open or close the web view.</dd>
-      <dt>A</dt><dd>Ask the text a question.</dd>
-      <dt>F</dt><dd>Turn following the spider on or off.</dd>
-      <dt>L</dt><dd>Open the research library.</dd>
-      <dt>R</dt><dd>Restart the crawl.</dd>
-      <dt>T</dt><dd>Switch light, dark or automatic theme.</dd>
-      <dt>/</dt><dd>Search inside the text.</dd>
-      <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
-      <dt>Web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
-      <dt>S</dt><dd>Show or hide the live crawl stats.</dd>
-      <dt>H</dt><dd>Hide or show the toolbar. When it's hidden, the Toolbar tab in the top corner brings it back.</dd>
-      <dt>G</dt><dd>Make a study guide. Select a paragraph or more first for a guide to just that part.</dd>
-      <dt>Esc</dt><dd>Close whatever is open.</dd>
-    </dl>
-    <p class="meta" id="helpLegal">© 2026 CAK3D. All rights reserved.<span id="privacyLink" hidden> · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></span></p>
+    <div class="help-head">
+      <div><h2 id="helpH">Help</h2><p class="meta">What everything on the screen is, and how to use it.</p></div>
+      <button class="btn primary" type="button" id="helpPoint"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor"/></svg> Point at anything</button>
+    </div>
+    <div class="tabs" id="helpTabs" role="tablist">
+      <button type="button" role="tab" data-h="what" aria-selected="true">What's what</button>
+      <button type="button" role="tab" data-h="legend" aria-selected="false">Legend</button>
+      <button type="button" role="tab" data-h="keys" aria-selected="false">Shortcuts</button>
+      <button type="button" role="tab" data-h="about" aria-selected="false">About</button>
+    </div>
+    <div class="help-body">
+      <section data-h="what" id="helpWhat"></section>
+      <section data-h="legend" id="helpLegend" hidden></section>
+      <section data-h="keys" hidden>
+        <dl class="kbd">
+          <dt>Click text</dt><dd>Send the spider to that spot.</dd>
+          <dt>Click a keyword</dt><dd>See its topic, crawl it now, or pick it for a sac.</dd>
+          <dt>Select words</dt><dd>Add them as your own keyword. They go in the “My highlights” topic.</dd>
+          <dt>Double-click a paragraph</dt><dd>Select it, ready for a study guide of just that part.</dd>
+          <dt>Click a sac</dt><dd>Open its keyword tree, summary, merge and split.</dd>
+          <dt>Click the spider</dt><dd>See what it's doing, feed it a fly, or open the stats.</dd>
+          <dt>Space</dt><dd>Pause or resume the crawl.</dd>
+          <dt>F</dt><dd>Follow the spider, or stop following it.</dd>
+          <dt>R</dt><dd>Restart the crawl.</dd>
+          <dt>W</dt><dd>Open or close the web view.</dd>
+          <dt>A</dt><dd>Ask the text a question.</dd>
+          <dt>/</dt><dd>Search inside the text.</dd>
+          <dt>C</dt><dd>Contents: chapters, pages and sources.</dd>
+          <dt>G</dt><dd>Make a study guide. Select a paragraph or more first for a guide to just that part.</dd>
+          <dt>L</dt><dd>Open the library.</dd>
+          <dt>S</dt><dd>Show or hide the live crawl stats.</dd>
+          <dt>T</dt><dd>Switch between light, dark and your device's theme.</dd>
+          <dt>H</dt><dd>Hide or show the toolbar.</dd>
+          <dt>?</dt><dd>Open this help.</dd>
+          <dt>Esc</dt><dd>Close whatever is open.</dd>
+          <dt>In the web view</dt><dd>Drag the background to pan, scroll or use + and − to zoom, drag a dot to move it.</dd>
+          <dt>In flashcards</dt><dd>Space flips the card, ← and → move between cards, 1 to 4 rate how well you knew it.</dd>
+        </dl>
+      </section>
+      <section data-h="about" id="helpAbout"></section>
+    </div>
     <div class="actions"><button class="btn primary" type="submit">Got it</button></div>
   </form>
 </dialog>
-<script>
-  // the privacy page ships with the web and Android builds (not with the single-file claude.ai version)
-  if (window.CRAWLER_CONFIG) document.getElementById("privacyLink").hidden = false;
-</script>
+<div class="xp-bar" id="xpBar" hidden role="status"><span>Tap anything to see what it is.</span><button class="btn primary" type="button" id="xpDone">Done</button></div>
+<div class="xp-ring" id="xpRing" hidden aria-hidden="true"></div>
+<div class="xp-tip" id="xpTip" hidden role="status" aria-live="polite"><i class="xp-silk" aria-hidden="true"></i><b id="xpTitle"></b><p id="xpText"></p></div>
 
 <!-- Note dialog -->
 <dialog id="dNote" aria-labelledby="noteH">
@@ -1237,7 +1396,7 @@ body.bar-off .bar { display: none; }
   </div>
   <div data-fp="sources" class="findp-body" hidden>
     <div id="srcInfoList"></div>
-    <div class="rowi"><button class="btn" type="button" id="copyBib">Copy bibliography</button><button class="btn" type="button" id="exRis2">Zotero (RIS)</button><button class="btn" type="button" id="exBib2">BibTeX</button></div>
+    <div class="rowi"><button class="btn" type="button" id="copyBib">Copy bibliography</button></div>
   </div>
 </aside>
 
@@ -1269,6 +1428,13 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+// the app's name and legal line, used in Help, Settings and saved files
+const APP = {
+  name: "Arachnotes",
+  version: (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.version) || "dev",
+  tagline: "A spider that reads any text, finds its keywords and topics, and turns them into study guides, flashcards and cited notes.",
+  legal: "© 2026 CAK3D_Creations. All rights reserved. Arachnotes™ and the Arachnotes spider are trademarks of CAK3D_Creations."
+};
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -1288,7 +1454,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, cornerWeb: true, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1514,7 +1680,7 @@ function buildSample() {
     });
     addCooc(kw, [...keys]);
   });
-  return { title: "Spider", mode: "sample", kw, sents, marks, sentPara, cite: "Sample article written for CAK3D Crawler; keyword links go to Wikipedia",
+  return { title: "Spider", mode: "sample", kw, sents, marks, sentPara, cite: "Sample article written for Arachnotes; keyword links go to Wikipedia",
     cats: SAMPLE_CATS.map((name, i) => ({ name, color: i })), words: page.textContent.trim().split(/\s+/).length };
 }
 
@@ -1921,7 +2087,7 @@ let annTimer = 0;
 function announce(t) { const a = $("announce"); a.textContent = ""; clearTimeout(annTimer); if (t) annTimer = setTimeout(() => { a.textContent = t; }, 80); }
 function flash(msg) { $("status").textContent = msg; holdUntil = performance.now() + 3500; announce(msg); }
 function updateStatus() {
-  $("bPause").textContent = paused ? "Crawl" : "Pause";
+  $("bPause").querySelector(".tb-lbl").textContent = paused ? "Resume the crawl" : "Pause the crawl";
   $("bWeb").classList.toggle("ready", S.mode === "done" && crawled > 0 && !WV.open);
   if (performance.now() < holdUntil) return;
   const ft = focusTerms().join(" "), rel = relevantCount();
@@ -2090,7 +2256,7 @@ function hatch(sac) {
   // spiderlings head for keywords related to this sac that have not been crawled yet
   const score = new Map();
   for (const key of keys) { const k = DOC.kw.get(key); if (!k) continue; for (const [nb, w] of k.nb) if (!inSac.has(nb)) score.set(nb, (score.get(nb) || 0) + w); }
-  const mode = cfg.babyMode, maxWorkers = !cfg.workers ? 0 : mode === "workers" ? n : mode === "mixed" ? Math.ceil(n * 0.4) : 0;
+  const mode = cfg.babyMode, maxWorkers = mode === "workers" ? n : mode === "mixed" ? Math.ceil(n * 0.4) : 0;
   // bridge builders head for the sacs that share the most with this one
   const others = mode === "bridges" || mode === "mixed"
     ? sacs.filter(o => o !== sac && (o.state === "full" || o.state === "hatched") && !bridgeBetween(sac, o)).map(o => [o, sacLinks(sac, o).reduce((t, p) => t + p[2], 0)]).filter(x => x[1] > 0).sort((x, y) => y[1] - x[1]).slice(0, mode === "bridges" ? 3 : 2).map(x => x[0])
@@ -2346,13 +2512,22 @@ function startPatrol() {
   S.patrol = { i: best, left: 5, dir: Math.random() < 0.5 ? 1 : -1 }; S.mode = "patrol"; S.sitT = 0;
   log("WALK", `${spiderName()} is bored and goes for a walk around the screen`);
 }
+// little things it does when it's bored and has nowhere to be
+const TRICK_TEXT = { dance: "dancing", nap: "taking a nap", groom: "cleaning its legs", yoyo: "bouncing on a thread" };
+function startTrick() {
+  const pick = cfg.bored === "tricks" ? ["dance", "nap", "groom", "yoyo"][Math.floor(Math.random() * 4)] : cfg.bored;
+  S.trickFrom = S.mode === "done" ? "done" : "walk"; S.mode = "trick"; S.trick = pick; S.trickT = 0;
+  S.trickLen = pick === "nap" ? 14 : pick === "yoyo" ? 8 : 6; S.trickA = S.a; S.v = 0;
+  log("BORED", `${spiderName()} is ${TRICK_TEXT[pick]}`);
+}
+function endTrick() { S.hopZ = 0; S.a = S.trickA; S.mode = S.trickFrom || "walk"; S.idleT = 0; S.trick = null; }
 function updateCornerWeb(dt) {
   const idle = S.mode === "done" || (S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && !S.manual.length);
-  if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat", "patrol"].includes(S.mode)) S.idleT = 0;
+  if (idle) S.idleT = (S.idleT || 0) + dt; else if (!["build", "sit", "toWeb", "hunt", "eat", "patrol", "trick"].includes(S.mode)) S.idleT = 0;
   // flies stuck in the web move with it when you scroll
   if (CW) for (const fl of flies) if (fl.state === "stuck" && fl.web) { const p = cwPage(fl.web); fl.x = p.x; fl.y = p.y; }
   if (S.mode === "sit") S.sitT = (S.sitT || 0) + dt;
-  if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) {
+  if (["build", "sit", "toWeb", "patrol", "trick"].includes(S.mode)) {
     S.workCheck = (S.workCheck || 0) - dt;
     if (S.workCheck <= 0) { S.workCheck = 0.5; if (freeWork() || S.sacQueue.length || [...webs.values()].some(l => cfg.sacs && l.length >= cfg.cap)) { S.mode = "walk"; return; } }
   }
@@ -2362,6 +2537,7 @@ function updateCornerWeb(dt) {
   if (S.idleT < 6 || !idle) return;
   if (S.mode === "done" && !["stay", "wander", "sleep"].includes(cfg.exit)) return;
   if (cfg.bored === "edges") { if (S.idleT > 8) startPatrol(); return; }
+  if (["dance", "nap", "groom", "yoyo", "tricks"].includes(cfg.bored)) { if (S.idleT > 7) startTrick(); return; }
   if (!CW) planCornerWeb();
   S.mode = CW.done ? "toWeb" : "build";
 }
@@ -2526,7 +2702,7 @@ function toggleStats(on) {
   if (cfg.statsOpen !== show) { cfg.statsOpen = show; saveCfg(); }
   if (show) { SP.dirty = true; renderStatsPanel(); }
 }
-$("bStats").onclick = () => toggleStats();
+$("bStats").onclick = () => { toggleStats(); if ($("dSettings").open) $("dSettings").close(); };
 $("spClose").onclick = () => { toggleStats(false); $("bStats").focus(); };
 setInterval(() => { if (!$("statsPanel").hidden && (SP.dirty || performance.now() - SP.last > 1500)) renderStatsPanel(); }, 400);
 function spCanvas(id) {
@@ -2937,6 +3113,12 @@ function update(dt, now) {
       const d = travel(p.x, p.y, dt);
       if (d < 7 && !S.hop) { CW.step++; if (CW.step >= CW.path.length) { CW.done = true; S.mode = "toWeb"; log("WEB", `The web is done. ${spiderName()} waits in the middle for flies`); } }
     }
+  } else if (S.mode === "trick") {
+    S.v = 0; S.trickT += dt; const t = S.trickT;
+    if (S.trick === "dance") { S.a = S.trickA + Math.sin(t * 5) * 0.5 + (t % 3 > 2.4 ? (t % 3 - 2.4) / 0.6 * Math.PI * 2 : 0); S.hopZ = Math.abs(Math.sin(t * 5)) * 3; }
+    else if (S.trick === "yoyo") S.hopZ = Math.abs(Math.sin(t * 2.2)) * 46;
+    else if (S.trick === "groom") S.a = S.trickA + Math.sin(t * 9) * 0.08;
+    if (t > S.trickLen || paused) endTrick();
   } else if (S.mode === "sit") {
     S.v = 0; S.a += clamp(wrapA(Math.PI / 2 - S.a), -2 * dt, 2 * dt);
     if (CW) { const h = cwPage(CW.hub); if (Math.hypot(h.x - S.x, h.y - S.y) > 0.5) { S.x = h.x; S.y = h.y; plantFeet(); } } // ride along when the page scrolls
@@ -3288,6 +3470,24 @@ function drawSpider(now) {
     ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(S.x - 8, top - 18 - bob, 16, 18, 5); ctx.fill();
     ctx.fillStyle = C.paper; ctx.font = "600 13px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("!", S.x, top - 9 - bob);
     ctx.textAlign = "start"; ctx.globalAlpha = 1;
+  }
+  if (S.mode === "trick") {
+    const t = S.trickT;
+    ctx.fillStyle = C.ink; ctx.textBaseline = "middle"; ctx.textAlign = "center";
+    if (S.trick === "dance") for (let i = 0; i < 3; i++) {
+      const p = ((t + i * 0.7) % 2.1) / 2.1; ctx.globalAlpha = 1 - p; ctx.font = `${12 + p * 6}px ${MONO}`;
+      ctx.fillText(i % 2 ? "♫" : "♪", S.x + Math.sin((t + i) * 3) * 16, top - 4 - p * 34);
+    }
+    else if (S.trick === "nap") for (let i = 0; i < 3; i++) {
+      const p = ((t + i * 0.8) % 2.4) / 2.4; ctx.globalAlpha = 1 - p; ctx.font = `600 ${10 + p * 8}px ${MONO}`;
+      ctx.fillText("z", S.x + 12 + p * 16, top + 10 - p * 30);
+    }
+    else if (S.trick === "groom") for (let i = 0; i < 2; i++) {
+      const p = ((t * 1.3 + i * 0.5) % 1) , side = i ? 1 : -1; ctx.globalAlpha = 1 - p; ctx.font = `${9 + p * 5}px ${MONO}`;
+      ctx.fillText("✦", S.x + side * (14 + p * 10), S.y - 4 - p * 14);
+    }
+    else if (S.trick === "yoyo") { ctx.globalAlpha = 0.8; ctx.strokeStyle = C.silk; ctx.lineWidth = 0.8; seg(S.x, S.y - S.hopZ, S.x, S.y - S.hopZ - 120); }
+    ctx.globalAlpha = 1; ctx.textAlign = "start";
   }
   if (S.mode === "done" && cfg.exit === "sleep") {
     ctx.fillStyle = C.ink; ctx.textBaseline = "middle";
@@ -3815,15 +4015,58 @@ function drawAccessory() {
     ctx.strokeStyle = "#0c0a09"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(3, 0, 5, 0, 7); ctx.stroke();
     ctx.strokeStyle = "#e0b43c"; ctx.lineWidth = 0.9; ctx.strokeRect(6.6, -1.9, 2.6, 3.8);
     ctx.fillStyle = "#3a332d"; ell(2.4, -0.8, 2.6, 2); ctx.fill();
+  } else if (s === "tophat") {
+    ctx.fillStyle = "#16161a"; ell(1.5, 0, 8.2, 8.2); ctx.fill();
+    ctx.fillStyle = "#26262c"; ell(1.5, 0, 5, 5); ctx.fill();
+    ctx.strokeStyle = "#b3262e"; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(1.5, 0, 5, 0, 7); ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,.18)"; ell(0, -1.6, 2.6, 1.6); ctx.fill();
+  } else if (s === "cowboy") {
+    ctx.fillStyle = "#8a5a2b"; ctx.beginPath(); ctx.ellipse(1.5, 0, 6.5, 10, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#6b4220"; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(1.5, 0, 6.5, 10, 0, 0, 7); ctx.stroke();
+    ctx.fillStyle = "#a06a35"; ell(1.5, 0, 4, 4.8); ctx.fill();
+    ctx.strokeStyle = "#6b4220"; ctx.lineWidth = 0.9; seg(-1.5, 0, 4.5, 0);
+    ctx.strokeStyle = "#3a2410"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(1.5, 0, 4, 4.8, 0, 0, 7); ctx.stroke();
+  } else if (s === "crown") {
+    const pts = 5; ctx.fillStyle = "#f2c230"; ctx.strokeStyle = "#a87a10"; ctx.lineWidth = 0.7;
+    ctx.beginPath(); for (let i = 0; i <= pts * 2; i++) { const a = i / (pts * 2) * Math.PI * 2, r = i % 2 ? 4.2 : 7.4; ctx.lineTo(1.5 + Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#d33a4a"; ell(1.5, 0, 2, 2); ctx.fill();
+    ctx.fillStyle = "#3a7bd5"; for (let i = 0; i < pts; i++) { const a = i / pts * Math.PI * 2; ell(1.5 + Math.cos(a) * 6.6, Math.sin(a) * 6.6, 0.9, 0.9); ctx.fill(); }
+  } else if (s === "party") {
+    ctx.fillStyle = "#4fb7f0"; ell(1.5, 0, 5.4, 5.4); ctx.fill();
+    ctx.strokeStyle = "#f04f9a"; ctx.lineWidth = 1.1; for (const r of [1.8, 3.6]) { ctx.beginPath(); ctx.arc(1.5, 0, r, 0, 7); ctx.stroke(); }
+    ctx.fillStyle = "#ffd23f"; ell(1.5, 0, 1.4, 1.4); ctx.fill();
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + 0.4; ctx.fillStyle = ["#ffd23f", "#f04f9a", "#7fe07a"][i % 3]; ell(1.5 + Math.cos(a) * 7.4, Math.sin(a) * 7.4, 0.8, 0.8); ctx.fill(); }
+  } else if (s === "grad") {
+    ctx.save(); ctx.translate(1.5, 0); ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = "#18181c"; ctx.fillRect(-6.5, -6.5, 13, 13);
+    ctx.restore();
+    ctx.fillStyle = "#2a2a30"; ell(1.5, 0, 1.4, 1.4); ctx.fill();
+    ctx.strokeStyle = "#f2c230"; ctx.lineWidth = 0.8; seg(1.5, 0, -3, 5.5); ctx.fillStyle = "#f2c230"; ell(-3.2, 6, 1, 1.4); ctx.fill();
+  } else if (s === "chef") {
+    ctx.fillStyle = "#fafafa"; ctx.strokeStyle = "rgba(0,0,0,.3)"; ctx.lineWidth = 0.5;
+    for (const [x, y] of [[1.5, 0], [-1.6, -3], [-1.6, 3], [4.6, -3], [4.6, 3], [1.5, -4.5], [1.5, 4.5]]) { ell(x, y, 3.6, 3.6); ctx.fill(); ctx.stroke(); }
+    ell(1.5, 0, 3.6, 3.6); ctx.fill();
+  } else if (s === "pirate") {
+    ctx.fillStyle = "#1b1b1f"; ctx.beginPath(); ctx.moveTo(8, 0); ctx.quadraticCurveTo(2, -12, -5, -6); ctx.quadraticCurveTo(-1, 0, -5, 6); ctx.quadraticCurveTo(2, 12, 8, 0); ctx.fill();
+    ctx.strokeStyle = "#d9a920"; ctx.lineWidth = 0.7; ctx.stroke();
+    ctx.fillStyle = "#f2f2f2"; ell(3.6, 0, 1.5, 1.6); ctx.fill();
+    ctx.strokeStyle = "#f2f2f2"; ctx.lineWidth = 0.6; seg(1.8, -1.8, 5.4, 1.8); seg(1.8, 1.8, 5.4, -1.8);
+  } else if (s === "propeller") {
+    const cols = ["#e53950", "#ffd23f", "#3a7bd5", "#3bb273"];
+    for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.moveTo(1.5, 0); ctx.arc(1.5, 0, 5.4, i * Math.PI / 2, (i + 1) * Math.PI / 2); ctx.fill(); }
+    const spin = performance.now() / (reduce ? 1e9 : 90);
+    ctx.save(); ctx.translate(1.5, 0); ctx.rotate(spin);
+    ctx.fillStyle = "#e53950"; ell(0, -4.5, 1.4, 4.2); ctx.fill(); ctx.fillStyle = "#3a7bd5"; ell(0, 4.5, 1.4, 4.2); ctx.fill();
+    ctx.restore(); ctx.fillStyle = "#222"; ell(1.5, 0, 1.1, 1.1); ctx.fill();
   } else if (s === "valentine") {
     // a headband with two springy antennae, each topped with a red heart
     const heart = (x, y, r) => { ctx.beginPath(); ctx.moveTo(x - r * 1.1, y); ctx.bezierCurveTo(x + r * 0.4, y - r * 1.7, x + r * 1.6, y - r * 0.2, x + r * 0.6, y); ctx.bezierCurveTo(x + r * 1.6, y + r * 0.2, x + r * 0.4, y + r * 1.7, x - r * 1.1, y); ctx.fill(); };
-    ctx.strokeStyle = "#d81b60"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(3, 0, 4.6, -1.3, 1.3); ctx.stroke();
+    ctx.strokeStyle = "#d81b60"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(-0.5, 0, 4.6, -1.3, 1.3); ctx.stroke();
     for (const y of [-1, 1]) {
-      ctx.strokeStyle = "#333"; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(4.5, y * 4.4);
-      for (let t = 1; t <= 6; t++) ctx.lineTo(4.5 + t * 1.05, y * (4.4 + t * 0.9) + (t % 2 ? 0.7 : -0.7)); ctx.stroke();
-      ctx.fillStyle = "#e53950"; heart(11.4, y * 10, 2.4);
-      ctx.fillStyle = "rgba(255,255,255,.55)"; ell(11.2, y * 10 - 0.9, 0.6, 0.4); ctx.fill();
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(0.6, y * 4.4);
+      for (let t = 1; t <= 6; t++) ctx.lineTo(0.6 + t * 0.7, y * (4.4 + t * 1.15) + (t % 2 ? 0.7 : -0.7)); ctx.stroke();
+      ctx.fillStyle = "#e53950"; heart(5.6, y * 11.6, 2.4);
+      ctx.fillStyle = "rgba(255,255,255,.55)"; ell(5.4, y * 11.6 - 0.9, 0.6, 0.4); ctx.fill();
     }
   } else if (s === "stpatrick") {
     // a little green top hat with a gold band and a shamrock
@@ -3970,7 +4213,7 @@ function spiderAt(e) {
   const pr = pageBox(), x = pr.left + S.x, y = pr.top + S.y - (S.hopZ || 0);
   return Math.hypot(e.clientX - x, e.clientY - y) < 30 * cfg.size;
 }
-const MODE_TEXT = { walk: "crawling", appear: "arriving", drop: "dropping in", zip: "swinging on a thread", toSac: "heading to a sac", spin: "wrapping a sac",
+const MODE_TEXT = { trick: "doing a trick", walk: "crawling", appear: "arriving", drop: "dropping in", zip: "swinging on a thread", toSac: "heading to a sac", spin: "wrapping a sac",
   done: "resting", hunt: "hunting a fly", eat: "eating a fly", build: "spinning a web", sit: "waiting in its web for flies", toWeb: "going back to its web",
   patrol: "walking around the screen" };
 function showSpiderPop() {
@@ -3981,7 +4224,7 @@ function showSpiderPop() {
   const doing = paused ? "paused" : T ? `crawling toward “${T.label}”` : MODE_TEXT[S.mode] || "resting";
   pop.innerHTML = `<p class="who">${esc(spiderName())}</p>
     <p>${esc(doing[0].toUpperCase() + doing.slice(1))}. ${crawled} of ${relevantCount()} keywords caught${fliesEaten ? `, ${plural(fliesEaten, "fly")} eaten` : ""}.</p>
-    <div class="pop-btns"><button class="btn primary" type="button" data-sp="pause">${paused ? "Keep crawling" : "Take a break"}</button>
+    <div class="pop-btns"><button class="btn primary" type="button" data-sp="pause">${paused ? "Resume the crawl" : "Pause the crawl"}</button>
     <button class="btn" type="button" data-sp="fly">Feed it a fly</button></div>
     <div class="pop-btns"><button class="btn" type="button" data-sp="guide">Study guide</button><button class="btn" type="button" data-sp="stats">Crawl stats</button><button class="btn" type="button" data-sp="more">More pages</button></div>`;
   pop.hidden = false;
@@ -4364,7 +4607,7 @@ function sacAt(e) {
   const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
   return sacs.find(s => (s.state === "full" || s.state === "hatched") && Math.hypot(s.x - x, s.y - y) < s.r + 14) || null;
 }
-const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini");
+const overUi = e => e.target.closest && e.target.closest(".bar, dialog, .wv, .pop, .hlbtn, #mini, .tb-menu, .xp-bar, .xp-tip");
 addEventListener("click", e => {
   if (WV.open || document.querySelector("dialog[open]") || overUi(e)) return;
   const s = sacAt(e);
@@ -5087,7 +5330,7 @@ async function saveFile(filename, data) {
   }
   // outside claude.ai (the web release or the Android app): share sheet first, then a normal download
   if (!window.claude) {
-    const type = filename.endsWith(".csv") ? "text/csv" : "text/markdown";
+    const type = { csv: "text/csv", html: "text/html", json: "application/json", ris: "application/x-research-info-systems", bib: "application/x-bibtex" }[filename.split(".").pop()] || "text/markdown";
     try {
       const file = new File([data], filename, { type });
       if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: filename }); return; }
@@ -5104,11 +5347,7 @@ async function saveFile(filename, data) {
 $("exMd").onclick = () => saveFile(`${slug(DOC.title)}-notes.md`, outlineMarkdown());
 $("exCsv").onclick = () => saveFile(`${slug(DOC.title)}-keywords.csv`, keywordsCsv());
 $("exCards").onclick = () => saveFile(`${slug(DOC.title)}-flashcards.csv`, cardsCsv());
-$("wvCopy").onclick = async () => {
-  const md = outlineMarkdown();
-  try { await navigator.clipboard.writeText(md); $("wvCopy").textContent = "Copied"; setTimeout(() => $("wvCopy").textContent = "Copy notes", 1600); }
-  catch (e) { $("copyText").value = md; $("copyNote").textContent = "Select all and copy."; $("dCopy").showModal(); $("copyText").select(); }
-};
+$("wvCopy").onclick = () => copyText(outlineMarkdown(), "Copied your notes.");
 
 // ---------------- ask the text ----------------
 let askCtl = null;
@@ -5484,10 +5723,10 @@ function shareHtml() {
     (topics ? "<h2>Topics and keywords</h2>" + topics : "") + (sacHtml ? "<h2>Egg sacs</h2>" + sacHtml : "") + (asks ? "<h2>Questions</h2>" + asks : "") +
     (pn.length ? "<h2>Passage notes</h2><ul>" + pn.map(([i, t]) => '<li><span class="loc">' + esc(sentLoc(+i)) + "</span> “" + esc(trunc(DOC.sents[+i] || "", 220)) + '”<br><span class="note">✎ ' + esc(t) + "</span></li>").join("") + "</ul>" : "") +
     "<h2>Bibliography (" + STYLE_NAMES[cfg.citeStyle] + ')</h2><ul class="bib">' + bibliography().map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>" +
-    "<footer>Made with CAK3D Crawler · https://github.com/real-CAK3D/CAK3D-Crawler</footer></main></body></html>";
+    "<footer>Made with Arachnotes · https://github.com/real-CAK3D/CAK3D-Crawler</footer></main></body></html>";
 }
 $("exShare").onclick = () => saveFile(slug(DOC.title) + "-web.html", shareHtml());
-for (const [id, kind] of [["exRis", "ris"], ["exRis2", "ris"], ["exBib", "bib"], ["exBib2", "bib"]]) $(id).onclick = () => exportRefs(kind);
+for (const [id, kind] of [["exRis", "ris"], ["exBib", "bib"]]) $(id).onclick = () => exportRefs(kind);
 
 // ---------------- working together ----------------
 // Live (inside claude.ai): a shared crawl lives at crawls/<id> in the artifact's shared storage. Everyone it's
@@ -5637,7 +5876,7 @@ $("collabBox").addEventListener("click", e => {
 
 // crawl files: send a crawl to someone, then merge their notes and sacs back in
 function crawlFile() {
-  return JSON.stringify({ app: "cak3d-crawler", v: 1, by: cfg.myName || "", at: Date.now(), state: captureState(DOC.title), raw: DOC.mode === "text" ? DOC.raw : "", craw: DOC.compare ? DOC.compare.raw : "" });
+  return JSON.stringify({ app: "arachnotes", v: 1, by: cfg.myName || "", at: Date.now(), state: captureState(DOC.title), raw: DOC.mode === "text" ? DOC.raw : "", craw: DOC.compare ? DOC.compare.raw : "" });
 }
 // weave codes: the crawl file, compressed and written as text you can paste anywhere
 const WEAVE = "CAK3D-WEAVE1.";
@@ -5664,7 +5903,7 @@ $("weaveMake").onclick = async () => {
 };
 $("weaveCopy").onclick = () => copyText($("weaveOut").value, "Copied the weave code.");
 $("weaveShare").onclick = async () => {
-  const text = $("weaveOut").value, title = `CAK3D Crawler: ${DOC.title}`;
+  const text = $("weaveOut").value, title = `Arachnotes: ${DOC.title}`;
   try {
     const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
     if (P) await P.share({ title, text }); else await navigator.share({ title, text });
@@ -5684,22 +5923,22 @@ $("weaveIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preve
 // a backup: everything this device keeps for the app except AI keys and purchases (those come back from Google Play)
 $("backupMake").onclick = () => {
   const data = {};
-  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned"].includes(k)) data[k] = localStorage.getItem(k);
-  saveFile(`cak3d-crawler-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "cak3d-crawler", backup: 1, at: Date.now(), data }));
+  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix"].includes(k)) data[k] = localStorage.getItem(k);
+  saveFile(`arachnotes-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "arachnotes", backup: 1, at: Date.now(), data }));
   $("backupMsg").textContent = `Backed up ${plural(Object.keys(data).filter(k => /^cak3d-lib-/.test(k)).length, "saved crawl")} and your settings.`;
 };
 $("backupIn").addEventListener("change", async e => {
   const file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
   try {
     const j = JSON.parse(await file.text());
-    if (j.app !== "cak3d-crawler" || !j.backup || !j.data) throw new Error("bad");
+    if (!["arachnotes", "cak3d-crawler"].includes(j.app) || !j.backup || !j.data) throw new Error("bad");
     // crawls merge into this device's library; settings come from the backup
     const lib = (store.get("cak3d-lib") || []), theirs = JSON.parse(j.data["cak3d-lib"] || "[]");
     for (const [k, v] of Object.entries(j.data)) if (k !== "cak3d-lib") localStorage.setItem(k, v);
     const ids = new Set(lib.map(m => m.id)); store.set("cak3d-lib", lib.concat(theirs.filter(m => !ids.has(m.id))));
     $("backupMsg").textContent = "Restored. Reloading…";
     setTimeout(() => location.reload(), 600);
-  } catch (err) { $("backupMsg").textContent = "That file isn't a CAK3D Crawler backup."; }
+  } catch (err) { $("backupMsg").textContent = "That file isn't a Arachnotes backup."; }
 });
 
 $("crawlExport").onclick = () => saveFile(`${slug(DOC.title)}.crawl.json`, crawlFile());
@@ -5709,11 +5948,11 @@ $("crawlImport").addEventListener("change", async e => {
   try {
     const j = JSON.parse(await file.text());
     msg.textContent = importCrawl(j, j.by || file.name.replace(/\.crawl\.json$|\.json$/i, ""));
-  } catch (ex) { msg.textContent = "That file isn't a CAK3D Crawler crawl file."; }
+  } catch (ex) { msg.textContent = "That file isn't a Arachnotes crawl file."; }
 });
 // open a crawl someone sent (or you sent yourself from another device); if it's the crawl already open, merge their notes and sacs
 function importCrawl(j, who) {
-    if (j.app !== "cak3d-crawler" || !j.state) throw new Error("bad");
+    if (!["arachnotes", "cak3d-crawler"].includes(j.app) || !j.state) throw new Error("bad");
     const same = j.state.docTitle === DOC.title && j.state.words === DOC.words;
     if (!same) { restoreState(j.state, j.raw, j.craw, null); return `Opened “${j.state.title}”${who && who !== "someone" ? " from " + who : ""}. Save it to your library to keep it.`; }
     DOC.extNotes = DOC.extNotes || [];
@@ -5865,10 +6104,9 @@ function guideHtml() {
   const body = $("guideBody").innerHTML.replace(/<button type="button" class="cite"[^>]*>([\s\S]*?)<\/button>/g, '<span class="cite">$1</span>');
   return `<!doctype html><html lang="${esc(DOC.lang || "en")}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Study guide: ${esc(DOC.title)}</title>
 <style>body{max-width:46rem;margin:0 auto;padding:24px 16px 60px;font:17px/1.6 Georgia,serif;color:#1c211f;background:#fff}h1{font-size:1.9rem;line-height:1.2}h3{font-size:1.25rem;margin:0 0 6px}h4{font:600 11px ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:#5b6560;margin:12px 0 4px}section{border-top:1px solid #d5d9d3;padding:14px 0 6px}.cite{font:12px ui-monospace,monospace;color:#2a57a3}dl{display:grid;grid-template-columns:minmax(6rem,max-content) 1fr;gap:4px 14px}dt{font-weight:600}dd{margin:0}.meta{color:#5b6560;font-size:.9rem}summary{cursor:pointer;font:12px ui-monospace,monospace;color:#5b6560}@media print{details{display:block}details>*{display:block}}@media (max-width:560px){dl{grid-template-columns:1fr}}</style></head><body>
-<h1>${esc($("guideH").textContent)}: ${esc(DOC.title)}</h1><p class="meta">Made with CAK3D Crawler</p>${body}<section><h3>Sources</h3><ul>${bibliography().map(b => `<li>${esc(b)}</li>`).join("")}</ul></section></body></html>`;
+<h1>${esc($("guideH").textContent)}: ${esc(DOC.title)}</h1><p class="meta">Made with Arachnotes</p>${body}<section><h3>Sources</h3><ul>${bibliography().map(b => `<li>${esc(b)}</li>`).join("")}</ul></section></body></html>`;
 }
 $("bGuide").onclick = () => openGuide();
-$("wvGuide").onclick = () => openGuide();
 $("guideClose").onclick = () => $("dGuide").close();
 $("dGuide").addEventListener("close", () => { if (GUIDE.ctl) GUIDE.ctl.abort(); });
 $("guideAi").onclick = guideWithAi;
@@ -5913,7 +6151,237 @@ $("bPause").onclick = togglePause;
 $("bFollow").onclick = () => setFollow(!follow);
 $("bRestart").onclick = () => { paused = false; restart(); $("dSettings").close(); };
 $("bWeb").onclick = () => openWeb();
-$("bHelp").onclick = () => $("dHelp").showModal();
+$("bHelp").onclick = () => openHelp();
+// ---- support: an ID for this install, issue reports, and fixes we can send to one app without an update
+const SUPPORT = (window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.support) || null; // { url, key } (a public, insert-only key)
+function supportId() {
+  let id = store.get("cak3d-id");
+  if (!id) {
+    const A = "0123456789ABCDEFGHJKMNPQRSTVWXYZ", r = crypto.getRandomValues(new Uint8Array(12));
+    const c = [...r].map(b => A[b % 32]).join("");
+    id = `AN-${c.slice(0, 4)}-${c.slice(4, 8)}-${c.slice(8, 12)}`;
+    store.set("cak3d-id", id);
+  }
+  return id;
+}
+const platformName = () => NATIVE ? "android" : IN_CLAUDE ? "claude" : "web";
+async function rpc(fn, body) {
+  if (!SUPPORT) throw new Error("Reports aren't set up in this version of the app.");
+  const r = await fetch(`${SUPPORT.url}/rest/v1/rpc/${fn}`, { method: "POST", headers: { apikey: SUPPORT.key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) throw new Error((j && j.message) || `The report server answered ${r.status}.`);
+  return j;
+}
+$("supCopy").onclick = () => copyText(supportId(), "Copied your support ID.");
+$("supHelp").onclick = () => { $("dSettings").close(); openHelp(); };
+$("supTour").onclick = () => { $("dSettings").close(); startExplain(); };
+$("repSend").onclick = async () => {
+  const msg = $("repMsg").value.trim(), note = $("repNote");
+  if (!msg) { note.textContent = "Write what went wrong first."; $("repMsg").focus(); return; }
+  $("repSend").disabled = true; note.textContent = "Sending…";
+  try {
+    const settings = $("repCfg").checked ? { cfg, owned: [...OWNED], screen: [innerWidth, innerHeight], ua: navigator.userAgent.slice(0, 200), doc: DOC ? { mode: DOC.mode, words: DOC.words || null } : null } : null;
+    const n = await rpc("report_issue", { p_user: supportId(), p_version: APP.version, p_platform: platformName(), p_message: msg, p_contact: $("repContact").value.trim(), p_settings: settings });
+    note.textContent = `Sent. Your report number is ${n}. Thank you!`;
+    $("repMsg").value = "";
+  } catch (e) { note.textContent = (e.message || "Couldn't send the report.") + " Check your connection and try again."; }
+  finally { $("repSend").disabled = false; }
+};
+// fixes: on launch, ask whether we've left a fix for this app (or for everyone) and apply anything new
+async function checkFixes() {
+  if (!SUPPORT || IN_CLAUDE) return;
+  let res; try { res = await rpc("get_fix", { p_user: supportId() }); } catch { return; }
+  const done = store.get("cak3d-fix") || {};
+  for (const who of ["all", "mine"]) {
+    const fx = res && res[who]; if (!fx || !fx.actions || done[who] === fx.at) continue;
+    const a = fx.actions;
+    if (a.resetSettings) { for (const k of Object.keys(cfg)) delete cfg[k]; store.set("cak3d-cfg", null); }
+    if (a.cfg && typeof a.cfg === "object") Object.assign(cfg, a.cfg);
+    if (Array.isArray(a.grant)) for (const id of a.grant) OWNED.add(String(id));
+    if (Array.isArray(a.revoke)) for (const id of a.revoke) OWNED.delete(String(id));
+    store.set("cak3d-owned", [...OWNED]);
+    done[who] = fx.at; store.set("cak3d-fix", done);
+    if (a.resetSettings || a.cfg) { saveCfg(); location.reload(); return; }
+    markPaid();
+    if (a.message) flash(String(a.message).slice(0, 300));
+  }
+}
+// updates: Google Play's in-app update on Android; the web version refreshes its offline copy
+async function checkUpdate(manual) {
+  const note = $("updNote"), say = t => { if (manual) note.textContent = t; };
+  try {
+    const AU = NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins.AppUpdate;
+    if (AU) {
+      const info = await AU.getAppUpdateInfo();
+      if (info.updateAvailability === 2) { // UPDATE_AVAILABLE
+        if (info.immediateUpdateAllowed) await AU.performImmediateUpdate(); else await AU.openAppStore();
+      } else say(`You have the latest version (${APP.version}).`);
+    } else if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update();
+      say(reg && reg.waiting ? "An update is ready. Close and reopen the app to use it." : `You have the latest version (${APP.version}).`);
+    } else say(`This is version ${APP.version}.`);
+  } catch (e) { say("Couldn't check for updates right now."); }
+}
+$("updCheck").onclick = () => checkUpdate(true);
+function syncSupport() { $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; }
+setTimeout(() => { checkFixes(); if (NATIVE) checkUpdate(false); }, 2500);
+// ---- help: one list of what everything is, used by the "What's what" tab and by "point at anything"
+const HELP = [
+  ["Toolbar", "#docTitle", "Page title", "The name of the text the spider is crawling. Open a different one from Pages."],
+  ["Toolbar", "#focusBox", "Focus", "Type a topic and the spider goes for the keywords that match it first. Leave it empty and it finds the topics on its own."],
+  ["Toolbar", ".stats", "Crawl counts", "How many keywords it has crawled out of all it found, how many threads it has spun between them, how many sacs (finished topics) it has wrapped, and how many topics it has found."],
+  ["Toolbar", "#mbSpider", "Spider menu", "Pause or resume the crawl, follow the spider as it moves, or start the crawl over."],
+  ["Toolbar", "#bWeb", "Web view", "Every keyword the spider found, drawn as a web, a timeline, flashcards and an outline you can save. It glows when the crawl is done."],
+  ["Toolbar", "#mbAsk", "Ask menu", "Ask the text a question, search inside it, or make a study guide with key points, terms, questions and citations."],
+  ["Toolbar", "#mbPages", "Pages menu", "Open your own text, a file (PDF, EPUB, Word, photos of pages) or a link; search the web for more pages on the topic; or open your library of saved crawls."],
+  ["Toolbar", "#bSettings", "Settings", "The spider's look and moves, the theme, live stats, your AI, the store, your support ID and Report an issue."],
+  ["Toolbar", "#bHelp", "Help", "This panel. Point at anything shows what any part of the screen is."],
+  ["Toolbar", "#bHideBar", "Hide", "Hides the toolbar for more room to read. The Toolbar tab in the top corner, or H, brings it back."],
+  ["Toolbar", "#status", "Status line", "What the spider is doing right now."],
+  ["On the page", "@spider", "The spider", "It reads the text keyword by keyword, deciding which topic each belongs to. Tap it to see what it's doing, feed it a fly, or open the stats."],
+  ["On the page", ".kw", "Keyword", "A word or phrase the spider found. The underline color is its topic (see Legend). Tap it to see its topic, crawl it now, or pick it for a sac."],
+  ["On the page", "@thread", "Threads", "Silk the spider spins between keywords it crawled, linking related ones."],
+  ["On the page", "@sac", "Egg sac", "A finished topic: the spider wraps up keywords that belong together. Tap one to see its keywords, a summary, and to merge or split it."],
+  ["On the page", "@baby", "Spiderlings", "Hatch from sacs and run off to mark more keywords related to their topic."],
+  ["On the page", "@fly", "Flies", "Fly around the page. When the spider is idle it hunts them, and they can get caught in its corner web."],
+  ["On the page", "@corner", "Corner web", "When the spider has nothing to do, it spins a web in a corner of the screen and waits there."],
+  ["On the page", "@ring", "Ripples", "Where you tapped the page. The spider walks over to that spot."],
+  ["On the page", "#page", "The text", "What's being crawled. Select words to add your own keyword, or double-click a paragraph to pick it for a study guide."],
+  ["On the page", "#mini", "Minimap", "The whole text in miniature, showing where the keywords are. Tap it to jump there."],
+  ["Panels", "#statsPanel", "Live stats", "How the spider decides: each keyword it reads, its confidence, which ones it's sure about and which it needs you to decide. Turn it on in Settings or with S."],
+  ["Panels", "#bShowBar", "Toolbar tab", "Brings back the hidden toolbar."]
+];
+const distToSeg = (px, py, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy || 1, t = clamp(((px - ax) * dx + (py - ay) * dy) / L, 0, 1); return Math.hypot(px - ax - t * dx, py - ay - t * dy); };
+function helpFor(sel) { return HELP.find(h => h[1] === sel); }
+function openHelp(tab) {
+  $("helpWhat").innerHTML = [...new Set(HELP.map(h => h[0]))].map(g => `<div class="hw-group"><h3>${g}</h3><dl class="hw-list">${
+    HELP.filter(h => h[0] === g).map(h => `<div><dt>${h[2]}</dt><dd>${h[3]}</dd></div>`).join("")}</dl></div>`).join("");
+  renderLegend(); renderAbout();
+  setHelpTab(tab || "what");
+  if (!$("dHelp").open) $("dHelp").showModal();
+}
+function setHelpTab(t) {
+  for (const b of $("helpTabs").children) b.setAttribute("aria-selected", String(b.dataset.h === t));
+  for (const sec of $("dHelp").querySelectorAll("section[data-h]")) sec.hidden = sec.dataset.h !== t;
+}
+$("helpTabs").addEventListener("click", e => { const b = e.target.closest("[data-h]"); if (b) setHelpTab(b.dataset.h); });
+function renderLegend() {
+  const topics = DOC && DOC.cats ? DOC.cats.map((c, i) => ({ c, i, n: [...DOC.kw.values()].filter(k => k.cat === i).length })).filter(t => t.n) : [];
+  $("helpLegend").innerHTML = `<div class="hw-group"><h3>Topics in this text</h3><dl class="hw-list">${topics.length ? topics.map(t =>
+      `<div><dt><span class="hw-sw" style="--sw:${catColorVar(t.i)}"></span>${esc(t.c.name)}</dt><dd>${plural(t.n, "keyword")}. Keywords underlined in this color, and the threads and sacs of this color, belong to this topic.</dd></div>`).join("")
+      : "<div><dt>None yet</dt><dd>Topics appear here as the spider finds them.</dd></div>"}</dl></div>
+    <div class="hw-group"><h3>Marks on the page</h3><dl class="hw-list">
+      <div><dt><span class="hw-line" style="--sw:var(--ink)"></span>Thread</dt><dd>Silk between two keywords the spider crawled.</dd></div>
+      <div><dt><span class="hw-sw" style="--sw:var(--muted)"></span>Sac</dt><dd>A wrapped bundle of keywords: one finished topic.</dd></div>
+      <div><dt>Solid underline</dt><dd>A keyword the spider has crawled.</dd></div>
+      <div><dt>Dotted underline</dt><dd>A keyword it found but hasn't crawled yet, or one a spiderling marked.</dd></div>
+      <div><dt>Highlight</dt><dd>A keyword or passage you picked yourself (the “My highlights” topic).</dd></div>
+      <div><dt>Prey</dt><dd>When you set a focus, the best matches show as prey and the spider hunts them first.</dd></div>
+    </dl></div>
+    <div class="hw-group"><h3>In the live stats</h3><dl class="hw-list">
+      <div><dt>p 0.97</dt><dd>How sure the spider is about a keyword's topic, from 0 to 1.</dd></div>
+      <div><dt>→ Rules ✓</dt><dd>Decided by the spider's own rules. → AI means it asked your AI. → You means it's waiting for you to decide.</dd></div>
+    </dl></div>`;
+}
+function renderAbout() {
+  $("helpAbout").innerHTML = `<p><b>${esc(APP.name)}</b> ${esc(APP.version)}. ${esc(APP.tagline)}</p>
+    <p class="meta">Your support ID: <b class="mono">${esc(supportId())}</b> (also in Settings → Help &amp; support).</p>
+    <p class="meta">${esc(APP.legal)}${window.CRAWLER_CONFIG ? ' · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>' : ""}</p>`;
+}
+// ---- point at anything
+let explaining = false;
+function startExplain() {
+  if ($("dHelp").open) $("dHelp").close();
+  explaining = true; document.body.classList.add("explain"); $("xpBar").hidden = false; $("xpDone").focus();
+}
+function stopExplain() {
+  explaining = false; document.body.classList.remove("explain");
+  $("xpBar").hidden = $("xpTip").hidden = $("xpRing").hidden = true;
+}
+$("helpPoint").onclick = startExplain;
+$("xpDone").onclick = stopExplain;
+// the ring marks a spot on the screen, so it goes away once the page moves under it
+addEventListener("scroll", () => { if (explaining) $("xpRing").hidden = true; }, { capture: true, passive: true });
+function explainAt(e) {
+  const t = e.target, pr = pageBox(), px = e.clientX - pr.left, py = e.clientY - pr.top;
+  const box = el => el.getBoundingClientRect();
+  const dot = (x, y, r) => ({ left: x - r, top: y - r, width: 2 * r, height: 2 * r });
+  let h = null, rect = null, extra = "";
+  if (spiderAt(e)) { h = helpFor("@spider"); rect = dot(pr.left + S.x, pr.top + S.y, 30 * cfg.size); extra = ` Right now it's ${MODE_TEXT[S.mode] || "busy"}.`; }
+  else if (sacAt(e)) { const sc = sacAt(e); h = helpFor("@sac"); rect = dot(pr.left + sc.x, pr.top + sc.y, sc.r + 10); }
+  else if (flies.some(fl => fl.state !== "gone" && Math.hypot(fl.x - px, fl.y - py) < 18)) { const fl = flies.find(fl => fl.state !== "gone" && Math.hypot(fl.x - px, fl.y - py) < 18); h = helpFor("@fly"); rect = dot(pr.left + fl.x, pr.top + fl.y, 16); }
+  else if (babies.some(b => Math.hypot(b.x - px, b.y - py) < 14)) { const b = babies.find(b => Math.hypot(b.x - px, b.y - py) < 14); h = helpFor("@baby"); rect = dot(pr.left + b.x, pr.top + b.y, 14); }
+  else if (CW && (() => { const l = cwLocal({ x: px, y: py }); return l.x >= 0 && l.y >= 0 && l.x + l.y < CW.A1.x; })()) { h = helpFor("@corner"); }
+  else if (t.closest(".kw")) {
+    const el = t.closest(".kw"), k = DOC.kw.get(el.dataset.k); h = helpFor(".kw"); rect = box(el);
+    if (k) extra = ` “${k.label}” is in the topic ${DOC.cats[k.cat].name}, and it ${k.crawled ? "has been crawled" : "hasn't been crawled yet"}.`;
+  } else {
+    for (let el = t; el && el !== document.body; el = el.parentElement) {
+      const hit = HELP.find(x => !x[1].startsWith("@") && el.matches(x[1]));
+      if (hit && hit[1] !== "#page") { h = hit; rect = box(el); break; }
+    }
+    if (!h && t.closest("#page")) {
+      const near = threads.some(th => th.a && th.b && distToSeg(px, py, th.a.x, th.a.y, th.b.x, th.b.y) < 6);
+      h = near ? helpFor("@thread") : rings.length && rings.some(r => Math.hypot(r.x - px, r.y - py) < 30) ? helpFor("@ring") : helpFor("#page");
+      if (h[1] === "#page") rect = box(t.closest("p, li, h1, h2, h3, blockquote, td") || $("page"));
+    }
+  }
+  if (!h) { h = ["", "", "Nothing special here", "This part of the screen doesn't do anything on its own. Tap the spider, a keyword, a sac or a button to learn about it."]; }
+  showTip(e.clientX, e.clientY, h[2], h[3] + extra, rect);
+}
+function showTip(x, y, title, text, rect) {
+  const tip = $("xpTip"), ring = $("xpRing");
+  $("xpTitle").textContent = title; $("xpText").textContent = text;
+  tip.hidden = true; void tip.offsetWidth; tip.hidden = false; // restart the drop animation
+  const w = tip.offsetWidth, hgt = tip.offsetHeight, top0 = $("xpBar").getBoundingClientRect().bottom + 8;
+  let ty = y + 28; if (ty + hgt > innerHeight - 8) ty = Math.max(top0 + 30, y - hgt - 28);
+  const tx = clamp(x - w / 2, 10, innerWidth - w - 10);
+  tip.style.left = tx + "px"; tip.style.top = ty + "px";
+  tip.style.setProperty("--silk", Math.max(14, ty - top0) + "px");
+  tip.querySelector(".xp-silk").style.left = clamp(x - tx, 12, w - 12) + "px";
+  ring.hidden = !rect;
+  if (rect) Object.assign(ring.style, { left: rect.left - 4 + "px", top: rect.top - 4 + "px", width: rect.width + 8 + "px", height: rect.height + 8 + "px" });
+}
+addEventListener("click", e => {
+  if (!explaining || e.target.closest("#xpBar")) return;
+  e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+  explainAt(e);
+}, true);
+for (const type of ["pointerdown", "mousedown", "dblclick"]) addEventListener(type, e => { if (explaining && !e.target.closest("#xpBar")) { e.stopPropagation(); if (type !== "pointerdown") e.preventDefault(); } }, true);
+addEventListener("keydown", e => { if (explaining && e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); stopExplain(); } }, true);
+$("bRestartTb").onclick = () => { paused = false; restart(); };
+// ---- toolbar menus: open on click, arrow keys move between items, Escape or a click elsewhere closes
+let openMenu = null;
+function closeMenu(focusBtn) {
+  if (!openMenu) return;
+  const m = openMenu, b = $(m.getAttribute("aria-labelledby"));
+  m.hidden = true; b.setAttribute("aria-expanded", "false"); openMenu = null;
+  if (focusBtn) b.focus();
+}
+function showMenu(b) {
+  const m = $(b.getAttribute("aria-controls"));
+  if (openMenu === m) { closeMenu(); return; }
+  closeMenu();
+  m.hidden = false; b.setAttribute("aria-expanded", "true"); openMenu = m;
+  [...m.children].forEach((it, i) => it.style.setProperty("--i", i));
+  const r = b.getBoundingClientRect(), w = m.offsetWidth, left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8);
+  m.style.left = left + "px"; m.style.top = r.bottom + 12 + "px";
+  m.style.setProperty("--tx", (r.left + r.width / 2 - left) + "px");
+  m.querySelector(".tb-item").focus({ preventScroll: true });
+}
+document.querySelectorAll("[aria-haspopup='menu']").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); showMenu(b); }));
+document.addEventListener("click", e => { if (openMenu && !e.target.closest(".tb-menu")) closeMenu(); });
+document.querySelectorAll(".tb-menu").forEach(m => {
+  m.addEventListener("click", e => { if (e.target.closest(".tb-item")) closeMenu(); });
+  m.addEventListener("keydown", e => {
+    const items = [...m.querySelectorAll(".tb-item")], i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
+    else if (e.key === "Home" || e.key === "End") { e.preventDefault(); items[e.key === "Home" ? 0 : items.length - 1].focus(); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeMenu(true); }
+    else if (e.key === "Tab") closeMenu();
+  });
+});
+addEventListener("resize", () => closeMenu());
 const stopFollow = () => { if (follow) setFollow(false); };
 addEventListener("wheel", () => { if (!WV.open) stopFollow(); }, { passive: true });
 addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: true });
@@ -6161,6 +6629,15 @@ const THUMB = {
       ctx.strokeStyle = C.link; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2; ctx.strokeRect(8, 8, w - 16, h - 16); ctx.setLineDash([]);
       previewSpider({ x: 26, y: h * 0.62, a: -Math.PI / 2, scale: Math.min(w, h) / 150 }, w, h, now);
     }
+    const marks = { dance: ["♪", "♫", "♪"], nap: ["z", "z", "Z"], groom: ["✦", "✦", "✧"], tricks: ["♪", "z", "✦"] }[v];
+    if (marks || v === "yoyo") {
+      const sc = Math.min(w, h) / 120, cx = w / 2, cy = v === "yoyo" ? h * 0.66 : h / 2 + 6;
+      if (v === "yoyo") { ctx.strokeStyle = C.silk; ctx.lineWidth = 1; seg(cx, 0, cx, cy - 10 * sc); }
+      previewSpider({ x: cx - 6 * sc, y: cy, a: -Math.PI / 2, scale: sc }, w, h, now);
+      if (marks) { ctx.fillStyle = C.ink; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        marks.forEach((m, i) => { ctx.font = `600 ${11 + i * 3}px ${MONO}`; ctx.fillText(m, cx + 22 * sc + i * 9 * sc, cy - 18 * sc - i * 9 * sc); });
+        ctx.textAlign = "start"; }
+    }
   },
   skin: (it, w, h, now) => {
     const col = themeColors(it.values[0]); previewPage(ctx, w, h, col);
@@ -6178,6 +6655,7 @@ function drawPreset(pr, w, h, now) {
 // bundles: a strip of what's in them
 const BUNDLE_SHOW = {
   bundle_starter: [{ type: "huntsman" }, { tint: "rainbow" }, { type: "widow", tint: "c6" }],
+  bundle_hats: [{ look: "cartoon", season: "tophat" }, { look: "classic", season: "crown" }, { look: "cartoon", season: "propeller" }],
   bundle_collector: [{ look: "robot" }, { look: "cartoon", season: "winter" }, { look: "crystal" }],
   bundle_deluxe: [{ look: "realistic" }, { look: "flyer" }, { look: "skeleton" }],
   bundle_everything: [{ look: "hero" }, { look: "heroyb" }, { look: "herork" }, { look: "peacock" }]
@@ -6198,7 +6676,7 @@ const fmt = { cap: v => `${v} keywords`, hatch: v => `${v}`, stop: v => +v ? `${
   ttsRate: v => `${(+v).toFixed(1)}×`, follow: v => +v ? `${v} page${+v === 1 ? "" : "s"}` : "None", depth: v => `${v} level${+v === 1 ? "" : "s"}`, flies: v => +v ? `${v}` : "None" };
 const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String], ["cfgType", "type", String], ["cfgDew", "dew", Boolean],
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
-  ["cfgHatch", "hatch", Number, "oHatch"], ["cfgWorkers", "workers", Boolean], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
+  ["cfgHatch", "hatch", Number, "oHatch"], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
   ["cfgLook", "look", String], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String],
   ["cfgLayout", "layout", String], ["cfgLinks", "links", Number, "oLinks"], ["cfgThreadColor", "threadColor", String], ["cfgWordColor", "wordColor", String],
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
@@ -6213,8 +6691,6 @@ function syncSettings() {
 function applySkin() {
   if (cfg.skin === "auto") delete document.documentElement.dataset.skin; else document.documentElement.dataset.skin = cfg.skin;
   readTokens();
-  const names = { auto: "Auto", paper: "Light", night: "Dark" };
-  $("bTheme").textContent = "Theme: " + (names[cfg.skin] || $("cfgSkin").selectedOptions[0]?.textContent.split(" (")[0] || cfg.skin);
 }
 function cycleTheme() {
   cfg.skin = cfg.skin === "auto" ? (C.dark ? "paper" : "night") : cfg.skin === "paper" ? "night" : cfg.skin === "night" ? "auto" : "paper";
@@ -6237,7 +6713,7 @@ function settingChanged(key) {
   if (key === "citeStyle" && WV.open) renderSide();
   if (key === "flies") resetFlies();
   if (key === "purpose") purposeChanged();
-  if (key === "bored" && (cfg.bored === "rest" || cfg.bored === "edges")) { CW = null; webCatch = []; if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; }
+  if (key === "bored" && cfg.bored !== "web" && cfg.bored !== "both") { CW = null; webCatch = []; if (["build", "sit", "toWeb", "patrol"].includes(S.mode)) S.mode = "walk"; }
 }
 function fillVoices() {
   const sel = $("ttsVoice"), have = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
@@ -6262,6 +6738,12 @@ for (const [id, key, parse, out] of BIND) {
   });
 }
 const PRESETS = {
+  ocean: { look: "classic", type: "orb", tint: "pearl", skin: "ocean", ambient: "fog", layout: "orb", threadColor: "silk", catchFx: "ripple", babyLook: "fireflies",
+    babyColor: "parent", hatchFx: "gentle", entrance: "drop", exit: "up", dew: true, breeze: true, season: "off", bored: "yoyo" },
+  terminal: { look: "pixel", type: "cobweb", tint: "auto", skin: "terminal", ambient: "rain", layout: "meaning", threadColor: "topic", catchFx: "label", babyLook: "clones",
+    babyColor: "parent", hatchFx: "burst", entrance: "fade", exit: "burrow", dew: false, breeze: false, footprints: true, season: "off", bored: "groom" },
+  candy: { look: "cartoon", type: "jumping", tint: "rainbow", skin: "candy", ambient: "blossoms", layout: "star", threadColor: "rainbow", catchFx: "all", babyLook: "spiderlings",
+    babyColor: "rainbow", hatchFx: "confetti", entrance: "balloon", exit: "wander", dew: true, season: "party", bored: "dance" },
   classic: { look: "classic", type: "cobweb", tint: "auto", skin: "auto", ambient: "none", layout: "auto", threadColor: "bucket", wordColor: "underline", catchFx: "ripple",
     babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", hatchFx: "burst", entrance: "left", exit: "stay", dew: false, knots: false, breeze: false, fade: 0, footprints: false },
   spooky: { look: "ghost", type: "orb", tint: "auto", skin: "spooky", ambient: "dust", layout: "orb", threadColor: "silk", catchFx: "sparkle", babyLook: "fireflies",
@@ -6302,7 +6784,6 @@ $("surprise").onclick = () => {
 };
 $("setTabs").addEventListener("click", e => {
   const b = e.target.closest("[data-g]"); if (!b) return;
-  if (b.dataset.g === "store") { openStore(); return; }
   for (const t of $("setTabs").children) t.setAttribute("aria-selected", String(t === b));
   for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== b.dataset.g;
 });
@@ -6317,11 +6798,11 @@ markPaid();
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
 if (cfg.statsOpen) toggleStats(true);
 $("bSettings").onclick = () => {
+  syncSupport();
   syncSettings(); fillVoices(); if (!window.claude) fillAiForm();
   $("intNote").textContent = Object.keys(INT).length ? `It has learned ${plural(Object.keys(INT).length, "interest")}.` : "";
   $("dSettings").showModal();
 };
-$("bTheme").onclick = cycleTheme;
 $("aiService").addEventListener("change", () => {
   if (scanCtl) scanCtl.abort();
   const v = AI_SERVICES[$("aiService").value] || {};
@@ -6599,7 +7080,7 @@ $("srcFile").addEventListener("change", async e => {
 });
 // ---- loading a web page by link (web and Android versions; claude.ai blocks other sites)
 const IN_CLAUDE = !!window.claude;
-if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of CAK3D Crawler to load pages by link, or copy the page's text into “My own text”.";
+if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of Arachnotes to load pages by link, or copy the page's text into “My own text”.";
 $("srcUrl").addEventListener("input", () => { $("srcUrlR").checked = true; });
 // short paragraphs from cookie and consent banners aren't part of the page
 const CONSENT = /\b(we use cookies|this (site|website) uses cookies|cookie (policy|settings|preferences)|accept all( cookies)?|reject all|allow all cookies|consent preferences|privacy preferences|we value your privacy|manage (cookies|consent|preferences))\b/i;
@@ -6861,7 +7342,7 @@ addEventListener("keydown", e => {
   else if (k === "g") { const g = getSelection(); openGuide(HL.guide && g && !g.isCollapsed ? HL.guide : undefined); }
   else if (e.key === "/") { e.preventDefault(); openFind("search"); }
   else if (k === "c") openFind("contents");
-  else if (e.key === "?") $("dHelp").showModal();
+  else if (e.key === "?") openHelp();
   else if (["arrowup", "arrowdown", "pageup", "pagedown", "home", "end"].includes(k) && !WV.open) stopFollow();
 });
 

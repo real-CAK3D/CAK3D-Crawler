@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openApp } from "./helpers.mjs";
+import { openApp, tool } from "./helpers.mjs";
 
 const BOOK = `Chapter 1: The Honey Bee
 
@@ -21,7 +21,7 @@ const GUIDE_JSON = JSON.stringify({
 });
 
 async function loadBook(page) {
-  await page.locator("#bSource").click();
+  await tool(page, "bSource");
   await page.locator("#srcTextR").check();
   await page.locator("#srcText").fill(BOOK);
   await page.locator("#srcTitle").fill("All About Bees");
@@ -33,7 +33,7 @@ async function loadBook(page) {
 test("a study guide follows the chapters, without an AI", async ({ page }) => {
   await openApp(page);
   await loadBook(page);
-  await page.locator("#bGuide").click();
+  await tool(page, "bGuide");
   const g = page.locator("#guideBody");
   await expect(g.locator("h3")).toContainText(["Overview", "Chapter 1: The Honey Bee", "Chapter 2: Inside the Hive", "Chapter 3: Swarming", "Glossary", "Practice questions"]);
   await expect(g).toContainText("Nectar is a sugary liquid"); // a definition in the glossary
@@ -64,7 +64,7 @@ test("with an AI set up, it writes the summaries with citations", async ({ page 
   }));
   await openApp(page);
   await loadBook(page);
-  await page.locator("#bGuide").click();
+  await tool(page, "bGuide");
   await page.locator("#guideAi").click();
   await expect(page.locator("#guideBody")).toContainText("Colonies reproduce by swarming");
   await expect(page.locator("#guideBody .cite").first()).toBeVisible();

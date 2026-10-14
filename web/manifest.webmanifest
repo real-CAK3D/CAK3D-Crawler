@@ -1,5 +1,5 @@
 {
-  "name": "CAK3D Crawler",
+  "name": "Arachnotes",
   "short_name": "Crawler",
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "start_url": "./",

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { openApp, crawlDone } from "./helpers.mjs";
+import { openApp, crawlDone, tool } from "./helpers.mjs";
 
 // one crawl, shared by every check in this file
 test.describe.configure({ mode: "serial" });
@@ -72,7 +72,7 @@ test("share as a web page downloads a standalone file", async () => {
 });
 
 test("Ask without an AI shows cited passages", async () => {
-  await page.locator("#bAsk").click();
+  await tool(page, "bAsk");
   await page.locator("#askQ").fill("What do spiders eat?");
   await page.locator("#askGo").click();
   await expect(page.locator("#askPassages li").first()).toBeVisible();
@@ -94,7 +94,7 @@ test("citation style changes the bibliography", async () => {
   await page.locator('#setTabs [data-g="research"]').click();
   await page.locator("#cfgCiteStyle").selectOption("mla");
   await page.keyboard.press("Escape");
-  await page.locator("#bFind").click();
+  await tool(page, "bFind");
   await page.locator('#findTabs [data-ft="sources"]').click();
   await expect(page.locator("#srcInfoList")).toContainText(/Wikipedia/);
   const mla = await page.locator("#srcInfoList").textContent();

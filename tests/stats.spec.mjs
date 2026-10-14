@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { openApp, crawlDone } from "./helpers.mjs";
+import { openApp, crawlDone, tool } from "./helpers.mjs";
 
 test("the stats panel shows every decision live", async ({ page }) => {
   await openApp(page, { flies: 3 });
@@ -26,7 +26,7 @@ test("the stats panel shows every decision live", async ({ page }) => {
 test("a focused crawl asks about the focus", async ({ page }) => {
   await openApp(page);
   await page.locator("#focus").fill("venom");
-  await page.locator("#bStats").click();
+  await tool(page, "bStats");
   await expect(page.locator("#spMode")).toContainText("for “venom”");
   await expect(page.locator("#spStream")).toContainText("relevant to focus?", { timeout: 60_000 });
 });

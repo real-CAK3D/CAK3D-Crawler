@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openApp, crawlDone } from "./helpers.mjs";
+import { openApp, crawlDone, tool } from "./helpers.mjs";
 
 const BOOK = `The Project Gutenberg eBook of A Short Book on Bees
 This eBook is for the use of anyone anywhere at no cost. Project Gutenberg License applies to this electronic work.
@@ -19,7 +19,7 @@ A swarm leaves when the colony grows crowded. The old queen leaves with the swar
 Section 1. General Terms of Use and Redistributing Project Gutenberg electronic works. Project Gutenberg electronic works Project Gutenberg.`;
 
 async function loadText(page, text, title) {
-  await page.locator("#bSource").click();
+  await tool(page, "bSource");
   await page.locator("#srcTextR").check();
   await page.locator("#srcText").fill(text);
   await page.locator("#srcTitle").fill(title);
@@ -61,26 +61,26 @@ test("a weave code moves a crawl, with its notes, to another device", async ({ b
   await openApp(a);
   await loadText(a, BOOK, "Bees to share");
   await a.evaluate(() => {}); // the crawl is open
-  await a.locator("#bAsk").click(); await a.locator("#askQ").fill("swarm"); await a.locator("#askGo").click();
+  await tool(a, "bAsk"); await a.locator("#askQ").fill("swarm"); await a.locator("#askGo").click();
   await a.locator("#askPassages [data-note-s]").first().click();
   await a.locator("#noteText").fill("Check the swarm season.");
   await a.locator('#dNote button[type="submit"], #dNote button[value="save"]').first().click();
   await a.locator("#askClose").click();
-  await a.locator("#bLib").click();
+  await tool(a, "bLib");
   await a.locator("#weaveMake").click();
   const code = await a.locator("#weaveOut").inputValue();
   expect(code.startsWith("CAK3D-WEAVE1.")).toBe(true);
 
   const b = await (await browser.newContext()).newPage(); // a different device: nothing shared but the code
   await openApp(b);
-  await b.locator("#bLib").click();
+  await tool(b, "bLib");
   await b.locator("#weaveIn").fill(code);
   await b.locator("#weaveOpen").click();
   await expect(b.locator("#weaveMsg")).toContainText("Opened “Bees to share”");
   await expect(b.locator("#docTitle")).toHaveText("Bees to share");
   const notes = await b.evaluate(() => JSON.stringify(localStorage)); // the note came across with the crawl
   await b.locator("#dLib").evaluate(d => d.close());
-  await b.locator("#bAsk").click(); await b.locator("#askQ").fill("swarm"); await b.locator("#askGo").click();
+  await tool(b, "bAsk"); await b.locator("#askQ").fill("swarm"); await b.locator("#askGo").click();
   await expect(b.locator("#dAsk")).toContainText("Check the swarm season.");
   await a.context().close(); await b.context().close();
 });
@@ -95,7 +95,7 @@ test("More pages searches the web and adds the pages to the crawl", async ({ pag
   await page.route("https://r.jina.ai/**", route => route.fulfill({ headers: cors, body: "Title: Search\n\nMarkdown Content:\nnothing" }));
   await openApp(page);
   await loadText(page, BOOK, "A Short Book on Bees");
-  await page.locator("#bMore").click();
+  await tool(page, "bMore");
   await expect(page.locator("#srcKeepRow")).toBeVisible();
   await expect(page.locator("#webQ")).toHaveValue(/A Short Book on Bees/);
   await expect(page.locator("#webResults li").first()).toContainText("Swarming (honey bee)");
@@ -116,8 +116,8 @@ test("when it's done, the web lets go; when it's bored, it walks the edges of th
 
 test("a backup can be made from the library", async ({ page }) => {
   await openApp(page);
-  await page.locator("#bLib").click();
+  await tool(page, "bLib");
   const dl = page.waitForEvent("download");
   await page.locator("#backupMake").click();
-  expect((await dl).suggestedFilename()).toMatch(/^cak3d-crawler-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  expect((await dl).suggestedFilename()).toMatch(/^arachnotes-backup-\d{4}-\d{2}-\d{2}\.json$/);
 });

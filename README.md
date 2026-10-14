@@ -1,42 +1,53 @@
-# CAK3D Crawler
+# Arachnotes
 
-A web crawler that actually crawls a web. A spider walks across any text you give it, grabs the main keywords with its legs, spins silk between them, sorts them into topics, and turns the result into research notes with sources.
+Arachnotes is a reading and study app for Android and the web. You give it a text: a web page, a PDF, an EPUB, a photo of a page, or something you paste in. An animated spider crawls the text keyword by keyword, sorts the keywords into topics, and builds study material from what it finds: a study guide, flashcards, a keyword map, and notes with citations.
 
-**Use it:** [real-cak3d.github.io/CAK3D-Crawler](https://real-cak3d.github.io/CAK3D-Crawler/) (also deployed on Vercel) · **Android:** coming to Google Play; test builds are on [Releases](https://github.com/real-CAK3D/CAK3D-Crawler/releases/latest)
+Made by CAK3D_Creations. **Android:** coming to Google Play (package `com.arachnotes.web`). **Web:** [real-cak3d.github.io/CAK3D-Crawler](https://real-cak3d.github.io/CAK3D-Crawler/).
 
 ## What it does
 
-- **Crawls anything you read.** Paste text, open a **PDF** (page numbers kept for citations), a **scanned PDF or a photo of a page** (read on your device with OCR), an **EPUB**, `.txt` or `.md` file, give it a web page link, or **search the web** and pick results. Crawl **several sources at once** and see where they agree.
-- **Crawls whole sites.** Let the spider follow links up to three levels deep, with a page limit, and see the result as a **site map**.
-- **Finds the main keywords** in English, Spanish, French, German, Italian, Portuguese or Dutch, and groups them into topics.
-- **Research focus.** Type a topic and the spider only hunts keywords near it. It also **learns your interests**.
-- **Egg sacs.** When a web fills up, the spider wraps it into a sac. Open a sac for its keyword tree, key passages and a summary. Spiderlings that hatch mark related keywords and **build silk bridges to related sacs**, showing how two topics connect, with the passages where they meet.
-- **Citations everywhere.** Numbered sources with chapter and page, "Show in text", **APA, MLA or Chicago**, a bibliography, and export to **Zotero (RIS)** and **BibTeX**.
-- **Study.** Flashcards with **spaced-repetition study sessions**, notes on keywords and passages, search, contents, and read-aloud.
-- **Ask the text** a question and get the passages that answer it, plus a cited answer from the AI you choose.
-- **Work together.** Share a crawl so others can add notes and sacs (live in the claude.ai version), or swap crawl files.
-- **Accessible.** The keyword graph works fully from the keyboard and with screen readers, with a list view; every view is checked with axe on each push.
-- **Lots of style:** 8 kinds of spider, 12 looks including realistic and a web-slinger hero, 12 colors, flies for the spider to hunt, seasonal outfits, weather, page themes and presets. Some styles are paid packs (see below).
+- **Opens almost any text.** Paste text, open a link, or open a PDF (page numbers are kept for citations), an EPUB, a `.txt` or `.md` file, a scanned PDF or a photo of a page (read on the device with OCR). It can also search the web for more pages on the same subject and crawl several sources together.
+- **Finds keywords and topics.** The spider reads each keyword in context and decides which topic it belongs to. The live stats panel shows each decision, how sure it is, and which ones it leaves for you to decide. Type a focus topic and it goes for matching keywords first.
+- **Makes study material.** A study guide (key points, terms, questions, sources), flashcards with spaced repetition, a keyword map, a timeline, an outline you can save as Markdown, and notes on any keyword or passage.
+- **Cites its sources.** Numbered sources with page numbers, APA, MLA or Chicago style, a bibliography, and export to Zotero (RIS) and BibTeX.
+- **Answers questions.** Ask the text a question and get the passages that answer it. With an AI set up, it also writes a short cited answer.
+- **Moves between devices.** There are no accounts. Crawls move between devices with a weave code or a crawl file, and the whole library can be backed up to a file.
+- **Explains itself.** The **?** button lists what everything on screen is, shows a legend of the topic colors and marks, and has *Point at anything*: tap any part of the screen to see what it is.
 
-## Paid packs
+## The spider and the store
 
-Extra spider kinds, looks, colors, seasons and weather, page themes and spiderling styles are sold as packs through Google Play in the Android app. The packs are listed in one place, `PACKS` in `src/cak3d-crawler.html`; their ids must match the in-app products in the Play Console.
+The spider is drawn and animated in code. It walks on its eight legs, spins threads between keywords, wraps finished topics into egg sacs, hatches spiderlings, hunts flies, and spins a web in a corner of the screen when it has nothing to do.
 
-While the app is in development every pack stays unlocked. Build with `CRAWLER_LOCK_PAID=1` to switch the locks on, and set `CRAWLER_PLAY_URL` to the Play listing so the website's store links to it.
+The basics are free: the cobweb weaver, the classic silhouette, slow and normal speed, a few kinds of weather, the Auto, Paper, Night and High contrast themes, and the Classic and Study presets. Every reading and study feature is free.
 
-## AI
+Extra spider kinds, looks, colors, hats and seasonal looks, weather, bored behaviors, page themes and presets are sold in the Android app through Google Play, singly or in bundles. The full list, with prices, is the `storeCatalog` block in `src/arachnotes.html`. `npm run play-products` turns it into `play-products.csv` for creating the in-app products in the Play Console; the product ids must match.
 
-Crawling, topics, the graph and citations run entirely on the device. An AI is only used for cited summaries, answers and study guides, and the user chooses it in **Settings → Research → Your AI**:
+While the app is in development everything is unlocked. Build with `CRAWLER_LOCK_PAID=1` to switch the locks on.
 
-- **With their own API key:** Claude (Anthropic, through the official Anthropic SDK), OpenAI, Gemini, OpenRouter, Groq, Mistral, DeepSeek, Grok (xAI) or Together AI. Each has a "get a key" link, and **Load models** lists the models that key can use.
-- **Free and private, on their own computer:** Ollama on the same device, or **Ollama / LM Studio on their computer**, used from the phone over home Wi-Fi. The website's [`/connect`](web/connect/) page has a one-step setup for Windows, Mac and Linux. It makes Ollama reachable on the home network, allows it through the firewall on private networks, and shows the address to type in. **Find my computer** in the app finds it automatically.
-- Or none, which shows the matching passages only.
+## AI (optional)
 
-Keys stay on the device. Consumer subscriptions (ChatGPT Plus, Claude Pro, Gemini Advanced) can't be connected to third-party apps, so the app uses API keys instead. Inside claude.ai the app uses the viewer's Claude account.
+Keyword finding, topics, the map and citations all run on the device. An AI is only used for written summaries, answers and study guides. Users choose one in **Settings → Research → Your AI**:
 
-The Android app allows plain-HTTP connections (`usesCleartextTraffic`, `allowMixedContent`) so it can reach a computer on the home network. A web page can only reach Ollama on the same computer (`localhost`).
+- **Their own API key** for Claude (Anthropic), OpenAI, Gemini, OpenRouter, Groq, Mistral, DeepSeek, Grok (xAI) or Together AI. The key stays on the device and is only sent to that service.
+- **A model on their own computer:** Ollama or LM Studio, used from the phone over home Wi-Fi. The website's [`/connect`](web/connect/) page sets this up on Windows, Mac or Linux, and **Find my computer** in the app finds it.
+- **None:** the app shows the matching passages without a written answer.
 
-A deployment can provide a default AI through the `CRAWLER_AI_*` variables and the key-holding proxy in [`proxy/`](proxy/), so no key ever reaches the page.
+Consumer subscriptions such as ChatGPT Plus or Claude Pro can't be connected to other apps, which is why the app uses API keys.
+
+## Support and fixes
+
+Each install makes a random support ID (like `AN-7K3Q-9XWD-2M4P`), shown in **Settings → Help & support**. **Report an issue** sends the user's message, that ID, the app version and, if they agree, their app settings to a Supabase database. Reports can't be read from the app.
+
+To fix a problem for one user without an app update, add a row to the `fixes` table with their support ID. The app checks for it when it starts. A row with the ID `*` applies to everyone. The `actions` column can contain:
+
+| Key | Effect |
+| --- | --- |
+| `message` | Shows a short message once |
+| `resetSettings` | Resets all settings to the defaults |
+| `cfg` | Sets specific settings, e.g. `{"speed": 1}` |
+| `grant` / `revoke` | Gives or removes store items by product id |
+
+Reports older than 12 months are deleted automatically.
 
 ## Development
 
@@ -44,34 +55,35 @@ Requires Node 22.
 
 ```bash
 npm ci
-npm run build      # draws the icons and writes the web app to www/
+npm run build      # draws the icons and writes the app to www/
 npm run serve      # http://localhost:8080
 npx playwright install chromium
-npm test           # opens the app in a browser and checks the features and accessibility
+npm test           # checks the features and accessibility in a real browser
 ```
 
-### Deploys and releases
+`npm run build` minifies and obfuscates the app's code. Use `PLAIN_BUILD=1 npm run build` for a readable build while debugging.
 
-- **Tests** (`.github/workflows/test.yml`) run on every push and pull request. Deploys and Android builds only run when they pass.
-- **GitHub Pages:** every push to `main` deploys the web app (`.github/workflows/web.yml`).
-- **Vercel:** `vercel.json` builds with `npm run build` and serves `www/`. Import the repository in Vercel; no other settings are needed.
-- **Android:** pushing a tag like `v1.2.0` builds a signed APK and a Google Play app bundle (`.aab`) with [Capacitor](https://capacitorjs.com) and attaches them to a GitHub release (`.github/workflows/android.yml`).
+### Releases
 
-The Android signing (upload) key lives in the repository secrets `ANDROID_KEYSTORE_B64` and `ANDROID_KEYSTORE_PASSWORD`. Keep the same key for every release.
+- **Tests** (`.github/workflows/test.yml`) run on every push. Deploys and Android builds only run when they pass.
+- **Web:** every push to `main` deploys to GitHub Pages (`web.yml`). `vercel.json` lets Vercel build the same site.
+- **Android:** pushing a tag like `v1.9.0` builds a signed APK and a Play app bundle (`.aab`) with [Capacitor](https://capacitorjs.com) and attaches them to a GitHub release (`android.yml`). If the `PLAY_SERVICE_ACCOUNT_JSON` secret is set, the bundle is also uploaded to the Play Console's internal testing track as a draft.
+
+The Android upload key lives in the repository secrets `ANDROID_KEYSTORE_B64` and `ANDROID_KEYSTORE_PASSWORD`. Use the same key for every release.
 
 ## Project layout
 
 | Path | What it is |
 | --- | --- |
-| `src/cak3d-crawler.html` | The whole app: one HTML file with its styles and script |
-| `scripts/build-web.mjs` | Builds the installable web app: icons, OCR and PDF readers, the Anthropic SDK, config |
-| `scripts/make-icons.mjs` | Draws the app icon and splash screen (no image tools needed) |
-| `scripts/android-config.mjs` | Sets the Android version and signing during CI |
-| `tests/` | Playwright browser tests, including axe accessibility checks |
-| `web/` | Web app manifest, offline service worker and privacy policy |
+| `src/arachnotes.html` | The whole app: one HTML file with its styles, script and store catalog |
+| `scripts/build-web.mjs` | Builds the app into `www/`: config, PDF and OCR readers, the Anthropic SDK, code protection |
+| `scripts/make-icons.mjs` | Draws the app icon and splash screen |
+| `scripts/android-config.mjs` | Sets the Android version and signing in CI |
+| `scripts/play-products.mjs` | Writes the Play Console product list from the store catalog |
+| `tests/` | Playwright browser tests, with axe accessibility checks |
+| `web/` | Web manifest, offline service worker, privacy policy, and the `/connect` setup page |
 | `proxy/` | Optional Cloudflare Worker that holds an AI key for a deployment |
-| `vercel.json` | Vercel build settings |
 
 ## License
 
-Proprietary. Copyright (c) 2026 CAK3D, all rights reserved. See [LICENSE](LICENSE). Versions up to v1.1.0 were released under the MIT License.
+Proprietary. © 2026 CAK3D_Creations. All rights reserved. Arachnotes™ and the Arachnotes spider are trademarks of CAK3D_Creations. See [LICENSE](LICENSE). Versions up to v1.1.0 were released under the MIT License.

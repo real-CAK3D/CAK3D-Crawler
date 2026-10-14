@@ -34,7 +34,7 @@ function shapes({ web }) {
     for (const r of [0.17, 0.29, 0.41]) { const p = ring(r); for (let i = 0; i < 8; i++) { const q = p[(i + 1) % 8]; s.push({ seg: [p[i][0], p[i][1], q[0], q[1]], r: 0.004, c: SILK, a: 0.45 }); } }
   }
   // the cobweb weaver, the app's default spider, built from the app's own measurements (drawClassicBody and
-  // buildLegs in src/cak3d-crawler.html). App units point forward along x; here the head points up.
+  // buildLegs in src/arachnotes.html). App units point forward along x; here the head points up.
   const S = 0.0108, P = (f, l) => [0.5 + l * S, 0.52 - f * S];
   const FWD = [30, 13, -7, -24], LAT = [30, 37, 37, 31], HIPF = [5, 2, -1, -4];
   for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {

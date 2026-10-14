@@ -15,6 +15,9 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      # optional: a Google Play service account key (JSON) lets each release upload itself to the internal testing track
+      PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -68,14 +71,24 @@ jobs:
         run: |
           NAME="${GITHUB_REF_NAME:-manual}"
           mkdir -p dist
-          cp "$RUNNER_TEMP/app.apk" "dist/CAK3D-Crawler-$NAME.apk"
-          if [ -f "$RUNNER_TEMP/app.aab" ]; then cp "$RUNNER_TEMP/app.aab" "dist/CAK3D-Crawler-$NAME.aab"; fi
-          (cd www && zip -qr "../dist/CAK3D-Crawler-web-$NAME.zip" .)
+          cp "$RUNNER_TEMP/app.apk" "dist/Arachnotes-$NAME.apk"
+          if [ -f "$RUNNER_TEMP/app.aab" ]; then cp "$RUNNER_TEMP/app.aab" "dist/Arachnotes-$NAME.aab"; fi
+          (cd www && zip -qr "../dist/Arachnotes-web-$NAME.zip" .)
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cak3d-crawler
+          name: arachnotes
           path: dist/*
+
+      - name: Upload to Google Play (internal testing, as a draft)
+        if: startsWith(github.ref, 'refs/tags/') && env.PLAY_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.arachnotes.web
+          releaseFiles: dist/*.aab
+          track: internal
+          status: draft
 
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/')
@@ -85,9 +98,9 @@ jobs:
           generate_release_notes: true
           body: |
             ## Install on Android
-            1. On your phone, download **CAK3D-Crawler-${{ github.ref_name }}.apk** below.
+            1. On your phone, download **Arachnotes-${{ github.ref_name }}.apk** below.
             2. Open it. If Android asks, allow your browser to install unknown apps.
-            3. Open **CAK3D Crawler** from your home screen.
+            3. Open **Arachnotes** from your home screen.
 
             ## Use it on the web
             Open https://real-cak3d.github.io/CAK3D-Crawler/ in any browser. On a phone, use the browser menu's **Add to Home screen** to install it like an app.

@@ -1,7 +1,7 @@
 @echo off
 setlocal
-title CAK3D Crawler - use Ollama from your phone
-rem Lets CAK3D Crawler on your phone or tablet use Ollama on this computer over your home Wi-Fi.
+title Arachnotes - use Ollama from your phone
+rem Lets Arachnotes on your phone or tablet use Ollama on this computer over your home Wi-Fi.
 rem It tells Ollama to listen on your home network, allows it through Windows Firewall on private
 rem networks only, and restarts Ollama. To reverse it, run:  ollama-windows.bat undo
 
@@ -21,11 +21,11 @@ if not exist "%OLLAMA_EXE%" (
   exit /b 1
 )
 
-echo Setting up Ollama for CAK3D Crawler...
+echo Setting up Ollama for Arachnotes...
 setx OLLAMA_HOST 0.0.0.0 >nul
 setx OLLAMA_ORIGINS "__ORIGINS__" >nul
-netsh advfirewall firewall delete rule name="Ollama for CAK3D Crawler" >nul 2>&1
-netsh advfirewall firewall add rule name="Ollama for CAK3D Crawler" dir=in action=allow protocol=TCP localport=11434 profile=private,domain >nul
+netsh advfirewall firewall delete rule name="Ollama for Arachnotes" >nul 2>&1
+netsh advfirewall firewall add rule name="Ollama for Arachnotes" dir=in action=allow protocol=TCP localport=11434 profile=private,domain >nul
 
 rem the firewall rule only covers private networks, so check this Wi-Fi is marked Private
 powershell -NoProfile -Command "if (Get-NetConnectionProfile | Where-Object NetworkCategory -eq 'Public') { exit 1 }"
@@ -45,7 +45,7 @@ if exist "%OLLAMA_APP%" (explorer.exe "%OLLAMA_APP%") else (explorer.exe "%OLLAM
 timeout /t 4 /nobreak >nul
 
 echo.
-echo All set. In CAK3D Crawler on your phone: Settings ^> Research ^> Your AI ^> "Ollama on my computer".
+echo All set. In Arachnotes on your phone: Settings ^> Research ^> Your AI ^> "Ollama on my computer".
 echo Type one of these addresses (or tap Find my computer):
 powershell -NoProfile -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notmatch '^(127\.|169\.254\.)' -and $_.InterfaceAlias -notmatch 'vEthernet|VirtualBox|VMware|Loopback|WSL|Tailscale|ZeroTier' } | ForEach-Object { '    ' + $_.IPAddress }"
 echo.
@@ -58,11 +58,11 @@ pause
 exit /b 0
 
 :undo
-echo Undoing the CAK3D Crawler setup for Ollama...
+echo Undoing the Arachnotes setup for Ollama...
 reg delete HKCU\Environment /v OLLAMA_HOST /f >nul 2>&1
 reg delete HKCU\Environment /v OLLAMA_ORIGINS /f >nul 2>&1
 setx CAK3D_REFRESH 1 >nul & reg delete HKCU\Environment /v CAK3D_REFRESH /f >nul 2>&1
-netsh advfirewall firewall delete rule name="Ollama for CAK3D Crawler" >nul 2>&1
+netsh advfirewall firewall delete rule name="Ollama for Arachnotes" >nul 2>&1
 taskkill /f /im "ollama app.exe" >nul 2>&1
 taskkill /f /im ollama.exe >nul 2>&1
 timeout /t 2 /nobreak >nul

@@ -3,9 +3,9 @@
 // Prices are in US dollars; Play fills in other countries' prices from them (Auto Fill Prices).
 import { readFileSync, writeFileSync } from "node:fs";
 
-const html = readFileSync("src/cak3d-crawler.html", "utf8");
+const html = readFileSync("src/arachnotes.html", "utf8");
 const json = html.match(/<script type="application\/json" id="storeCatalog">([\s\S]*?)<\/script>/);
-if (!json) { console.error("No #storeCatalog block in src/cak3d-crawler.html"); process.exit(1); }
+if (!json) { console.error("No #storeCatalog block in src/arachnotes.html"); process.exit(1); }
 const catalog = JSON.parse(json[1]);
 
 // Play's import file separates locale, title and description with semicolons inside one column,

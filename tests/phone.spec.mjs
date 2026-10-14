@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openApp } from "./helpers.mjs";
+import { openApp, tool } from "./helpers.mjs";
 
 // on a phone nothing should cover the text, the graph or the flashcards
 test.skip(({ isMobile }) => !isMobile, "phone only");
@@ -19,7 +19,7 @@ test("phone layout leaves room for the content", async ({ page }) => {
   await expect(page.locator("#exBib")).toBeVisible();
   await page.locator("#wvClose").click();
   // the stats panel stays within the screen width
-  await page.locator("#bStats").click();
+  await tool(page, "bStats");
   const sp = await page.locator("#statsPanel").boundingBox();
   expect(sp.height).toBeLessThan(vh * 0.6);
   expect(await page.evaluate(() => document.getElementById("statsPanel").scrollWidth <= innerWidth + 1)).toBe(true);

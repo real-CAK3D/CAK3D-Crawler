@@ -52,8 +52,8 @@ test("the free defaults, and prices on everything else", async ({ page }) => {
 
 test("the store lists bundles, presets and every item", async ({ page }) => {
   await lockedApp(page);
-  // the Store tab in Settings opens the store page
-  await page.locator('#setTabs [data-g="store"]').click();
+  // the Store button in Settings opens the store page
+  await page.locator("#bStore").click();
   await expect(page.locator("#storePage")).toBeVisible();
   await expect(page.locator("#dSettings")).toBeHidden();
   await expect(page.locator("#stTabs button")).toContainText(["Featured", "Bundles", "Presets", "Spider kinds", "Spider looks", "Premium looks", "Colors"]);
@@ -65,8 +65,10 @@ test("the store lists bundles, presets and every item", async ({ page }) => {
   await expect(page.locator(".st-card", { hasText: "Spooky night preset" })).toContainText("$1.99");
   // a bundle's detail lists what it includes
   await page.locator('#stTabs [data-cat="bundles"]').click();
-  await page.locator(".st-card", { hasText: "Starter bundle" }).click();
-  await expect(page.locator("#stSheet .st-inc")).toContainText("Spider kinds");
+  await expect(async () => {
+    await page.locator(".st-card", { hasText: "Starter bundle" }).click();
+    await expect(page.locator("#stSheet .st-inc")).toContainText("Spider kinds", { timeout: 3000 });
+  }).toPass();
 });
 
 test("bundles, presets and single items unlock what they should", async ({ page }) => {
@@ -117,7 +119,7 @@ test("every item in the store has a picture of what it gives", async ({ page }) 
     }));
     for (const [id, empty] of res) { seen.add(id); if (empty) blank.push(id); }
   }
-  expect(seen.size).toBe(72);
+  expect(seen.size).toBe(93);
   expect(blank).toEqual([]);
   expect(errors).toEqual([]);
 });

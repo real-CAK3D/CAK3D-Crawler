@@ -1,14 +1,20 @@
-CAK3D Crawler
-Copyright (c) 2026 ꧁ᙅᗣҜӠᙃ꧂ (CAK3D). All rights reserved.
+Arachnotes
+Copyright (c) 2026 CAK3D_Creations. All rights reserved.
+
+Arachnotes(TM) and the Arachnotes spider logo are trademarks of CAK3D_Creations.
+
+Arachnotes is a reading and study app: a spider crawls any text, finds its
+keywords and topics, and turns them into study guides, flashcards and cited
+notes.
 
 This software, including its source code, artwork, spider designs, themes,
 and documentation (the "Software"), is proprietary and confidential.
 
-You may use the official builds of the Software that CAK3D publishes (for
-example the Google Play app or the official website) for your own personal
-use, subject to the terms of the store or site you got them from.
+You may use the official builds of the Software that CAK3D_Creations
+publishes (the Google Play app and the official website) for your own
+personal use, subject to the terms of the store or site you got them from.
 
-Without prior written permission from CAK3D, you may not:
+Without prior written permission from CAK3D_Creations, you may not:
 
   1. copy, modify, merge, translate, or create derivative works of the Software;
   2. publish, distribute, sublicense, sell, rent, or lend the Software or any
@@ -16,15 +22,17 @@ Without prior written permission from CAK3D, you may not:
   3. host or run the Software as a service for others;
   4. remove or bypass any licensing, purchase, or feature-unlock checks, or
      unlock paid content without paying for it;
-  5. reverse engineer the Software except where the law expressly allows it.
+  5. reverse engineer, decompile, or deobfuscate the Software except where the
+     law expressly allows it;
+  6. use the Arachnotes name or logo for any other product.
 
 Viewing this repository's source code while it is publicly visible does not
 grant any of these rights.
 
 Versions of the Software released before this license took effect (v1.0.0
-through v1.1.0) were published under the MIT License, and copies of those
-versions remain under that license. This license applies to v1.2.0 and every
-later version.
+through v1.1.0, under the earlier name) were published under the MIT License,
+and copies of those versions remain under that license. This license applies
+to v1.2.0 and every later version.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -34,4 +42,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-For permission requests, contact CAK3D through https://github.com/real-CAK3D.
+For permission requests, contact CAK3D_Creations through
+https://github.com/real-CAK3D.

@@ -34,3 +34,15 @@ export function makePdf(pages) {
   out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
   return Buffer.from(out, "latin1");
 }
+
+// Toolbar actions live in menus (Spider, Ask, Pages) or in Settings (Theme, Live stats): open the right place, then click
+export async function tool(page, id) {
+  const where = await page.locator("#" + id).evaluate(el => {
+    const m = el.closest(".tb-menu"); if (m) return { menu: m.getAttribute("aria-labelledby") };
+    if (el.closest("#dSettings")) return { settings: true };
+    return {};
+  });
+  if (where.menu) await page.locator("#" + where.menu).click();
+  if (where.settings && !(await page.locator("#dSettings").isVisible())) await page.locator("#bSettings").click();
+  await page.locator("#" + id).click();
+}

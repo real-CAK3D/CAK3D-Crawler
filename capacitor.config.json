@@ -1,6 +1,6 @@
 {
-  "appId": "io.github.realcak3d.crawler",
-  "appName": "CAK3D Crawler",
+  "appId": "com.arachnotes.web",
+  "appName": "Arachnotes",
   "webDir": "www",
   "android": {
     "backgroundColor": "#111413",
