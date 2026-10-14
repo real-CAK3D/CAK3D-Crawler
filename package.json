@@ -1,6 +1,6 @@
 {
   "name": "arachnotes",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "private": true,
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "type": "module",
@@ -16,15 +16,16 @@
     "@anthropic-ai/sdk": "0.133.0",
     "@capacitor-community/text-to-speech": "8.0.2",
     "@capacitor/android": "8.5.3",
+    "@capacitor/clipboard": "8.0.1",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.4",
     "@capacitor/share": "8.0.3",
+    "@capawesome/capacitor-app-update": "8.0.5",
     "cordova-plugin-purchase": "13.18.0",
     "jszip": "3.10.1",
     "pdfjs-dist": "3.11.174",
     "tesseract.js": "5.1.1",
-    "tesseract.js-core": "5.1.1",
-    "@capawesome/capacitor-app-update": "8.0.5"
+    "tesseract.js-core": "5.1.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

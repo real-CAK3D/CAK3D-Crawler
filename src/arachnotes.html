@@ -3679,7 +3679,8 @@ function update(dt, now) {
   if (S.huntCheck <= 0) { S.huntCheck = 0.5; if (canHunt()) startHunt(); }
   if (S.mode === "done" && cfg.sacs) for (const list of webs.values()) if (list.length >= cfg.cap) { S.mode = "walk"; break; }
 
-  if (follow && !["gone", "exitUp", "exitBalloon", "exit"].includes(S.mode) && !inWebMode()) {
+  // following holds still while you have a popup or a selection open, so it doesn't scroll them away
+  if (follow && !POP && $("spiderPop").hidden && $("hlBtn").hidden && !explaining && !["gone", "exitUp", "exitBalloon", "exit"].includes(S.mode) && !inWebMode()) {
     const cur = scrollY, want = Math.max(0, cur + pageBox().top + S.y - H * 0.45);
     const ny = cur + (want - cur) * Math.min(1, dt * (S.mode === "zip" ? 7 : 3));
     if (Math.abs(ny - cur) > 0.5) scrollTo(scrollX, ny);
@@ -4788,11 +4789,14 @@ function showPop(el) {
     <div class="pop-btns">${noteBtn("k", key)}</div>
     ${el.tagName === "A" ? `<a href="${esc(el.href)}" target="_blank" rel="noopener">Read the article ↗</a>` : ""}`;
   pop.hidden = false; bump(k.label, 1);
-  const r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
-  pop.style.left = clamp(r.left, 8, innerWidth - pw - 8) + "px";
-  pop.style.top = (r.bottom + ph + 12 > innerHeight ? Math.max(8, r.top - ph - 8) : r.bottom + 8) + "px";
+  placePop(el);
   POP = { key, node: n };
   pop.querySelector("button").focus({ preventScroll: true });
+}
+function placePop(el) {
+  const pop = $("pop"), r = el.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = clamp(r.left, 8, innerWidth - pw - 8) + "px";
+  pop.style.top = (r.bottom + ph + 12 > innerHeight ? Math.max(8, r.top - ph - 8) : r.bottom + 8) + "px";
 }
 const hidePop = () => { $("pop").hidden = true; POP = null; };
 $("pop").addEventListener("click", e => {
@@ -5063,9 +5067,18 @@ function inText(s, style, page) {
 }
 const STYLE_NAMES = { apa: "APA", mla: "MLA", chicago: "Chicago" };
 const bibliography = () => [...new Set((DOC.sources || []).map(s => formatRef(s, cfg.citeStyle)))].sort((a, b) => a.localeCompare(b));
+// copy to the clipboard: Android's own clipboard in the app, the browser's on the web, an older way if that's refused,
+// and only if all of those fail, a box to copy from by hand
 async function copyText(t, okMsg) {
-  try { await navigator.clipboard.writeText(t); flash(okMsg || "Copied."); }
-  catch (e) { $("copyText").value = t; $("copyNote").textContent = "Select all and copy."; $("dCopy").showModal(); $("copyText").select(); }
+  const done = () => flash(okMsg || "Copied.");
+  try { const CB = NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins.Clipboard; if (CB) { await CB.write({ string: t }); done(); return; } } catch (e) { /* try the next way */ }
+  try { await navigator.clipboard.writeText(t); done(); return; } catch (e) { /* try the next way */ }
+  try {
+    const ta = document.createElement("textarea"); ta.value = t; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+    (document.querySelector("dialog[open]") || document.body).appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove();
+    if (ok) { done(); return; }
+  } catch (e) { /* show the box */ }
+  $("copyText").value = t; $("copyNote").textContent = "Select all and copy."; $("dCopy").showModal(); $("copyText").select();
 }
 function copyCitation(i) {
   const s = srcOf(i), q = trunc(DOC.sents[i] || "", 400);
@@ -5494,6 +5507,7 @@ function jumpToSentence(i) {
     const w = want(s); if (w.length < 6) continue;
     for (const b of blocks) if (b.textContent.replace(/\s+/g, " ").toLowerCase().includes(w)) {
       if (WV.open) closeWeb(); for (const dl of document.querySelectorAll("dialog[open]")) dl.close();
+      if (!findP.hidden && innerWidth < 700) closeFind(); // on a phone the Find panel covers the page you want to see
       setFollow(false); b.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
       b.classList.remove("flash-block"); void b.offsetWidth; b.classList.add("flash-block");
       return true;
@@ -7153,7 +7167,7 @@ const HELP = [
   ["Code reader", "#cdCanvas", "Code map", "The whole project as a spider web: each section is a file or a kind of thing, each cell a function, class or variable. Tap one to see what it does, what it calls, what calls it, and what it reads and changes."],
   ["Code reader", "#cdSrc", "The code", "The source with line numbers. Tap any name to see what it is and light up every place it's used."],
   ["Code reader", "#cdDocs", "Explained", "Every function, class and variable in plain words, with where it's used. Search it, or save it as notes."],
-  ["Code reader", "#cdOpen", "Open code", "Paste code, pick files or a .zip of a whole project, or open a GitHub link. Works with JavaScript, TypeScript, Python, Java, C, C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby and shell scripts."],
+  ["Code reader", "#cdOpen", "Open code", "Paste code, pick files or a .zip of a whole project, or open a GitHub link. Works with JavaScript, TypeScript, Python, Java, C, C++, C#, Go, Rust, Kotlin, Scala, Swift, Dart, PHP, Ruby, Lua, HTML and shell scripts."],
   ["Toolbar", "#bSettings", "Settings", "The spider's look and moves, the theme, live stats, your AI, the store, your support ID and Report an issue."],
   ["Toolbar", "#bHelp", "Help", "This panel. Point at anything shows what any part of the screen is."],
   ["Toolbar", "#bHideBar", "Hide", "Hides the toolbar for more room to read. The Toolbar tab in the top corner, or H, brings it back."],
@@ -7322,7 +7336,13 @@ addEventListener("resize", () => closeMenu());
 const stopFollow = () => { if (follow) setFollow(false); };
 addEventListener("wheel", () => { if (!WV.open) stopFollow(); }, { passive: true });
 addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: true });
-addEventListener("scroll", () => { if (POP) hidePop(); }, { passive: true });
+addEventListener("scroll", () => {
+  if (!POP) return;
+  const el = POP.node && POP.node.el, top = $("bar").hidden ? 0 : $("bar").getBoundingClientRect().bottom;
+  if (!el || !el.isConnected) { hidePop(); return; }
+  const r = el.getBoundingClientRect();
+  if (r.bottom < top || r.top > innerHeight) hidePop(); else placePop(el);
+}, { passive: true });
 
 // ---------------- the store: paid items, presets and bundles (sold through Google Play) ----------------
 // The catalog is the #storeCatalog block above. Anything not in it is free. Product ids must match the Play Console.
@@ -8621,7 +8641,7 @@ markPaid();
 syncSettings(); applySkin(); applyWordColor(); resetAmbient();
 if (cfg.statsOpen) toggleStats(true);
 $("bSettings").onclick = () => {
-  syncSupport();
+  syncSupport(); showSetPane("spider");
   syncSettings(); fillVoices(); if (!window.claude) fillAiForm();
   $("intNote").textContent = Object.keys(INT).length ? `It has learned ${plural(Object.keys(INT).length, "interest")}.` : "";
   $("dSettings").showModal();
