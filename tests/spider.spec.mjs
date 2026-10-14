@@ -47,3 +47,35 @@ test("the loading screen shows the logo, then gets out of the way", async ({ pag
   await page.goto("/");
   await expect(page.locator("#boot")).toHaveCount(0, { timeout: 5000 });
 });
+
+test("the web: main topic in the middle, tap a keyword for its notes and its own web, then step back", async ({ page }) => {
+  await openApp(page);
+  await crawlDone(page);
+  await page.locator("#bWeb").click();
+  await expect(page.locator('#wvTabs [data-tab="orb"]')).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#orbTrail button")).toHaveCount(1);
+  // tap a cell on the web: the notes panel shows that keyword and a second web opens around it
+  const box = await page.locator("#orbCanvas").boundingBox();
+  await expect(async () => {
+    await page.mouse.click(box.x + box.width / 2 + Math.min(box.width, box.height) * 0.16, box.y + box.height / 2 + 4);
+    await expect(page.locator("#orbTrail button")).toHaveCount(2, { timeout: 1500 });
+  }).toPass();
+  await expect(page.locator("#wvSide .term")).toHaveText(await page.locator('#orbTrail button[aria-current="true"]').textContent());
+  // a connected keyword in the notes opens the next web
+  await page.locator("#wvSide .kwc").first().click();
+  await expect(page.locator("#orbTrail button")).toHaveCount(3);
+  // the trail goes back to the start
+  await page.locator('#orbTrail [data-orb-to="0"]').click();
+  await expect(page.locator("#orbTrail button")).toHaveCount(1);
+});
+
+test("Settings is a full page that doesn't change size between tabs", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#bSettings").click();
+  const size = async () => page.locator("#dSettings").evaluate(d => { const r = d.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+  const vp = page.viewportSize(), first = await size();
+  expect(first).toEqual([vp.width, vp.height]);
+  for (const g of ["moves", "theme", "research", "support"]) { await page.locator(`#setTabs [data-g="${g}"]`).click(); expect(await size()).toEqual(first); }
+  await page.locator("#setBack").click();
+  await expect(page.locator("#dSettings")).toBeHidden();
+});

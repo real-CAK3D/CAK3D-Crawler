@@ -17,6 +17,7 @@ const tab = name => page.locator('#wvTabs [role="tab"]', { hasText: name });
 test("web view: graph works from the keyboard", async () => {
   await page.locator("#bWeb").click();
   await expect(page.locator("#wv")).toBeVisible();
+  await tab("Graph").click();
   await page.locator("#wvCanvas").focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#announce")).toContainText(/In \d+ sentences?/);

@@ -205,11 +205,19 @@ body.store-open { overflow: hidden; }
 body.wc-highlight .kw:not(.caught):not(.packed), body.wc-highlight .echo { background: color-mix(in srgb, var(--cat, var(--link)) 13%, transparent); }
 body.wc-off span.kw:not(.caught):not(.packed), body.wc-off .echo { box-shadow: none; }
 /* settings tabs */
-#dSettings { width: min(46rem, calc(100vw - 32px)); }
-.set-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; }
-.set-head h2 { flex: 1 1 100%; }
+/* Settings is a full-screen page: a fixed header and tab row, a body that scrolls, and a footer; switching tabs never resizes it */
+#dSettings { width: 100vw; max-width: 100vw; height: 100vh; height: 100dvh; max-height: none; margin: 0; border: 0; border-radius: 0; }
+#dSettings > form { height: 100%; padding: 0; gap: 0; }
+#dSettings .set-head, #dSettings #setTabs, #dSettings > form > .actions { flex: none; padding-inline: max(16px, calc((100% - 50rem) / 2)); }
+.set-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-bottom: 12px; background: var(--panel); border-bottom: 1px solid var(--rule); }
+.set-head .set-title { display: flex; align-items: center; gap: 12px; flex: 1 1 100%; }
+.set-head .set-title h2 { flex: 1; }
 .set-head .preset { flex: 1 1 14rem; }
-.set-body { display: flex; flex-direction: column; gap: 14px; }
+#dSettings #setTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+#dSettings #setTabs::-webkit-scrollbar { display: none; }
+#dSettings #setTabs button { flex: none; }
+.set-body { display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 0; overflow-y: auto; padding: 18px max(16px, calc((100% - 50rem) / 2)) 28px; }
+#dSettings > form > .actions { padding-top: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); border-top: 1px solid var(--rule); background: var(--panel); }
 .set-body section { display: flex; flex-direction: column; gap: 14px; }
 .hintline { color: var(--muted); font-size: .88rem; margin: -6px 0 0; }
 body { background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 18px; line-height: 1.6; margin: 0; }
@@ -405,6 +413,15 @@ span.chip { cursor: default; }
 .wv-side .chip.kwc { font-size: 1rem; padding: 3px 11px; }
 .wv-main { position: relative; min-width: 0; min-height: 0; }
 .pane { position: absolute; inset: 0; }
+#pOrb { display: flex; flex-direction: column; }
+#orbCanvas { flex: 1; min-height: 0; width: 100%; display: block; cursor: pointer; touch-action: manipulation; }
+#orbCanvas:focus-visible { outline: 3px solid var(--link); outline-offset: -3px; }
+.orb-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 10px 14px 0; font: 13px var(--mono); }
+.orb-trail button { font: inherit; background: none; border: 0; padding: 4px 2px; color: var(--link); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.orb-trail button[aria-current="true"] { color: var(--ink); text-decoration: none; font-weight: 600; cursor: default; }
+.orb-trail span { color: var(--muted); }
+.quote .loc { margin-right: .5em; }
+.orb-hint { margin: 0; padding: 0 14px 10px; color: var(--muted); font-size: .85rem; }
 .pane.scroll { overflow-y: auto; overflow-x: hidden; padding: 18px 20px 40px; }
 #pGraph canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #tlCanvas { display: block; cursor: pointer; }
@@ -698,7 +715,8 @@ body.bar-off .bar { display: none; }
     <div class="wv-row">
       <h2>Web of words</h2>
       <div class="tabs" role="tablist" id="wvTabs">
-        <button type="button" role="tab" data-tab="graph" aria-selected="true">Graph</button>
+        <button type="button" role="tab" data-tab="orb" aria-selected="true">Web</button>
+        <button type="button" role="tab" data-tab="graph" aria-selected="false">Graph</button>
         <button type="button" role="tab" data-tab="timeline" aria-selected="false">Timeline</button>
         <button type="button" role="tab" data-tab="compare" aria-selected="false">Compare</button>
         <button type="button" role="tab" data-tab="cards" aria-selected="false">Flashcards</button>
@@ -726,7 +744,13 @@ body.bar-off .bar { display: none; }
   </div>
   <div class="wv-body">
     <div class="wv-main">
-      <div class="pane" id="pGraph"><canvas id="wvCanvas" tabindex="0" role="application" aria-roledescription="keyword graph" aria-label="Keyword graph" aria-describedby="gHelp"></canvas>
+      <div class="pane" id="pOrb">
+        <nav class="orb-trail" id="orbTrail" aria-label="Where you are in the web"></nav>
+        <canvas id="orbCanvas" tabindex="0" role="application" aria-roledescription="spider web of keywords" aria-label="Spider web of keywords. Tab to the list of keywords in the notes panel to choose one." aria-describedby="orbHelp"></canvas>
+        <p id="orbHelp" class="sr-only">The main topic is in the middle. Each section of the web is a topic, and each cell is a keyword. Arrow keys move between keywords, Enter opens one, Backspace goes back.</p>
+        <p class="orb-hint" id="orbHint"></p>
+      </div>
+      <div class="pane" id="pGraph" hidden><canvas id="wvCanvas" tabindex="0" role="application" aria-roledescription="keyword graph" aria-label="Keyword graph" aria-describedby="gHelp"></canvas>
         <p id="gHelp" class="sr-only">Arrow keys move between keywords. Enter reads about the selected keyword in the notes panel. Plus and minus zoom, 0 fits the graph, and L switches to a list view.</p>
         <div id="gList" class="glist" hidden></div><p id="wvEmpty" class="wv-empty" hidden></p>
         <div class="gctl" role="group" aria-label="Graph controls">
@@ -1049,7 +1073,7 @@ body.bar-off .bar { display: none; }
 <dialog id="dSettings" aria-labelledby="setH">
   <form method="dialog">
     <div class="set-head">
-      <h2 id="setH">Crawler settings</h2>
+      <div class="set-title"><button class="btn" type="submit" id="setBack">← Back</button><h2 id="setH">Settings</h2></div>
       <label class="field preset"><span>Quick style</span>
         <select id="preset">
           <option value="">Pick a preset…</option>
@@ -2012,7 +2036,7 @@ const webs = new Map(), hubs = new Map();
 let threads = [], sacs = [], babies = [], fluff = [], strands = [], rings = [];
 let crawled = 0, spun = 0, grips = 0, tie = null, sacCount = 0, pickCount = 0;
 let paused = reduce, follow = !reduce;
-const WV = { open: false, tab: "graph", sel: null, hover: null, filter: new Set(), pos: new Map(), nodes: [], edges: [], byKey: new Map(), centers: {},
+const WV = { open: false, tab: "orb", sel: null, hover: null, filter: new Set(), pos: new Map(), nodes: [], edges: [], byKey: new Map(), centers: {},
   cam: { x: 0, y: 0, s: 1 }, drag: null, moved: false, picks: new Set(), pickMode: false, tl: null,
   zoom: 1, panX: 0, panY: 0, panning: null, allLabels: false };
 
@@ -4983,7 +5007,7 @@ function refreshWeb(full) {
 function setTab(tab) {
   WV.tab = tab;
   for (const b of $("wvTabs").children) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
-  $("pGraph").hidden = tab !== "graph"; $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
+  $("pOrb").hidden = tab !== "orb"; $("pGraph").hidden = tab !== "graph"; $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
   if (tab === "site") renderSiteMap();
   if (tab === "timeline") drawTimeline();
   if (tab === "compare") renderCompare();
@@ -5030,6 +5054,8 @@ function openWeb(sel) {
   $("tabSite").hidden = !hasSiteMap(); if (WV.tab === "site" && !hasSiteMap()) WV.tab = "graph";
   hidePop();
   WV.open = true; if (sel) WV.sel = sel;
+  ORB.path = sel && DOC.kw.has(sel) ? [sel] : []; ORB.born = performance.now(); ORB.hover = ORB.focus = -1;
+  renderOrbTrail();
   $("wv").hidden = false; document.body.style.overflow = "hidden";
   refreshWeb(true); updateStatus();
   $("wvClose").focus();
@@ -5150,6 +5176,154 @@ function simStep() {
     n.x += n.vx; n.y += n.vy;
   }
 }
+// ---- the web: the main topic at the hub, one sector per topic, a keyword in each cell between the spokes and the spiral.
+// Opening a keyword spins a new web with that keyword at the hub and its connected keywords around it.
+const ORB = { path: [], born: 0, layout: null, hover: -1, focus: -1 };
+function orbCenterLabel() {
+  if (ORB.path.length) return DOC.kw.get(ORB.path[ORB.path.length - 1]).label;
+  return DOC.title || "This text";
+}
+// the keywords on the current web, grouped by topic: [{ cat, list: [k…] }]
+function orbGroups() {
+  let ks;
+  if (!ORB.path.length) ks = visibleKw();
+  else {
+    const k = DOC.kw.get(ORB.path[ORB.path.length - 1]);
+    ks = k ? [...k.nb].sort((a, b) => b[1] - a[1]).map(([key]) => DOC.kw.get(key)).filter(x => x && !ORB.path.includes(x.key)).slice(0, 28) : [];
+  }
+  const by = new Map();
+  for (const k of ks) { if (!by.has(k.cat)) by.set(k.cat, []); by.get(k.cat).push(k); }
+  return [...by].map(([cat, list]) => ({ cat, list: list.sort((a, b) => b.count - a.count) })).sort((a, b) => a.cat - b.cat);
+}
+function orbLayout(w, h, g) {
+  const groups = orbGroups(), total = groups.reduce((t, x) => t + x.list.length, 0);
+  // leave room around the rim for the topic names, which sit outside the web
+  let side = 34;
+  if (g) { g.font = `600 12px ${MONO}`; side = Math.min(w * 0.24, 30 + Math.max(0, ...groups.map(x => g.measureText(trunc((DOC.cats[x.cat] || {}).name || "", w < 520 ? 14 : 22)).width))); }
+  const cx = w / 2, cy = h / 2, R = Math.max(60, Math.min(w / 2 - side, h / 2 - 34)), hub = Math.max(30, R * 0.2);
+  // enough spokes to look like a web however few keywords there are; enough rings to hold them all
+  const T = clamp(Math.round(Math.sqrt(total) * 2.2), 10, 28), minShare = groups.length ? 0.35 / groups.length : 0;
+  const shares = groups.map(x => minShare + (1 - minShare * groups.length) * (x.list.length / Math.max(1, total)));
+  const colsOf = shares.map(sh => Math.max(1, Math.round(sh * T)));
+  const rings = clamp(Math.max(2, ...groups.map((x, i) => Math.ceil(x.list.length / colsOf[i]))), 2, 7);
+  groups.forEach((x, i) => { colsOf[i] = Math.max(colsOf[i], Math.ceil(x.list.length / rings)); });
+  const cells = [], sectors = [];
+  let a0 = -Math.PI / 2;
+  groups.forEach((x, gi) => {
+    const span = shares[gi] * Math.PI * 2, cols = colsOf[gi], n = x.list.length;
+    sectors.push({ cat: x.cat, a0, a1: a0 + span, cols });
+    x.list.forEach((k, i) => {
+      const ring = Math.floor(i / cols), j = i % cols, inRing = Math.min(cols, n - ring * cols);
+      const col = Math.floor(j * cols / inRing);                    // a part-full ring spreads its keywords out evenly
+      const r0 = hub + (R - hub) * ring / rings, r1 = hub + (R - hub) * (ring + 1) / rings;  // most-used keywords sit nearest the middle
+      const b0 = a0 + span * col / cols, b1 = a0 + span * (col + 1) / cols;
+      cells.push({ k, cat: x.cat, r0, r1, b0, b1 });
+    });
+    a0 += span;
+  });
+  return { cx, cy, R, hub, rings, cells, sectors, groups };
+}
+function drawOrb(now) {
+  const cv = $("orbCanvas"), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h || !DOC) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const L = ORB.layout = orbLayout(w, h, g), { cx, cy, R, hub } = L;
+  const grow = reduce ? 1 : ease(clamp((now - ORB.born) / 650, 0, 1));
+  const pt = (r, a) => [cx + Math.cos(a) * r * grow, cy + Math.sin(a) * r * grow];
+  const sel = WV.sel;
+  // cells: a soft fill in the topic's color; brighter for the one you're on
+  L.cells.forEach((c, i) => {
+    const on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
+    g.beginPath(); const [x0, y0] = pt(c.r0, c.b0), [x1, y1] = pt(c.r1, c.b0), [x2, y2] = pt(c.r1, c.b1), [x3, y3] = pt(c.r0, c.b1);
+    g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x2, y2); g.lineTo(x3, y3); g.closePath();
+    g.fillStyle = catColor(c.cat); g.globalAlpha = on ? 0.42 : c.k.crawled ? 0.13 : 0.06; g.fill(); g.globalAlpha = 1;
+  });
+  // silk: the frame ring, the spokes, and the spiral (straight threads between spokes, like a real orb web)
+  g.strokeStyle = C.silk; g.lineCap = "round";
+  const spokes = [];
+  for (const s of L.sectors) for (let j = 0; j <= s.cols; j++) spokes.push({ a: s.a0 + (s.a1 - s.a0) * j / s.cols, major: j === 0 });
+  for (const sp of spokes) { g.lineWidth = sp.major ? 1.6 : 0.8; g.globalAlpha = sp.major ? 0.95 : 0.6; const [ax, ay] = pt(hub, sp.a), [bx, by] = pt(R + 14, sp.a); g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by); g.stroke(); }
+  g.lineWidth = 0.9; g.globalAlpha = 0.75;
+  for (let r = 0; r <= L.rings; r++) {
+    const rr = hub + (R - hub) * r / L.rings;
+    g.beginPath(); spokes.forEach((sp, i) => { const [x, y] = pt(rr, sp.a); i ? g.lineTo(x, y) : g.moveTo(x, y); }); if (spokes.length) g.closePath(); g.stroke();
+  }
+  g.globalAlpha = 1;
+  // labels: keywords in their cells, topics around the rim
+  g.textAlign = "center"; g.textBaseline = "middle";
+  L.cells.forEach((c, i) => {
+    const am = (c.b0 + c.b1) / 2, rm = (c.r0 + c.r1) / 2, [x, y] = pt(rm, am);
+    const arc = rm * (c.b1 - c.b0), room = Math.min(arc, c.r1 - c.r0 + 40), on = c.k.key === sel || i === ORB.hover || i === ORB.focus;
+    const size = clamp(room / 7, 9, 13);
+    g.font = `${on ? 700 : c.k.crawled ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = on || c.k.crawled ? 1 : 0.65;
+    const maxChars = Math.max(3, Math.floor(room / (size * 0.62)));
+    g.fillText(on ? c.k.label : trunc(c.k.label, maxChars), x, y);
+    if (DOC.notes && DOC.notes.k[c.k.key]) { g.fillText("✎", x + Math.min(room / 2, 40), y - size); }
+  });
+  g.globalAlpha = 1;
+  for (const s of L.sectors) {
+    const am = (s.a0 + s.a1) / 2, [x, y] = pt(R + 24, am), cat = DOC.cats[s.cat];
+    g.font = `600 12px ${MONO}`; g.fillStyle = catColor(s.cat);
+    const text = trunc(cat ? cat.name : "", w < 520 ? 14 : 22), tw = g.measureText(text).width;
+    const align = Math.cos(am) > 0.3 ? "left" : Math.cos(am) < -0.3 ? "right" : "center";
+    // keep every topic name fully on screen
+    const lx = align === "left" ? Math.min(x, w - 4 - tw) : align === "right" ? Math.max(x, tw + 4) : clamp(x, tw / 2 + 4, w - tw / 2 - 4);
+    g.textAlign = align; g.fillText(text, lx, clamp(y, 10, h - 10));
+  }
+  // the hub: the main topic, or the keyword you opened
+  g.textAlign = "center";
+  g.beginPath(); g.arc(cx, cy, hub * grow, 0, 7); g.fillStyle = C.panel; g.fill(); g.strokeStyle = C.silk; g.lineWidth = 1.6; g.stroke();
+  const label = orbCenterLabel(), hs = clamp(hub / 4, 11, 18);
+  g.font = `600 ${hs}px ${SERIF}`; g.fillStyle = C.ink;
+  const words = label.split(/\s+/), lines = []; let cur = "";
+  for (const wd of words) { if ((cur + " " + wd).trim().length > 14 && cur) { lines.push(cur); cur = wd; } else cur = (cur + " " + wd).trim(); }
+  if (cur) lines.push(cur);
+  lines.slice(0, 3).forEach((ln, i, arr) => g.fillText(trunc(ln, 16), cx, cy + (i - (arr.length - 1) / 2) * hs * 1.15));
+  if (!L.cells.length) { g.font = `13px ${MONO}`; g.fillStyle = C.muted; g.fillText(ORB.path.length ? "Nothing else connects to this keyword." : "Keywords appear here as the spider crawls.", cx, cy + hub + 30); }
+  g.textAlign = "start";
+}
+function orbHit(x, y) {
+  const L = ORB.layout; if (!L) return -1;
+  const dx = x - L.cx, dy = y - L.cy, r = Math.hypot(dx, dy);
+  if (r < L.hub) return -2; // the hub
+  let a = Math.atan2(dy, dx); while (a < -Math.PI / 2) a += Math.PI * 2;
+  return L.cells.findIndex(c => r >= c.r0 && r < c.r1 && a >= c.b0 && a < c.b1);
+}
+function renderOrbTrail() {
+  const crumbs = [["", DOC.title || "This text"], ...ORB.path.map(k => [k, DOC.kw.get(k).label])];
+  $("orbTrail").innerHTML = crumbs.map(([k, l], i) => `${i ? "<span>›</span>" : ""}<button type="button" data-orb-to="${i}" aria-current="${i === crumbs.length - 1}">${esc(trunc(l, 28))}</button>`).join("");
+  $("orbHint").textContent = ORB.path.length ? "The keyword you opened is in the middle, with the keywords it connects to around it. Tap one to go further." : "The main topic is in the middle. Each section is a topic and each cell a keyword. Tap one to see its notes and its own web.";
+}
+// open a keyword: show its notes and spin a new web around it
+function orbOpen(key) {
+  if (!DOC.kw.has(key)) return;
+  const at = ORB.path.indexOf(key);
+  if (at >= 0) ORB.path = ORB.path.slice(0, at + 1); else ORB.path.push(key);
+  ORB.born = performance.now(); ORB.hover = ORB.focus = -1;
+  WV.sel = key; renderSide(); $("wvSide").scrollTop = 0; renderOrbTrail();
+  announce(`${DOC.kw.get(key).label}. ${orbGroups().reduce((t, g) => t + g.list.length, 0)} connected keywords.`);
+}
+function orbBack(to) {
+  ORB.path = ORB.path.slice(0, to); ORB.born = performance.now(); ORB.hover = ORB.focus = -1;
+  WV.sel = ORB.path.length ? ORB.path[ORB.path.length - 1] : null; renderSide(); renderOrbTrail();
+}
+$("orbTrail").addEventListener("click", e => { const b = e.target.closest("[data-orb-to]"); if (b && b.getAttribute("aria-current") !== "true") orbBack(+b.dataset.orbTo); });
+$("orbCanvas").addEventListener("click", e => {
+  const r = $("orbCanvas").getBoundingClientRect(), i = orbHit(e.clientX - r.left, e.clientY - r.top);
+  if (i === -2 && ORB.path.length) { orbBack(ORB.path.length - 1); return; }
+  if (i >= 0) { const k = ORB.layout.cells[i].k; if (WV.pickMode) { togglePick(k.key); renderSide(); } else orbOpen(k.key); }
+});
+$("orbCanvas").addEventListener("pointermove", e => { const r = $("orbCanvas").getBoundingClientRect(); ORB.hover = orbHit(e.clientX - r.left, e.clientY - r.top); });
+$("orbCanvas").addEventListener("pointerleave", () => { ORB.hover = -1; });
+$("orbCanvas").addEventListener("keydown", e => {
+  const n = ORB.layout ? ORB.layout.cells.length : 0;
+  if (["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key) && n) {
+    e.preventDefault(); const fwd = e.key === "ArrowRight" || e.key === "ArrowDown"; ORB.focus = ORB.focus < 0 ? (fwd ? 0 : n - 1) : (ORB.focus + (fwd ? 1 : n - 1)) % n;
+    const k = ORB.layout.cells[ORB.focus].k; announce(`${k.label}, ${DOC.cats[k.cat].name}`);
+  } else if (e.key === "Enter" && ORB.focus >= 0) { e.preventDefault(); orbOpen(ORB.layout.cells[ORB.focus].k.key); }
+  else if (e.key === "Backspace" && ORB.path.length) { e.preventDefault(); orbBack(ORB.path.length - 1); }
+});
 function drawGraph() {
   const cv = $("wvCanvas"), w = cv.clientWidth, h = cv.clientHeight;
   if (!w || !h) return;
@@ -5314,12 +5488,13 @@ function sideClick(e) {
   if (sc) { openSac(sacs[+sc.dataset.sac]); return; }
   if (k) {
     if (WV.pickMode) { togglePick(k.dataset.key); renderSide(); return; }
+    if (WV.tab === "orb") { orbOpen(k.dataset.key); return; }
     WV.sel = k.dataset.key; renderSide(); $("wvSide").scrollTop = 0;
     if (WV.tab === "timeline") drawTimeline();
     return;
   }
   if (!act) return;
-  if (act.dataset.act === "back") { WV.sel = null; renderSide(); if (WV.tab === "timeline") drawTimeline(); }
+  if (act.dataset.act === "back") { if (WV.tab === "orb") { orbBack(0); return; } WV.sel = null; renderSide(); if (WV.tab === "timeline") drawTimeline(); }
   else if (act.dataset.act === "pick") { togglePick(WV.sel); renderSide(); }
   else if (act.dataset.act === "jump") {
     const n = nodes.find(x => x.key === WV.sel); closeWeb();
@@ -7722,7 +7897,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   update(dt, now);
   if (!WV.open) updAmbient(dt, now);
-  if (WV.open) { if (WV.tab === "graph") drawGraph(); }
+  if (WV.open) { if (WV.tab === "graph") drawGraph(); else if (WV.tab === "orb") drawOrb(now); }
   else { draw(now); if (++frameN % 6 === 0) drawMini(); }
   requestAnimationFrame(frame);
 }
