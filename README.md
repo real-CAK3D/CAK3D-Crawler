@@ -12,6 +12,8 @@ Made by CAK3D_Creations. **Android:** coming to Google Play (package `com.arachn
 - **Cites its sources.** Numbered sources with page numbers, APA, MLA or Chicago style, a bibliography, and export to Zotero (RIS) and BibTeX.
 - **Answers questions.** Ask the text a question and get the passages that answer it. With an AI set up, it also writes a short cited answer.
 - **Moves between devices.** There are no accounts. Crawls move between devices with a weave code or a crawl file, and the whole library can be backed up to a file.
+- **Keeps the pictures and videos.** When it crawls a web page it keeps the pictures and videos with their captions, credits and licenses, sorts each into the topic and keywords it shows, and cites it in the chosen style. They appear in the web view's Media tab, in keyword notes, egg sacs, the study guide and saved notes.
+- **Reads code too.** Pages → Read code opens a separate code reader: paste code, open files, a .zip of a project, or a GitHub link. It maps every function, class and variable as a spider web, shows where each is defined, read, changed and called, and explains the whole codebase in plain words. It works on the device for JavaScript/TypeScript, Python, Java, C/C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby and shell scripts.
 - **Explains itself.** The **?** button lists what everything on screen is, shows a legend of the topic colors and marks, and has *Point at anything*: tap any part of the screen to see what it is.
 
 ## The spider and the store

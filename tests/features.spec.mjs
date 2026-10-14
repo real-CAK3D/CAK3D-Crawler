@@ -18,9 +18,12 @@ test("web view: graph works from the keyboard", async () => {
   await page.locator("#bWeb").click();
   await expect(page.locator("#wv")).toBeVisible();
   await tab("Nest").click();
-  await page.locator("#wvCanvas").focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(page.locator("#announce")).toContainText(/In \d+ sentences?/);
+  // the nest lays itself out over a few frames; keep trying until a keyword is announced
+  await expect(async () => {
+    await page.locator("#wvCanvas").focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("#announce")).toContainText(/In \d+ sentences?/, { timeout: 2000 });
+  }).toPass({ timeout: 30000 });
   const first = await page.locator("#announce").textContent();
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("#announce")).not.toHaveText(first);

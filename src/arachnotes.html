@@ -532,6 +532,23 @@ span.chip { cursor: default; }
 @keyframes barGrow { from { transform: scaleX(0); } }
 @media (prefers-reduced-motion: reduce) { .cbar i { animation: none; } }
 @media (max-width: 520px) { .cbar { grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) auto; } }
+/* pictures and videos */
+.md-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+.md-grid.small { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: 10px; }
+.md-card { margin: 0; display: flex; flex-direction: column; gap: 6px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.md-pic { position: relative; display: block; aspect-ratio: 4 / 3; background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.md-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.md-pic.video::after { content: "▶"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,.6); color: #fff; display: grid; place-items: center; font-size: 18px; padding-left: 3px; }
+.md-off { display: none; position: absolute; inset: 0; place-items: center; padding: 10px; text-align: center; color: var(--muted); font: 12px var(--mono); }
+.md-pic.broken img { display: none; } .md-pic.broken .md-off { display: grid; }
+.md-card figcaption { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 6px; font-size: .9rem; line-height: 1.4; }
+.md-keys { display: flex; flex-wrap: wrap; gap: 4px; }
+.md-keys .chip { font-size: 11.5px; padding: 2px 8px; }
+.md-cite { font: 11.5px/1.45 var(--mono); color: var(--muted); word-break: break-word; }
+.md-acts { display: flex; gap: 12px; flex-wrap: wrap; }
+.md-group h3 { margin: 18px 0 10px; display: flex; align-items: center; gap: 8px; }
+.md-group h3 i { width: 10px; height: 10px; border-radius: 50%; background: var(--dot); display: inline-block; }
+.md-empty { max-width: 34rem; margin: 30px auto; text-align: center; }
 .orb-hint { margin: 0; padding: 0 14px 10px; color: var(--muted); font-size: .85rem; }
 .pane.scroll { overflow-y: auto; overflow-x: hidden; padding: 18px 20px 40px; }
 #pGraph canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -829,6 +846,7 @@ body.bar-off .bar { display: none; }
         <button type="button" role="tab" data-tab="orb" aria-selected="true">Web</button>
         <button type="button" role="tab" data-tab="graph" aria-selected="false">Nest</button>
         <button type="button" role="tab" data-tab="chart" aria-selected="false">Graph</button>
+        <button type="button" role="tab" data-tab="media" aria-selected="false">Media</button>
         <button type="button" role="tab" data-tab="timeline" aria-selected="false">Timeline</button>
         <button type="button" role="tab" data-tab="compare" aria-selected="false">Compare</button>
         <button type="button" role="tab" data-tab="cards" aria-selected="false">Flashcards</button>
@@ -874,6 +892,7 @@ body.bar-off .bar { display: none; }
           <button class="btn" type="button" id="gListBtn" aria-pressed="false">List view</button>
         </div></div>
       <div class="pane scroll" id="pChart" hidden></div>
+      <div class="pane scroll" id="pMedia" hidden></div>
       <div class="pane scroll" id="pTimeline" hidden><p class="meta" style="margin-bottom:10px">Where each topic shows up from the start of the text to the end. Darker means more mentions. Click anywhere on a row to jump to that part of the page.</p><canvas id="tlCanvas" role="img" aria-label="Timeline chart. A text version follows."></canvas><div id="tlText" class="sr-only"></div></div>
       <div class="pane scroll" id="pCompare" hidden></div>
       <div class="pane scroll" id="pCards" hidden></div>
@@ -901,6 +920,7 @@ body.bar-off .bar { display: none; }
     <section><h3 class="sub">Sources</h3><div id="sacSrc"></div></section>
     <section id="sacBridgeWrap" hidden><h3 class="sub">Connected sacs</h3><div id="sacBridges"></div></section>
     <section><h3 class="sub">Keyword tree</h3><ul class="tree" id="sacTree"></ul></section>
+    <section id="sacMediaSec" hidden><h3 class="sub">Pictures and videos</h3><div class="md-grid small" id="sacMedia"></div></section>
   </div>
 </dialog>
 
@@ -3388,8 +3408,26 @@ function restart() {
   applyFocus(); enter(); spawnHelpers(); updateStats(); updateStatus();
 }
 
+// each picture or video goes with the keywords its caption, alt text and nearby text mention, and the topic they share
+function sortMedia(d) {
+  const all = [];
+  (d.sources || []).forEach((src, si) => (src.media || []).forEach(m => all.push({ ...m, from: si })));
+  if (!all.length) return [];
+  const kws = [...d.kw.values()].map(k => ({ k, re: new RegExp(`${WB}(?:${keyPattern(k.key)})${WE}`, "giu") }));
+  const count = (re, t) => t ? (t.match(re) || []).length : 0;
+  return all.map((m, id) => {
+    const scored = kws.map(({ k, re }) => [k, count(re, m.caption) * 3 + count(re, m.alt) * 2 + count(re, m.near)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1] || b[0].count - a[0].count).slice(0, 5);
+    const votes = new Map(); for (const [k, sc] of scored) votes.set(k.cat, (votes.get(k.cat) || 0) + sc);
+    const cat = votes.size ? [...votes].sort((a, b) => b[1] - a[1])[0][0] : -1;
+    // the sentence it sits beside, so "show in text" can find it
+    let si = -1; const anchor = (m.near || "").slice(0, 60).toLowerCase();
+    if (anchor.length > 20) si = d.sents.findIndex(x => x.toLowerCase().includes(anchor.slice(0, 40)));
+    return { ...m, id, keys: scored.map(([k]) => k.key), cat, si };
+  });
+}
 function loadDoc(d) {
   ORB.path = []; ORB.hover = ORB.focus = -1;
+  d.media = sortMedia(d);
   DOC = d; DOC.highlights = DOC.highlights || []; DOC.asks = DOC.asks || []; DOC.libId = DOC.libId || null;
   document.documentElement.lang = d.lang || "en";
   DOC.sources = DOC.sources && DOC.sources.length ? DOC.sources : [{ title: d.title, cite: d.cite || "", author: "", year: "" }];
@@ -4990,6 +5028,33 @@ function formatRef(s, style) {
   if (style === "chicago") return `${s.author ? `${dot(invName(s.author))} ${dot(yy)} ${dot(title)}` : `${dot(title)} ${dot(yy)}`}${site ? " " + dot(site) : ""}${url ? " " + dot(url) : ""}`;
   return `${s.author ? `${apaName(s.author)} (${yy}). ${dot(title)}` : `${dot(title)} (${yy}).`}${site ? " " + dot(site) : ""}${url ? " " + url : ""}`;
 }
+// a citation for a picture or video, in the chosen style
+function mediaRef(m, style) {
+  const s = DOC.sources[m.from] || {}, dot = t => /[.!?]$/.test(t) ? t : t + ".";
+  const who = m.credit || s.author || s.site || s.title || "Unknown", yy = m.year || s.year || "n.d.";
+  const what = trunc(m.caption || m.alt || (m.kind === "video" ? "Video" : "Image"), 160), kind = m.kind === "video" ? "Video" : "Image";
+  const where = s.title || s.site || "", link = m.href || m.src, lic = m.license ? ` ${dot("License: " + m.license)}` : "";
+  if (style === "mla") return `${dot(who)} “${dot(what).replace(/\.$/, "")}.” ${where ? where + ", " : ""}${yy !== "n.d." ? yy + ", " : ""}${link}.${lic}`;
+  if (style === "chicago") return `${dot(who)} ${dot(yy)} “${what}.” ${kind}. ${where ? dot(where) + " " : ""}${link}.${lic}`;
+  return `${who}. (${yy}). ${what} [${kind}]. ${where ? dot(where) + " " : ""}${link}${lic}`;
+}
+const mediaFor = keys => (DOC.media || []).filter(m => m.keys.some(k => keys.includes(k)));
+// one picture or video, as a card with its citation
+function mediaCard(m, opts = {}) {
+  const thumb = m.kind === "video" ? (m.poster || "") : m.src;
+  const kw = m.keys.map(k => DOC.kw.get(k)).filter(Boolean).slice(0, 4);
+  return `<figure class="md-card" data-media="${m.id}">
+    <a class="md-pic${m.kind === "video" ? " video" : ""}" href="${esc(m.kind === "video" ? m.src : m.href || m.src)}" target="_blank" rel="noopener noreferrer" aria-label="${esc((m.kind === "video" ? "Play video: " : "Open picture: ") + (m.caption || m.alt || ""))}">${thumb ? `<img src="${esc(thumb)}" alt="${esc(m.alt || m.caption || "")}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.md-pic').classList.add('broken')">` : ""}<span class="md-off">${m.kind === "video" ? "Video" : "Picture"} can't load offline</span></a>
+    <figcaption>${m.caption || m.alt ? `<span>${esc(trunc(m.caption || m.alt, 220))}</span>` : ""}
+      ${opts.keys !== false && kw.length ? `<span class="md-keys">${kw.map(k => `<button type="button" class="chip" data-key="${esc(k.key)}" style="--dot:${catColorVar(k.cat)}"><i></i>${esc(k.label)}</button>`).join("")}</span>` : ""}
+      <span class="md-cite">${esc(mediaRef(m, cfg.citeStyle))}</span>
+      <span class="md-acts"><button type="button" class="linkish" data-media-cite="${m.id}">Copy citation</button>${m.si >= 0 ? `<button type="button" class="linkish" data-jump="${m.si}">Show in text</button>` : ""}</span></figcaption>
+  </figure>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-media-cite]"); if (!b) return;
+  const m = (DOC.media || [])[+b.dataset.mediaCite]; if (m) copyText(mediaRef(m, cfg.citeStyle), "Copied the citation.");
+});
 function inText(s, style, page) {
   const who = lastName(s.author) || s.title;
   if (style === "mla") return `(${who}${page ? " " + page : ""})`;
@@ -5085,7 +5150,12 @@ const interest = n => { if (!cfg.learn) return 0; const k = kwOf(n); return Math
 
 let curSac = null, sacCtl = null;
 function openSac(sac) { curSac = sac; renderSac(); if (!$("dSac").open) $("dSac").showModal(); }
+function renderSacMedia() {
+  const ms = curSac ? mediaFor([...new Set(curSac.keys)]).slice(0, 8) : [];
+  $("sacMediaSec").hidden = !ms.length; $("sacMedia").innerHTML = ms.map(m => mediaCard(m, { keys: false })).join("");
+}
 function renderSac() {
+  setTimeout(renderSacMedia, 0);
   const sac = curSac; if (!sac) return;
   const { majors, loose, inSac } = sacTree(sac);
   const branches = k => [...k.nb].filter(([key]) => !inSac.has(key) && DOC.kw.has(key)).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([key]) => DOC.kw.get(key));
@@ -5248,12 +5318,14 @@ function refreshWeb(full) {
   if (full && WV.tab === "compare") renderCompare();
   if (full && WV.tab === "cards") renderCards();
   if (full && WV.tab === "chart") renderChart();
+  if (full && WV.tab === "media") renderMedia();
   if (full && WV.tab === "site") renderSiteMap();
 }
 function setTab(tab) {
   WV.tab = tab;
   for (const b of $("wvTabs").children) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
-  $("pOrb").hidden = tab !== "orb"; $("pGraph").hidden = tab !== "graph"; $("pChart").hidden = tab !== "chart";
+  $("pOrb").hidden = tab !== "orb"; $("pGraph").hidden = tab !== "graph"; $("pChart").hidden = tab !== "chart"; $("pMedia").hidden = tab !== "media";
+  if (tab === "media") renderMedia();
   if (tab === "chart") renderChart(); $("pTimeline").hidden = tab !== "timeline"; $("pCompare").hidden = tab !== "compare"; $("pCards").hidden = tab !== "cards"; $("pSite").hidden = tab !== "site";
   if (tab === "site") renderSiteMap();
   if (tab === "timeline") drawTimeline();
@@ -5264,6 +5336,15 @@ $("wvTabs").addEventListener("click", e => { const b = e.target.closest("[data-t
 const hasSiteMap = () => (DOC.sources || []).some(x => x.depth > 0);
 // the site map: the first page in the middle, each level of links on a ring around it
 // the Graph: real charts of what the spider found, each bar opens that keyword in the web
+// the Media tab: every picture and video from the pages, sorted into topics, each with its citation
+function renderMedia() {
+  const el = $("pMedia"), M = DOC.media || [];
+  if (!M.length) { el.innerHTML = `<div class="md-empty"><h3>No pictures or videos yet</h3><p class="meta">When you crawl a web page, its pictures and videos show up here with their captions and credits, sorted into the same topics as the keywords, with a citation for each. Open one with <b>Pages → Open text, a file or a link</b>.</p></div>`; return; }
+  const groups = [...DOC.cats.map((c, i) => ({ c, i })), { c: { name: "Not sorted into a topic" }, i: -1 }].map(g => ({ ...g, list: M.filter(m => m.cat === g.i && (!WV.filter.size || WV.filter.has(m.cat))) })).filter(g => g.list.length);
+  el.innerHTML = `<p class="meta">${M.length} ${M.length === 1 ? "picture or video" : "pictures and videos"} from ${plural(new Set(M.map(m => m.from)).size, "page")}. Each is sorted by the keywords its caption and the text around it mention. Citations follow your style (${esc(STYLE_NAMES[cfg.citeStyle])}).</p>` +
+    groups.map(g => `<section class="md-group"><h3 style="--dot:${g.i >= 0 ? catColorVar(g.i) : "var(--muted)"}"><i></i>${esc(g.c.name)} <span class="meta">${g.list.length}</span></h3><div class="md-grid">${g.list.map(m => mediaCard(m)).join("")}</div></section>`).join("");
+}
+$("pMedia").addEventListener("click", e => { const k = e.target.closest("[data-key]"); if (k) { setTab("orb"); ORB.path = []; orbOpen(k.dataset.key); } const j = e.target.closest("[data-jump]"); if (j) jumpToSentence(+j.dataset.jump); });
 function renderChart() {
   const el = $("pChart"), ks = [...DOC.kw.values()].filter(k => k.crawled || k.rel > 0);
   if (!ks.length) { el.innerHTML = '<p class="meta">Charts appear once the spider has found some keywords.</p>'; return; }
@@ -5363,6 +5444,7 @@ function renderSide() {
         ${noteHTML("k", k.key)}
       </div>
       ${nb.length ? `<div><h3>Connected keywords</h3><div class="list">${nb.map(kwChip).join("")}</div></div>` : ""}
+      ${mediaFor([k.key]).length ? `<div><h3>Pictures and videos</h3><div class="md-grid small">${mediaFor([k.key]).slice(0, 6).map(m => mediaCard(m, { keys: false })).join("")}</div></div>` : ""}
       <div style="--dot:${catColorVar(k.cat)}"><h3>${re ? "Where it meets your focus" : "Where it appears"}</h3>${quotes || '<p class="meta">No sentences recorded.</p>'}</div>`;
     return;
   }
@@ -6102,6 +6184,13 @@ function outlineMarkdown() {
     }
     md += "\n";
   });
+  if ((DOC.media || []).length) {
+    md += `# Pictures and videos\n\n`;
+    for (const [i, c] of [...DOC.cats.entries(), [-1, { name: "Other" }]]) {
+      const ms = DOC.media.filter(m => m.cat === i); if (!ms.length) continue;
+      md += `## ${c.name}\n\n` + ms.map(m => `- ${m.kind === "image" ? `![${(m.caption || m.alt || "").replace(/[\[\]]/g, "")}](${m.src})` : `[Video: ${m.caption || m.src}](${m.src})`}\n  ${mediaRef(m, cfg.citeStyle)}`).join("\n") + "\n\n";
+    }
+  }
   const ds = doneSacs();
   if (ds.length) { md += `# Egg sacs\n\n`; for (const s of ds) md += sacMarkdown(s); }
   if (DOC.asks.length) {
@@ -6868,6 +6957,8 @@ function renderGuide() {
   });
   if (G.glossary.length) h += `<section><h3>Glossary</h3><dl class="g-terms">${G.glossary.slice(0, 120).map(k => `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[defSent(k)], 240))}${cite(defSent(k))}</dd>`).join("")}</dl></section>`;
   const Q = (A.questions || []).length ? A.questions.map(q => ({ q: q.q, a: citedHTML(q.a || "", G.si) })) : G.questions.map(q => ({ q: q.q, a: esc(q.a) + cite(q.si) }));
+  const gm = (DOC.media || []).filter(m => m.cat >= 0).slice(0, 12);
+  if (gm.length && !G.sel) h += `<section><h3>Pictures and videos</h3><div class="md-grid small">${gm.map(m => mediaCard(m, { keys: false })).join("")}</div></section>`;
   if (Q.length) h += `<section><h3>Practice questions</h3><ol class="g-q">${Q.map(q => `<li>${esc(q.q)}<details><summary>Show the answer</summary><p>${q.a}</p></details></li>`).join("")}</ol></section>`;
   $("guideBody").innerHTML = h;
   $("guideAi").hidden = !SAMPLE; $("guideAi").textContent = A.overview || (A.sections || []).length ? `Write it again with ${aiName()}` : `Write summaries with ${aiName()}`;
@@ -6908,6 +6999,8 @@ function guideMarkdown() {
   });
   if (G.glossary.length) md += "## Glossary\n\n" + G.glossary.map(k => `- **${k.label}**: ${DOC.sents[defSent(k)]} ${c(defSent(k))}`).join("\n") + "\n\n";
   const Q = (A.questions || []).length ? A.questions.map(q => [q.q, ai(q.a)]) : G.questions.map(q => [q.q, `${q.a} ${c(q.si)}`]);
+  const gm = (DOC.media || []).filter(m => m.cat >= 0).slice(0, 12);
+  if (gm.length && !G.sel) md += "## Pictures and videos\n\n" + gm.map(m => `${m.kind === "image" ? `![${(m.caption || m.alt || "").replace(/[\[\]]/g, "")}](${m.src})` : `[${m.caption || "Video"}](${m.src})`}\n\n*${mediaRef(m, cfg.citeStyle)}*\n`).join("\n") + "\n";
   if (Q.length) md += "## Practice questions\n\n" + Q.map(([q, a], n) => `${n + 1}. ${q}\n   - Answer: ${a}`).join("\n") + "\n\n";
   return md + `## Sources\n\n${bibliography().map(b => "- " + b).join("\n")}\n`;
 }
@@ -7122,6 +7215,7 @@ const FAQ = [
   ["Why didn't it find a keyword I expected?", "It looks for words and phrases that are frequent and specific to the text. Select any word on the page to add it yourself; it goes in the “My highlights” topic."],
   ["What do the colors mean?", "Each topic has a color. A keyword's underline, its threads and its sacs share that color. Open Help → Legend to see the topics in the current text."],
   ["What do purchases unlock, and do I keep them?", "Store items change how the spider and the page look and behave; every reading and study feature is free. Purchases belong to your Google account and come back after a reinstall. A bundle also includes anything added to its sections later."],
+  ["Does it keep the pictures and videos from pages?", "Yes. When you crawl a web page, its pictures and videos are kept with their captions and credits, sorted into the topics and keywords they show, and cited in your citation style. Find them in the web view's Media tab, in a keyword's notes, in egg sacs, and in the study guide and saved notes."],
   ["Can it read code?", "Yes. Pages → Read code. Paste code, open files or a .zip of a project, or a GitHub link. It finds every function, class and variable, shows what each one does, what it calls and what uses it, and explains it all in plain words. It works without the internet; an AI adds deeper explanations."],
   ["How do I make the spider calmer or quieter?", "Settings → Web & effects → Effects & sound: turn off sounds and effects, or pick the Study mode preset. If your device asks for reduced motion, the app keeps animation to a minimum."]
 ];
@@ -8826,7 +8920,79 @@ function htmlToText(html, url) {
   const root = d.querySelector("article, main") || d.body, parts = [], links = [];
   root.querySelectorAll("h1, h2, h3, p, li").forEach(e => { const t = e.textContent.replace(/\s+/g, " ").trim(); if (t.length > 1) parts.push(t); });
   root.querySelectorAll("a[href]").forEach(a => { try { links.push({ text: a.textContent.trim(), url: new URL(a.getAttribute("href"), url).href }); } catch (e) { /* bad link */ } });
-  return { title: (d.title || hostOf(url)).trim(), text: dropConsent(parts.join("\n\n")), url, links };
+  return { title: (d.title || hostOf(url)).trim(), text: dropConsent(parts.join("\n\n")), url, links, media: mediaFromHtml(root, url) };
+}
+// ---- pictures and videos on a page: the image or video, its caption, alt text, credit, and the text around it
+const MEDIA_JUNK = /(logo|icon|sprite|pixel|spacer|avatar|badge|banner-ad|advert|tracking|emoji|gravatar|1x1|blank\.gif|loading)/i;
+function absUrl(u, base) { try { const x = new URL(u, base); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch (e) { return ""; } }
+function ytId(u) { const m = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(u || ""); return m ? m[1] : ""; }
+function mediaFromHtml(root, url) {
+  const out = [], seen = new Set(), textNear = el => {
+    let p = el.closest("figure") || el; for (let i = 0; i < 4 && p; i++) { let prev = p.previousElementSibling; while (prev && !/^(P|H2|H3|LI|BLOCKQUOTE)$/.test(prev.tagName)) prev = prev.previousElementSibling; if (prev && prev.textContent.trim().length > 30) return prev.textContent.replace(/\s+/g, " ").trim().slice(0, 400); p = p.parentElement; }
+    return "";
+  };
+  const add = m => { if (!m.src || seen.has(m.src) || out.length >= 40) return; seen.add(m.src); out.push(m); };
+  for (const img of root.querySelectorAll("img")) {
+    const src = absUrl(img.getAttribute("src") || img.getAttribute("data-src") || (img.getAttribute("srcset") || "").split(/\s+/)[0], url);
+    const w = +img.getAttribute("width") || 0, h = +img.getAttribute("height") || 0, alt = (img.getAttribute("alt") || "").trim();
+    if (!src || /\.svg(\?|$)/i.test(src) || MEDIA_JUNK.test(src + " " + (img.className || "")) || (w && w < 80) || (h && h < 80) || img.closest("a[href*='ad'], .ad, .ads")) continue;
+    const fig = img.closest("figure"), creditEl = fig && fig.querySelector("[class*='credit' i], [class*='byline' i], small, cite");
+    const credit = creditEl ? creditEl.textContent.replace(/\s+/g, " ").trim() : "";
+    let cap = fig && fig.querySelector("figcaption") ? fig.querySelector("figcaption").textContent.replace(/\s+/g, " ").trim() : "";
+    if (credit && cap.includes(credit)) cap = cap.replace(credit, "").replace(/\s+/g, " ").trim();
+    if (!cap && !alt && !fig) continue; // decoration with nothing to say about it
+    add({ kind: "image", src, alt, caption: cap.slice(0, 300), credit: credit.replace(/^(photo|image|picture|credit)s?\s*(by)?\s*[:\-–]\s*/i, "").slice(0, 120), href: src, near: textNear(img) });
+  }
+  for (const v of root.querySelectorAll("video")) {
+    const src = absUrl(v.getAttribute("src") || (v.querySelector("source") || { getAttribute: () => "" }).getAttribute("src"), url); if (!src) continue;
+    const fig = v.closest("figure"), cap = fig && fig.querySelector("figcaption") ? fig.querySelector("figcaption").textContent.replace(/\s+/g, " ").trim() : (v.getAttribute("title") || v.getAttribute("aria-label") || "");
+    add({ kind: "video", src, poster: absUrl(v.getAttribute("poster") || "", url), alt: "", caption: cap.slice(0, 300), credit: "", href: src, near: textNear(v) });
+  }
+  for (const fr of root.querySelectorAll("iframe[src]")) {
+    const src = absUrl(fr.getAttribute("src"), url), id = ytId(src);
+    if (!id && !/player\.vimeo\.com/.test(src)) continue;
+    add({ kind: "video", src: id ? `https://www.youtube.com/watch?v=${id}` : src, poster: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "", alt: "", caption: (fr.getAttribute("title") || "").slice(0, 300), credit: id ? "YouTube" : "Vimeo", href: id ? `https://www.youtube.com/watch?v=${id}` : src, near: textNear(fr) });
+  }
+  return out;
+}
+// images in the reader service's Markdown: ![alt](url), with the paragraph before them
+function mediaFromMd(md, url) {
+  const out = [], seen = new Set(), paras = md.split(/\n{2,}/);
+  paras.forEach((p, i) => {
+    for (const m of p.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)(?:\s+"([^"]*)")?\)/g)) {
+      const src = m[2], alt = m[1].replace(/^Image \d+:?\s*/i, "").trim();
+      if (seen.has(src) || /\.svg(\?|$)/i.test(src) || MEDIA_JUNK.test(src) || out.length >= 40 || (!alt && !m[3])) continue;
+      seen.add(src);
+      const near = (paras.slice(Math.max(0, i - 2), i).reverse().find(x => x.replace(/!\[[^\]]*\]\([^)]*\)/g, "").trim().length > 30) || "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_#>]/g, "").trim().slice(0, 400);
+      out.push({ kind: "image", src, alt, caption: (m[3] || "").slice(0, 300), credit: "", href: src, near });
+    }
+    for (const m of p.matchAll(/\[([^\]]{3,120})\]\((https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}[^)\s]*)\)/g)) {
+      const id = ytId(m[2]); if (!id || seen.has(id) || out.length >= 40) continue; seen.add(id);
+      out.push({ kind: "video", src: `https://www.youtube.com/watch?v=${id}`, poster: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, alt: "", caption: m[1].replace(/[*_]/g, "").trim(), credit: "YouTube", href: `https://www.youtube.com/watch?v=${id}`, near: p.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").trim().slice(0, 400) });
+    }
+  });
+  return out;
+}
+// Wikipedia: its media list gives every picture's caption; its file pages give the author and license
+async function wikiMedia(host, title) {
+  try {
+    const list = await (await fetch(`https://${host}/api/rest_v1/page/media-list/${encodeURIComponent(title.replace(/ /g, "_"))}`)).json();
+    const items = (list.items || []).filter(x => (x.type === "image" || x.type === "video") && x.showInGallery !== false && !/\.svg$/i.test(x.title) && !MEDIA_JUNK.test(x.title)).slice(0, 30);
+    if (!items.length) return [];
+    const meta = {};
+    try {
+      const q = await (await fetch(`https://${host}/w/api.php?action=query&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&format=json&origin=*&titles=${encodeURIComponent(items.map(x => x.title).join("|"))}`)).json();
+      for (const p of Object.values((q.query || {}).pages || {})) { const ii = (p.imageinfo || [])[0]; if (ii) meta[p.title.replace(/_/g, " ")] = ii; }
+    } catch (e) { /* credits are a bonus */ }
+    const plain = h => String(h || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    return items.map(x => {
+      const ii = meta[x.title.replace(/_/g, " ")] || {}, em = ii.extmetadata || {}, src0 = (x.srcset && x.srcset[0] && x.srcset[0].src) || "";
+      const src = ii.thumburl || (src0.startsWith("//") ? "https:" + src0 : src0);
+      const year = ((em.DateTimeOriginal && plain(em.DateTimeOriginal.value)) || "").match(/\b(1[5-9]\d\d|20\d\d)\b/);
+      return src ? { kind: x.type === "video" ? "video" : "image", src, alt: x.title.replace(/^File:/, "").replace(/\.\w+$/, "").replace(/_/g, " "), caption: plain(x.caption && (x.caption.text || x.caption.html)).slice(0, 300),
+        credit: plain(em.Artist && em.Artist.value).slice(0, 120), license: plain(em.LicenseShortName && em.LicenseShortName.value), year: year ? year[1] : "", href: ii.descriptionurl || src, near: "" } : null;
+    }).filter(Boolean);
+  } catch (e) { return []; }
 }
 // rank a page's links for "follow links": same site first, words that matter on the page, no navigation clutter
 const hostOf = u => { try { return new URL(u).hostname; } catch (e) { return ""; } }; // "" for broken links like https:///
@@ -8854,7 +9020,7 @@ async function fetchPage(url) {
     const links = (p.links || []).filter(l => l.title.length >= 3 && !/^(List|Category|Template|Help|Portal) of|:/.test(l.title))
       .map(l => ({ text: l.title, url: `https://${u.hostname}/wiki/${encodeURIComponent(l.title.replace(/ /g, "_"))}`, score: mentions(l.title) }))
       .filter(l => l.score >= 2).sort((a, b) => b.score - a.score);
-    return { title: p.title, text, url: `https://${u.hostname}/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}`, site: "Wikipedia", links };
+    return { title: p.title, text, url: `https://${u.hostname}/wiki/${encodeURIComponent(p.title.replace(/ /g, "_"))}`, site: "Wikipedia", links, media: await wikiMedia(u.hostname, p.title) };
   }
   try {
     const r = await fetch(url);
@@ -8870,7 +9036,7 @@ async function fetchPage(url) {
   const title = ((t.match(/^Title:\s*(.+)$/m) || [])[1] || u.hostname).trim();
   const raw = [...body.matchAll(/(?<!!)\[([^\]]{3,120})\]\((https?:\/\/[^)\s]+)/g)].map(m => ({ text: m[1].replace(/[*_`]/g, "").trim(), url: m[2] }));
   const text = mdToText(body);
-  return { title, text, url, links: rankLinks(raw, url, text) };
+  return { title, text, url, links: rankLinks(raw, url, text), media: mediaFromMd(body, url) };
 }
 
 // ---- search the web: Wikipedia's search, plus DuckDuckGo results read through the reader service
@@ -8942,7 +9108,7 @@ async function pageSource(url, extra) {
   const pg = await fetchPage(url);
   const text = pg.text.slice(0, MAX_CHARS);
   if (text.split(/\s+/).length < 30) throw new Error("short");
-  return Object.assign({ title: pg.title, author: "", year: "", cite: pg.url, site: pg.site || new URL(pg.url).hostname.replace(/^www\./, ""), accessed: new Date().toISOString().slice(0, 10), text, links: pg.links || [] }, extra || {});
+  return Object.assign({ title: pg.title, author: "", year: "", cite: pg.url, site: pg.site || new URL(pg.url).hostname.replace(/^www\./, ""), accessed: new Date().toISOString().slice(0, 10), text, links: pg.links || [], media: pg.media || [] }, extra || {});
 }
 // what the dialog currently describes, as a list of sources (a page plus the pages it links to, search results, or text)
 async function currentSources() {
@@ -9024,7 +9190,7 @@ function crawlSources(list) {
   const title = multi ? `${list[0].title} + ${list.length - 1} more` : list[0].title;
   const d = buildText(raw, title, cfg.k, $("srcLang").value);
   if (!d) throw new Error("No repeated keywords were found. Try longer texts.");
-  d.sources = list.map(({ text, links, ...m }) => m);
+  d.sources = list.map(({ text, links, ...m }) => m); // keeps each source's media with it
   d.cite = multi ? "" : list[0].cite;
   store.set("cak3d-src", raw.length < 1500000 ? { raw, title, cite: d.cite, sources: d.sources, lang: d.lang } : null);
   loadDoc(d);
