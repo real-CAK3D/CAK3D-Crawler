@@ -2,7 +2,7 @@ node_modules/
 www/
 dist/
 android/
-assets/
+/assets/
 web/icons/
 .signing/
 *.p12
