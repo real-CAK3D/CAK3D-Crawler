@@ -421,6 +421,73 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .infobox .ib-sub { padding: 10px; text-align: center; font-style: italic; color: var(--muted); border-bottom: 1px solid var(--rule); }
 .infobox table { width: 100%; border-collapse: collapse; }
 .infobox td { padding: 3px 10px; vertical-align: top; }
+/* the guide's moving examples */
+#page .demo { margin: 18px 0 22px; padding: 14px 14px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); max-width: 34rem; }
+#page .demo svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; overflow: visible; }
+#page .demo figcaption { font-size: .85rem; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+.demo .k0, .demo .c0 { --kc: var(--c0); } .demo .k1, .demo .c1 { --kc: var(--c1); } .demo .k2, .demo .c2 { --kc: var(--c2); }
+.demo .k3, .demo .c3 { --kc: var(--c3); } .demo .c4 { --kc: var(--c4); } .demo .c5 { --kc: var(--c5); }
+.demo-crawl .dc-lines rect { fill: var(--rule); }
+.demo-crawl .dc-k { animation: dc-light 9s infinite; }
+.demo-crawl .dc-lines rect:nth-of-type(2) { animation-delay: .2s; } .demo-crawl .dc-lines rect:nth-of-type(4) { animation-delay: 1.4s; }
+.demo-crawl .dc-lines rect:nth-of-type(8) { animation-delay: 2.7s; } .demo-crawl .dc-lines rect:nth-of-type(10) { animation-delay: 4s; }
+.demo-crawl .dc-lines rect:nth-of-type(12) { animation-delay: 5.4s; } .demo-crawl .dc-lines rect:nth-of-type(15) { animation-delay: 6.7s; }
+@keyframes dc-light { 0% { fill: var(--rule); } 6%, 82% { fill: var(--kc); } 92%, 100% { fill: var(--rule); } }
+.demo-crawl .dc-silk { fill: none; stroke: var(--silk); stroke-width: .9; stroke-dasharray: 520; stroke-dashoffset: 520; animation: dc-silk 9s linear infinite; }
+@keyframes dc-silk { 0% { stroke-dashoffset: 520; } 75% { stroke-dashoffset: 0; } 92% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+.demo-crawl .dc-spider { fill: var(--spider); stroke: var(--spider); stroke-width: 1.1; stroke-linecap: round; }
+.demo-drop .dd-web path { fill: none; stroke: var(--silk); stroke-width: 1; opacity: .8; }
+.demo-drop .dd-f { animation: dd-fall 7s cubic-bezier(.3,.1,.3,1) infinite; transform: translate(var(--x), -40px); }
+.demo-drop .dd-f line { stroke: var(--silk); stroke-width: .8; }
+.demo-drop .dd-f rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+.demo-drop .dd-f text { font: 600 7.5px var(--mono, monospace); text-anchor: middle; fill: var(--ink); }
+.demo-drop .f1 { --x: 64px; } .demo-drop .f2 { --x: 112px; animation-delay: .8s; } .demo-drop .f3 { --x: 160px; animation-delay: 1.6s; } .demo-drop .f4 { --x: 208px; animation-delay: 2.4s; } .demo-drop .f5 { --x: 256px; animation-delay: 3.2s; }
+@keyframes dd-fall { 0% { transform: translate(var(--x), -40px); } 40%, 100% { transform: translate(var(--x), 74px); } }
+.demo-drop svg { overflow: hidden !important; }
+.demo-sort .ds-col rect { fill: color-mix(in srgb, var(--kc) 16%, transparent); stroke: var(--kc); stroke-width: 1; }
+.demo-sort .ds-chip { animation: ds-move 8s ease-in-out infinite; }
+.demo-sort .ds-chip rect { fill: var(--kc); } .demo-sort .ds-chip text { font: 600 9px var(--mono, monospace); text-anchor: middle; fill: var(--paper); }
+.demo-sort .s1 { --sx: 90px; --sy: 20px; --ex: 60px; --ey: 84px; } .demo-sort .s2 { --sx: 160px; --sy: 34px; --ex: 160px; --ey: 84px; animation-delay: .5s; }
+.demo-sort .s3 { --sx: 230px; --sy: 20px; --ex: 260px; --ey: 90px; animation-delay: 1s; } .demo-sort .s4 { --sx: 130px; --sy: 14px; --ex: 60px; --ey: 100px; animation-delay: 1.5s; }
+.demo-sort .s5 { --sx: 200px; --sy: 46px; --ex: 160px; --ey: 100px; animation-delay: 2s; }
+@keyframes ds-move { 0%, 10% { transform: translate(var(--sx), var(--sy)); } 45%, 85% { transform: translate(var(--ex), var(--ey)); } 100% { transform: translate(var(--sx), var(--sy)); } }
+.demo-orb .do-web path { fill: none; stroke: var(--silk); stroke-width: 1; stroke-dasharray: 700; stroke-dashoffset: 700; animation: do-spin 7s ease-out infinite; }
+@keyframes do-spin { 0% { stroke-dashoffset: 700; } 55%, 90% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+.demo-orb .do-hub { fill: var(--ink); } .demo-orb .do-ht { font: 600 8px var(--mono, monospace); fill: var(--paper); text-anchor: middle; }
+.demo-orb .do-n { fill: var(--kc); animation: do-pulse 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.demo-orb .do-n:nth-of-type(3) { animation-delay: .4s; } .demo-orb .do-n:nth-of-type(4) { animation-delay: .8s; } .demo-orb .do-n:nth-of-type(5) { animation-delay: 1.2s; } .demo-orb .do-n:nth-of-type(6) { animation-delay: 1.6s; } .demo-orb .do-n:nth-of-type(7) { animation-delay: 2s; }
+@keyframes do-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+.demo-card { perspective: 700px; }
+.demo-card .dk-card { position: relative; height: 110px; max-width: 300px; margin: 0 auto; transform-style: preserve-3d; animation: dk-flip 6s ease-in-out infinite; }
+.demo-card .dk-face { position: absolute; inset: 0; display: flex; align-items: center; gap: 10px; padding: 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); backface-visibility: hidden; -webkit-backface-visibility: hidden; font-size: .95rem; box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+.demo-card .dk-face span { font: 700 1.3rem var(--mono, monospace); color: var(--c0); }
+.demo-card .dk-back { transform: rotateY(180deg); } .demo-card .dk-back span { color: var(--c2); }
+@keyframes dk-flip { 0%, 35% { transform: rotateY(0); } 50%, 85% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+.demo-cite .dt-line { margin: 0; font: .85rem/1.5 var(--mono, monospace); padding-left: 2.2em; text-indent: -2.2em; }
+.demo-cite .dt-line span { animation: dt-write 8s steps(40) infinite; }
+@keyframes dt-write { 0% { clip-path: inset(0 100% 0 0); } 60%, 100% { clip-path: inset(0 0 0 0); } }
+.demo-cite .dt-line span { display: inline; -webkit-box-decoration-break: clone; }
+.demo-ask .da-q, .demo-ask .da-a { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: .92rem; line-height: 1.4; }
+.demo-ask .da-q { margin-left: auto; background: var(--ink); color: var(--paper); border-bottom-right-radius: 4px; width: fit-content; animation: da-in 7s ease infinite; }
+.demo-ask .da-a { margin-top: 8px; background: var(--paper); border: 1px solid var(--rule); border-bottom-left-radius: 4px; width: fit-content; animation: da-in 7s ease infinite; animation-delay: 1.2s; }
+.demo-ask .da-a b { color: var(--link); }
+@keyframes da-in { 0% { clip-path: inset(0 100% 0 0); transform: translateY(6px); } 15%, 100% { clip-path: inset(0 0 0 0); transform: none; } }
+.demo-code pre { margin: 0; overflow-x: auto; font: .78rem/1.5 var(--mono, monospace); color: var(--ink); }
+.demo-code .dc-kw { color: var(--c3); } .demo-code .dc-fn { color: var(--link); font-weight: 700; animation: dcf 3s ease-in-out infinite; }
+@keyframes dcf { 0%, 100% { background: transparent; } 50% { background: color-mix(in srgb, var(--grip) 70%, transparent); } }
+@media (prefers-reduced-motion: reduce) { #page .demo *, #page .demo { animation: none !important; } .demo-crawl .dc-spider, .demo-ask .da-a { opacity: 1; } .demo-crawl .dc-silk, .demo-orb .do-web path { stroke-dashoffset: 0; } .demo-crawl .dc-spider { display: none; } }
+#page .tryit { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; padding: 12px; border: 1px dashed var(--silk); border-radius: 10px; max-width: 40rem; }
+#page .tryit-h { width: 100%; margin: 0; font-size: .85rem; color: var(--muted); }
+#page .tryit .btn { white-space: normal; text-align: left; max-width: 100%; height: auto; line-height: 1.3; }
+#page .demo, #page .demo pre { max-width: min(34rem, 100%); min-width: 0; }
+#page ul.howto { list-style: none; padding-left: 0; counter-reset: step; }
+#page ul.howto li { counter-increment: step; position: relative; padding-left: 2.2em; margin: 6px 0; }
+#page ul.howto li::before { content: counter(step); position: absolute; left: 0; top: .05em; width: 1.5em; height: 1.5em; border-radius: 50%; display: grid; place-items: center; font: 700 .75rem var(--mono, monospace); background: var(--grip); color: var(--ink); }
+.blank-start { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 24px 0; }
+.blank-start .blank-web { width: 220px; height: auto; } .blank-start .blank-web path { fill: none; stroke: var(--silk); stroke-width: 1; }
+.blank-start .tryit { justify-content: center; border: 0; }
+.webq { margin: 4px 0 10px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--grip) 35%, transparent); color: var(--ink); }
+.site-links { flex-wrap: wrap; }
 .infobox td:first-child { color: var(--muted); width: 42%; }
 ul.cols { columns: 2; padding-left: 1.2em; margin: 0; }
 
@@ -751,54 +818,159 @@ body.bar-off .bar { display: none; }
 
 <main class="wrap">
 <article id="page" tabindex="-1" aria-label="The text being crawled">
-  <h1>Spider</h1>
-  <p class="from">Sample page · open your own from Pages → Open text, a file or a link</p>
+  <h1>Arachnotes</h1>
+  <p class="from">The guide · the spider is crawling this page to show you how it works · open your own text from Pages → Open text, a file or a link</p>
 
-  <div class="infobox" role="group" aria-label="Spiders at a glance">
-    <p class="ib-title">Spiders</p>
-    <div class="ib-sub">Order Araneae</div>
+  <div class="infobox" role="group" aria-label="Arachnotes at a glance">
+    <p class="ib-title">Arachnotes</p>
+    <div class="ib-sub">A spider that reads for you</div>
     <table>
-      <tr><td>Kingdom</td><td><a data-c="0" data-w="Animal">Animalia</a></td></tr>
-      <tr><td>Phylum</td><td><a data-c="0" data-w="Arthropod">Arthropoda</a></td></tr>
-      <tr><td>Subphylum</td><td><a data-c="0" data-w="Chelicerata">Chelicerata</a></td></tr>
-      <tr><td>Class</td><td><a data-c="0" data-w="Arachnid">Arachnida</a></td></tr>
-      <tr><td>Order</td><td>Araneae <a data-c="0" data-w="Carl_Alexander_Clerck">Clerck</a>, 1757</td></tr>
-      <tr><td>Suborders</td><td><a data-c="0" data-w="Mesothelae">Mesothelae</a><br><a data-c="0" data-w="Opisthothelae">Opisthothelae</a></td></tr>
+      <tr><td>Made by</td><td>CAK3D_Creations</td></tr>
+      <tr><td>Runs on</td><td><a data-c="5" data-w="Android_(operating_system)">Android</a> and any <a data-c="5" data-w="Web_browser">web browser</a></td></tr>
+      <tr><td>Reads</td><td><a data-c="0" data-w="Web_page">Web pages</a>, <a data-c="0" data-w="PDF">PDF</a>, <a data-c="0" data-w="EPUB">EPUB</a>, Word, photos, code</td></tr>
+      <tr><td>Finds</td><td><a data-c="1" data-w="Keyword_extraction">Keywords</a> and topics</td></tr>
+      <tr><td>Cites</td><td><a data-c="4" data-w="APA_style">APA</a>, <a data-c="4" data-w="MLA_Handbook">MLA</a>, <a data-c="4" data-w="The_Chicago_Manual_of_Style">Chicago</a></td></tr>
+      <tr><td>Price</td><td>Free; looks and themes are optional extras</td></tr>
     </table>
   </div>
 
-  <p>Spiders are air-breathing <a data-c="0" data-w="Arthropod">arthropods</a> with eight legs, <a data-c="1" data-w="Chelicerae">chelicerae</a> that end in fangs, and <a data-c="1" data-w="Spinneret">spinnerets</a> that pull out <a data-c="2" data-w="Spider_silk">silk</a>. They form the largest order of <a data-c="0" data-w="Arachnid">arachnids</a>, with more than 50,000 described species, and they live on every continent except <a data-c="0" data-w="Antarctica">Antarctica</a>.</p>
+  <p>Arachnotes turns anything you read into notes you can study and cite. You give it a text, and a spider crawls it one keyword at a time, the way a <a data-c="0" data-w="Web_crawler">web crawler</a> follows links across the internet. Every keyword it catches is sorted into a topic, tied to the sentences it came from, and spun into a web you can explore. This page is a real crawl: watch the spider work through it while you read.</p>
 
-  <h2>Anatomy</h2>
-  <p>A spider's body has two main parts. The front part, the <a data-c="1" data-w="Cephalothorax">cephalothorax</a>, carries the eyes, mouthparts and all eight legs. The rear part, the <a data-c="1" data-w="Abdomen">abdomen</a>, holds the silk glands and is joined to the front by a narrow waist called the <a data-c="1" data-w="Pedicel_(spider)">pedicel</a>.</p>
-  <p>Most species have eight <a data-c="1" data-w="Simple_eye_in_invertebrates">simple eyes</a>, though many see poorly. <a data-c="3" data-w="Jumping_spider">Jumping spiders</a> are the exception: their large front eyes give them sharp vision for judging a leap. Spiders breathe through <a data-c="1" data-w="Book_lung">book lungs</a>, <a data-c="1" data-w="Arthropod_respiratory_system">tracheae</a>, or both. Their legs have flexor muscles but no extensors; they straighten their legs by pumping <a data-c="1" data-w="Hemolymph">hemolymph</a> into them, which is why a dead spider's legs curl inward.</p>
+  <figure class="demo demo-crawl" aria-hidden="true">
+    <svg viewBox="0 0 320 120" width="320" height="120">
+      <g class="dc-lines"><rect x="16" y="20" width="62" height="9" rx="4"/><rect x="84" y="20" width="40" height="9" rx="4" class="dc-k k0"/><rect x="130" y="20" width="70" height="9" rx="4"/><rect x="206" y="20" width="44" height="9" rx="4" class="dc-k k1"/><rect x="256" y="20" width="48" height="9" rx="4"/>
+        <rect x="16" y="46" width="34" height="9" rx="4"/><rect x="56" y="46" width="78" height="9" rx="4"/><rect x="140" y="46" width="52" height="9" rx="4" class="dc-k k2"/><rect x="198" y="46" width="106" height="9" rx="4"/>
+        <rect x="16" y="72" width="88" height="9" rx="4" class="dc-k k3"/><rect x="110" y="72" width="60" height="9" rx="4"/><rect x="176" y="72" width="46" height="9" rx="4" class="dc-k k1"/><rect x="228" y="72" width="76" height="9" rx="4"/>
+        <rect x="16" y="98" width="120" height="9" rx="4"/><rect x="142" y="98" width="56" height="9" rx="4" class="dc-k k0"/></g>
+      <path class="dc-silk" d="M104 24 L228 24 L166 50 L60 76 L198 76 L170 102"/>
+      <g class="dc-spider"><g><ellipse cx="-3" cy="0" rx="5" ry="4"/><circle cx="4" cy="0" r="3"/><path d="M3-2l3-6M1-3l0-7M-1-3l-4-6M-3-2l-6-4M3 2l3 6M1 3l0 7M-1 3l-4 6M-3 2l-6 4"/></g><animateMotion dur="9s" repeatCount="indefinite" rotate="auto" keyPoints="0;0.2;0.4;0.6;0.8;1;1" keyTimes="0;0.15;0.3;0.45;0.6;0.75;1" calcMode="linear" path="M104 24 L228 24 L166 50 L60 76 L198 76 L170 102"/></g>
+    </svg>
+    <figcaption>The spider walks from keyword to keyword. Each one it catches lights up in its topic's color and gets a silk thread back to the last.</figcaption>
+  </figure>
 
-  <h2>Silk</h2>
-  <p>Silk starts as a liquid protein called <a data-c="2" data-w="Spidroin">spidroin</a> stored in the silk glands. As it is drawn through the spinnerets it hardens into a fibre. A single orb weaver can make up to seven kinds of silk, each for a different job: safety lines, egg sacs, wrapping prey, or the sticky capture spiral.</p>
-  <p>The strongest kind, <a data-c="2" data-w="Spider_silk#Dragline_silk">dragline silk</a>, is stronger than steel of the same weight and tougher than <a data-c="2" data-w="Kevlar">Kevlar</a>. Many spiders eat their old web before spinning a new one, recycling the protein. Young spiders also use silk to fly: they let out a thread, catch the wind, and drift for kilometres in a behaviour called <a data-c="2" data-w="Ballooning_(spider)">ballooning</a>.</p>
+  <h2>Open almost anything</h2>
+  <p>Paste text, or open a link. <a data-c="0" data-w="Wikipedia">Wikipedia</a> articles come in clean, with their pictures, captions and licenses, and other sites are read through a reader service so menus and ads are left behind. You can search the web from the app and crawl several pages together as one text.</p>
+  <p>Files work too: a <a data-c="0" data-w="PDF">PDF</a> keeps its page numbers for citations, an <a data-c="0" data-w="EPUB">EPUB</a> book opens chapter by chapter, and a Word document, a web page you saved, a spreadsheet, subtitles, a notebook or a <a data-c="0" data-w="Markdown">Markdown</a> note opens as plain reading text. A photo of a page or a scanned PDF is read on your device with <a data-c="0" data-w="Optical_character_recognition">optical character recognition</a>, so the picture never leaves your phone. One text can be up to about 600,000 characters, the length of a long novel.</p>
 
-  <h2>Webs</h2>
-  <p>Web shapes vary by family. <a data-c="2" data-w="Orb-weaver_spider">Orb weavers</a> build the classic wheel. <a data-c="2" data-w="Linyphiidae">Sheet weavers</a> lay down flat mats, <a data-c="2" data-w="Theridiidae">cobweb spiders</a> spin tangled 3D nets, and <a data-c="2" data-w="Funnel-web_spider">funnel-web spiders</a> wait at the end of a silk tube.</p>
-  <p>An orb web goes up in a fixed order. The spider first floats a <a data-c="2" data-w="Spider_web#Orb_webs">bridge line</a> across a gap, then adds the frame, then the radial spokes, then a temporary spiral that works like scaffolding. Last comes the sticky capture spiral, laid from the outside in. The largest orb webs belong to <a data-c="2" data-w="Darwin%27s_bark_spider">Darwin's bark spider</a> of Madagascar, whose bridge lines can span rivers 25 metres wide.</p>
+  <figure class="demo demo-drop" aria-hidden="true">
+    <svg viewBox="0 0 320 130" width="320" height="130">
+      <g class="dd-web"><path d="M160 118 L160 70 M160 118 L110 80 M160 118 L210 80 M160 118 L70 104 M160 118 L250 104"/><path d="M138 101 Q160 96 182 101 M120 92 Q160 82 200 92"/></g>
+      <g class="dd-f f1"><line x1="0" y1="-70" x2="0" y2="-12"/><rect x="-14" y="-12" width="28" height="22" rx="3"/><text y="3">PDF</text></g>
+      <g class="dd-f f2"><line x1="0" y1="-70" x2="0" y2="-12"/><rect x="-16" y="-12" width="32" height="22" rx="3"/><text y="3">EPUB</text></g>
+      <g class="dd-f f3"><line x1="0" y1="-70" x2="0" y2="-12"/><rect x="-14" y="-12" width="28" height="22" rx="3"/><text y="3">www</text></g>
+      <g class="dd-f f4"><line x1="0" y1="-70" x2="0" y2="-12"/><rect x="-16" y="-12" width="32" height="22" rx="3"/><text y="3">.docx</text></g>
+      <g class="dd-f f5"><line x1="0" y1="-70" x2="0" y2="-12"/><rect x="-14" y="-12" width="28" height="22" rx="3"/><text y="3">.py</text></g>
+    </svg>
+    <figcaption>Pages, books, documents, photos and code all drop into the same web.</figcaption>
+  </figure>
 
-  <h2>Hunting without webs</h2>
-  <p>About half of all spiders never build a capture web. <a data-c="3" data-w="Wolf_spider">Wolf spiders</a> run down prey on the ground. <a data-c="3" data-w="Trapdoor_spider">Trapdoor spiders</a> ambush from a burrow with a hinged lid. <a data-c="3" data-w="Scytodidae">Spitting spiders</a> pin insects with a spray of venom-laced glue, and <a data-c="3" data-w="Portia_(spider)">Portia</a> jumping spiders plan detours to sneak up on other spiders.</p>
-  <p>Nearly all spiders use <a data-c="3" data-w="Spider_venom">venom</a>, but only a few are dangerous to people. These include the <a data-c="3" data-w="Latrodectus">widow spiders</a>, <a data-c="3" data-w="Loxosceles">recluse spiders</a>, and the <a data-c="3" data-w="Sydney_funnel-web_spider">Sydney funnel-web</a>.</p>
+  <div class="tryit" role="group" aria-label="Try it with real pages">
+    <p class="tryit-h">Try it on the real internet</p>
+    <button type="button" class="btn" data-try="wiki">Crawl the Wikipedia article “Orb-weaver spider”</button>
+    <button type="button" class="btn" data-try="page">Crawl a real web page: Jean-Henri Fabre's <i>The Life of the Spider</i> on Project Gutenberg</button>
+    <button type="button" class="btn" data-try="search">Search the web for “spider silk”</button>
+  </div>
 
-  <h2>Spiders and people</h2>
-  <p>Fear of spiders, <a data-c="4" data-w="Arachnophobia">arachnophobia</a>, is one of the most common phobias. Spiders also run through myth and story: the Greek weaver <a data-c="4" data-w="Arachne">Arachne</a>, the West African trickster <a data-c="4" data-w="Anansi">Anansi</a>, and the barn spider of <a data-c="4" data-w="Charlotte%27s_Web">Charlotte's Web</a>. Researchers study silk as a model for new <a data-c="2" data-w="Biomaterial">biomaterials</a>.</p>
-  <p>The spider also named a piece of the internet. Search engines send out programs called <a data-c="5" data-w="Web_crawler">web crawlers</a>, such as <a data-c="5" data-w="Googlebot">Googlebot</a>, that read a page, collect its <a data-c="5" data-w="Hyperlink">hyperlinks</a>, and follow them to the next page. Following link after link, they map the <a data-c="5" data-w="World_Wide_Web">World Wide Web</a> the way a spider covers a gap with thread.</p>
+  <h2>Keywords and topics</h2>
+  <p>The spider doesn't just count words. It reads each <a data-c="1" data-w="Keyword_extraction">keyword</a> in context, looks at which keywords turn up in the same sentences, a measure called <a data-c="1" data-w="Co-occurrence">co-occurrence</a>, and decides which topic the keyword belongs to. It's a small <a data-c="1" data-w="Topic_model">topic model</a> that runs entirely on your device, with no internet needed.</p>
+  <p>Open the live stats to see every decision as it's made, and how sure the spider is. Keywords it isn't sure about come to you to settle, or to your AI if you've set one up. Type a focus topic and the spider hunts the matching keywords first, as if they were prey. Select any words on the page to add your own keyword, and click a keyword to see its topic, its sentences and your notes.</p>
+
+  <figure class="demo demo-sort" aria-hidden="true">
+    <svg viewBox="0 0 320 120" width="320" height="120">
+      <g class="ds-col"><rect x="20" y="70" width="80" height="40" rx="6" class="c0"/><rect x="120" y="70" width="80" height="40" rx="6" class="c1"/><rect x="220" y="70" width="80" height="40" rx="6" class="c2"/></g>
+      <g class="ds-chip s1"><rect x="-26" y="-9" width="52" height="18" rx="9" class="k0"/><text y="4">silk</text></g>
+      <g class="ds-chip s2"><rect x="-30" y="-9" width="60" height="18" rx="9" class="k1"/><text y="4">venom</text></g>
+      <g class="ds-chip s3"><rect x="-26" y="-9" width="52" height="18" rx="9" class="k2"/><text y="4">orb</text></g>
+      <g class="ds-chip s4"><rect x="-30" y="-9" width="60" height="18" rx="9" class="k0"/><text y="4">spinneret</text></g>
+      <g class="ds-chip s5"><rect x="-26" y="-9" width="52" height="18" rx="9" class="k1"/><text y="4">fangs</text></g>
+    </svg>
+    <figcaption>Keywords that keep company end up in the same topic.</figcaption>
+  </figure>
+
+  <h2>The web, the nest and the graph</h2>
+  <p>Tap Web to see everything the spider found as a real <a data-c="2" data-w="Orb-weaver_spider">orb web</a>: the main subject sits at the hub, each topic hangs on a spoke, and tapping a topic opens a new web of its own keywords. Tap again for the notes on that keyword, with every sentence it came from.</p>
+  <p>The Nest lays the same keywords out as a <a data-c="2" data-w="Force-directed_graph_drawing">force-directed graph</a> you can zoom into and drag around; the positions you choose are saved. The Graph tab turns the crawl into <a data-c="2" data-w="Bar_chart">bar charts</a> of topics and keywords, the Timeline shows where each topic turns up from the start of the text to the end, and the Media tab gathers the pictures and videos with their credits and <a data-c="2" data-w="Creative_Commons_license">Creative Commons licenses</a>.</p>
+
+  <figure class="demo demo-orb" aria-hidden="true">
+    <svg viewBox="0 0 320 170" width="320" height="170">
+      <g class="do-web"><path d="M160 85 L160 8 M160 85 L232 40 M160 85 L232 130 M160 85 L160 162 M160 85 L88 130 M160 85 L88 40"/>
+        <path d="M160 60 L181 72 L181 98 L160 110 L139 98 L139 72 Z M160 36 L203 60 L203 110 L160 134 L117 110 L117 60 Z M160 14 L224 50 L224 120 L160 156 L96 120 L96 50 Z"/></g>
+      <circle cx="160" cy="85" r="15" class="do-hub"/><text x="160" y="89" class="do-ht">Guide</text>
+      <circle cx="160" cy="14" r="8" class="do-n c0"/><circle cx="224" cy="50" r="8" class="do-n c1"/><circle cx="224" cy="120" r="8" class="do-n c2"/>
+      <circle cx="160" cy="156" r="8" class="do-n c3"/><circle cx="96" cy="120" r="8" class="do-n c4"/><circle cx="96" cy="50" r="8" class="do-n c5"/>
+    </svg>
+    <figcaption>The web view: the subject at the hub, a topic on every spoke.</figcaption>
+  </figure>
+
+  <h2>Study with it</h2>
+  <p>When a topic is finished, the spider wraps its keywords into an egg sac, and opening a sac shows a summary of that topic with its sources. The study guide pulls the key points, terms and questions out of the whole text, and saves as an <a data-c="3" data-w="Outline_(list)">outline</a> with the pictures and their citations.</p>
+  <p><a data-c="3" data-w="Flashcard">Flashcards</a> are made from your keywords automatically and scheduled with <a data-c="3" data-w="Spaced_repetition">spaced repetition</a>, in the spirit of the <a data-c="3" data-w="Leitner_system">Leitner system</a>: cards you know come back less often, and cards you miss come back soon. Testing yourself like this is called the <a data-c="3" data-w="Testing_effect">testing effect</a>, and it is one of the best-studied ways to remember. The idea goes back to <a data-c="3" data-w="Hermann_Ebbinghaus">Hermann Ebbinghaus</a>, who described the <a data-c="3" data-w="Forgetting_curve">forgetting curve</a> in 1885. The app can also read any passage aloud with <a data-c="3" data-w="Speech_synthesis">speech synthesis</a>.</p>
+
+  <figure class="demo demo-card" aria-hidden="true">
+    <div class="dk-card"><div class="dk-face dk-front"><span>Q</span>What brings a card back sooner?</div><div class="dk-face dk-back"><span>A</span>Missing it. Cards you know wait longer.</div></div>
+    <figcaption>Flashcards flip, and the ones you know space themselves out.</figcaption>
+  </figure>
+
+  <h2>Cite as you go</h2>
+  <p>Every keyword, note and answer points back to the sentence it came from, numbered by source and page. Choose <a data-c="4" data-w="APA_style">APA</a>, <a data-c="4" data-w="MLA_Handbook">MLA</a> or <a data-c="4" data-w="The_Chicago_Manual_of_Style">Chicago</a> style and the <a data-c="4" data-w="Bibliography">bibliography</a> follows. Pictures are cited too, with their author and license. Export your sources to <a data-c="4" data-w="Zotero">Zotero</a> or <a data-c="4" data-w="BibTeX">BibTeX</a>, or share the whole crawl as a single web page.</p>
+
+  <figure class="demo demo-cite" aria-hidden="true">
+    <p class="dt-line"><span>Orb-weaver spider. (n.d.). In <i>Wikipedia</i>. Retrieved October 15, 2026, from https://en.wikipedia.org/wiki/Orb-weaver_spider</span></p>
+    <figcaption>A real citation, written as the spider reads.</figcaption>
+  </figure>
+
+  <h2>Ask the text</h2>
+  <p>Type a question and Arachnotes finds the passages that answer it, with their citations, using <a data-c="4" data-w="Information_retrieval">information retrieval</a> on your device. If you connect an AI with your own key, a <a data-c="4" data-w="Large_language_model">large language model</a> also writes a short answer that cites those passages. The key stays on your device, and you can use a free model on your own computer instead.</p>
+
+  <figure class="demo demo-ask" aria-hidden="true">
+    <div class="da-q">How do flashcards decide when to come back?</div>
+    <div class="da-a">Cards you know are shown less often <b>[1]</b>, and missed cards return sooner <b>[2]</b>.</div>
+    <figcaption>Answers always come with their sources.</figcaption>
+  </figure>
+
+  <h2>Read code</h2>
+  <p>Pages → Read code opens a separate code reader. Paste code, open files or a whole project as a .zip, or give it a <a data-c="5" data-w="GitHub">GitHub</a> link. It maps every <a data-c="5" data-w="Function_(computer_programming)">function</a>, <a data-c="5" data-w="Class_(computer_programming)">class</a> and <a data-c="5" data-w="Variable_(computer_science)">variable</a> as a web, shows where each one is defined, read, changed and called, follows the calls between them like a <a data-c="5" data-w="Call_graph">call graph</a>, and explains the whole codebase in plain words. It reads <a data-c="5" data-w="JavaScript">JavaScript</a>, <a data-c="5" data-w="Python_(programming_language)">Python</a>, Java, C, C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby, Dart and more.</p>
+
+  <figure class="demo demo-code" aria-hidden="true">
+    <pre><code><span class="dc-kw">function</span> <span class="dc-fn">addCooc</span>(kw, keys) {
+  <span class="dc-kw">for</span> (<span class="dc-kw">let</span> i = 0; i &lt; keys.length; i++) <span class="dc-kw">for</span> (<span class="dc-kw">let</span> j = i + 1; j &lt; keys.length; j++) {
+    <span class="dc-kw">const</span> a = kw.get(keys[i]), b = kw.get(keys[j]);
+    a.nb.set(b.key, (a.nb.get(b.key) || 0) + 1);
+  }
+}</code></pre>
+    <figcaption>Real code from Arachnotes itself: this function counts which keywords share a sentence.</figcaption>
+  </figure>
+
+  <div class="tryit" role="group" aria-label="Try the code reader">
+    <p class="tryit-h">Try it on real code</p>
+    <button type="button" class="btn" data-try="code">Read the Express web framework from GitHub</button>
+    <button type="button" class="btn" data-try="codeSample">Open the built-in code example</button>
+  </div>
+
+  <h2>Make it yours</h2>
+  <p>Choose the kind of spider, its look, its web style and how it hunts, then pick a theme, weather and sounds. Your crawls stay private: there are no accounts, and everything stays on your device and works <a data-c="5" data-w="Online_and_offline">offline</a> once it's open. Save crawls in the library, move them to another device with a weave code or a crawl file, and keep a <a data-c="5" data-w="Backup">backup</a> of everything. In Settings → Research, choose whether the app opens on this guide, on what you were reading last, or on a blank page.</p>
+
+  <h2>A quick how-to</h2>
+  <ul class="howto">
+    <li>Open Pages → Open text, and paste text, pick a file, or enter a link.</li>
+    <li>Watch the spider crawl, or tap the page to send it somewhere.</li>
+    <li>Tap a keyword to see its topic, sentences and notes.</li>
+    <li>Tap Web to explore the topics, then the Nest and the Graph.</li>
+    <li>Open the study guide and flashcards when the crawl is done.</li>
+    <li>Copy a citation, or export your sources for your paper.</li>
+    <li>Tap ? and Point at anything whenever something is new.</li>
+  </ul>
 
   <h2>See also</h2>
   <ul class="cols">
-    <li><a data-c="0" data-w="Arachnology">Arachnology</a></li>
-    <li><a data-c="0" data-w="Tarantula">Tarantula</a></li>
-    <li><a data-c="0" data-w="Huntsman_spider">Huntsman spider</a></li>
-    <li><a data-c="0" data-w="Opiliones">Harvestmen</a></li>
-    <li><a data-c="0" data-w="Scorpion">Scorpion</a></li>
-    <li><a data-c="0" data-w="Mite">Mite</a></li>
-    <li><a data-c="5" data-w="Web_scraping">Web scraping</a></li>
-    <li><a data-c="5" data-w="Search_engine_indexing">Search engine indexing</a></li>
+    <li><a data-c="0" data-w="Web_crawler">Web crawler</a></li>
+    <li><a data-c="2" data-w="Spider_web">Spider web</a></li>
+    <li><a data-c="3" data-w="Note-taking">Note-taking</a></li>
+    <li><a data-c="3" data-w="Zettelkasten">Zettelkasten</a></li>
+    <li><a data-c="2" data-w="Concept_map">Concept map</a></li>
+    <li><a data-c="4" data-w="Citation">Citation</a></li>
+    <li><a data-c="1" data-w="Text_mining">Text mining</a></li>
+    <li><a data-c="5" data-w="Source_code">Source code</a></li>
   </ul>
 </article>
 
@@ -1086,6 +1258,7 @@ body.bar-off .bar { display: none; }
     <button class="btn" type="button" id="cdBack">← Back</button>
     <h2 id="cdH" tabindex="-1">Code reader</h2>
     <span class="meta" id="cdSum"></span>
+    <span class="meta webq" id="webqCode" hidden></span>
     <div class="cd-open">
       <button class="btn primary" type="button" id="cdOpen" aria-haspopup="true" aria-expanded="false" aria-controls="cdOpenMenu">Open code ▾</button>
       <div class="cd-menu" id="cdOpenMenu" hidden>
@@ -1205,13 +1378,23 @@ body.bar-off .bar { display: none; }
   </form>
 </dialog>
 
+<!-- the browser version's upload limit -->
+<dialog id="dLimit" aria-labelledby="limH">
+  <form method="dialog">
+    <h2 id="limH">Get the app to keep crawling</h2>
+    <p id="limMsg"></p>
+    <div class="actions"><a class="btn primary" id="limGet" target="_blank" rel="noopener">Get Arachnotes for Android</a><button class="btn" value="close">Not now</button></div>
+  </form>
+</dialog>
+
 <!-- Source dialog -->
 <dialog class="page" id="dSource">
   <form id="fSource" method="dialog">
     <h2>What should the spider crawl?</h2>
     <p class="lede">Paste a chapter, an article or a whole book. The crawler picks out the main keywords, sorts them into topics, and spins its web through them.</p>
+    <p class="meta webq" id="webqSrc" hidden></p>
     <div class="seg" role="radiogroup" aria-label="Source">
-      <label><input type="radio" name="src" value="sample" id="srcSample"> Sample: Spider article</label>
+      <label><input type="radio" name="src" value="sample" id="srcSample"> The guide: how Arachnotes works</label>
       <label><input type="radio" name="src" value="text" id="srcTextR" checked> My own text</label>
       <label><input type="radio" name="src" value="url" id="srcUrlR"> A web page</label>
       <label><input type="radio" name="src" value="search" id="srcSearchR"> Search the web</label>
@@ -1239,7 +1422,7 @@ body.bar-off .bar { display: none; }
     </div>
     <label class="field"><span>Text</span><textarea id="srcText" placeholder="Paste text here…"></textarea>
       <small id="srcInfo">Plain text works best. Up to about 600,000 characters (a long novel).</small></label>
-    <label class="field"><span>Or open a file: PDF (scanned ones too), EPUB, TXT, MD, or a photo of a page</span><input type="file" id="srcFile" accept=".txt,.md,.text,.pdf,.epub,.png,.jpg,.jpeg,.webp,text/plain,text/markdown,application/pdf,application/epub+zip,image/png,image/jpeg,image/webp"></label>
+    <label class="field"><span>Or open a file: PDF (scanned ones too), EPUB, Word, PowerPoint, Excel, OpenDocument, RTF, a saved web page, Markdown, subtitles, a notebook, CSV, JSON, code, plain text, or a photo of a page</span><input type="file" id="srcFile"></label>
     <label class="field"><span>Language</span>
       <select id="srcLang"><option value="auto">Detect automatically</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option>
         <option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option><option value="nl">Nederlands</option></select></label>
@@ -1504,6 +1687,8 @@ body.bar-off .bar { display: none; }
         <p class="hintline">Weather is turned off when your device asks for reduced motion.</p>
       </section>
       <section data-g="research" hidden>
+        <label class="field"><span>When the app opens</span><select id="cfgStart"><option value="last">Where I left off</option><option value="guide">The guide: how Arachnotes works</option><option value="blank">A blank page</option></select>
+          <small>The very first time, it opens on the guide.</small></label>
         <label class="field"><span>What are you crawling for?</span><select id="cfgPurpose"><option value="keywords">Keyword finder</option><option value="research">Research</option><option value="study">Study</option><option value="interests">My interests</option><option value="grabber">Info grabber</option></select>
           <small>Changes the questions the spider asks about each keyword, which ones it goes for first, and what the stats panel collects for you.</small></label>
         <label class="field"><span>Stop after</span>
@@ -1574,6 +1759,9 @@ body.bar-off .bar { display: none; }
           <div class="rowi"><button class="btn" type="button" id="updCheck">Check for updates</button><span class="meta" id="updNote" aria-live="polite"></span></div>
           <small>On Android, Google Play updates the app automatically. This checks right now.</small></div>
         <div class="rowi"><button class="btn" type="button" id="supHelp">Open help</button><button class="btn" type="button" id="supTour">Point at anything</button></div>
+        <div class="field"><span>Website and community</span>
+          <div class="rowi site-links"><a class="btn" data-site="" target="_blank" rel="noopener">Website</a><a class="btn" data-site="issues" target="_blank" rel="noopener">Issues</a><a class="btn" data-site="ideas" target="_blank" rel="noopener">Ideas</a><a class="btn" data-site="privacy" target="_blank" rel="noopener">Privacy</a><a class="btn" data-site="terms" target="_blank" rel="noopener">Terms</a></div>
+          <small>Issues and Ideas are public: see what other people found, vote for what matters to you, and suggest features. For anything about your own app or purchases, use Report an issue above.</small></div>
         <p class="meta" id="supLegal"></p>
       </section>
     </div>
@@ -1689,7 +1877,7 @@ let ctx = canvas.getContext("2d"); // the store points this at a thumbnail for a
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const BASE = "https://en.wikipedia.org/wiki/";
 const SAMPLE_HTML = page.innerHTML;
-const SAMPLE_CATS = ["Classification & range", "Body", "Silk & webs", "Hunting & venom", "Myth & culture", "Web crawlers"];
+const SAMPLE_CATS = ["Reading & sources", "Keywords & topics", "Webs & views", "Study tools", "Citing & asking", "Code & privacy"];
 const MAX_CHARS = 600000;
 const MONO = '"JetBrains Mono", ui-monospace, Consolas, monospace', SERIF = '"Newsreader", Georgia, serif';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1724,7 +1912,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1767,7 +1955,10 @@ const AI_SERVICES = {
 };
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 // where people open the computer setup page (the website's /connect page)
-const SITE = ((window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.siteUrl) || "https://real-cak3d.github.io/CAK3D-Crawler/").replace(/\/?$/, "/");
+const SITE = ((window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.siteUrl) || "https://arachnotes.vercel.app/").replace(/\/?$/, "/");
+// the Arachnotes website: download, Issues and Ideas forum, privacy policy and terms
+const WEBSITE = ((window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.website) || "https://arachnotes-web.vercel.app/").replace(/\/?$/, "/");
+document.querySelectorAll("[data-site]").forEach(a => { a.href = WEBSITE + a.dataset.site; });
 // which service saved settings belong to (older saves only had provider and address)
 function serviceOf(st) {
   if (st.service && AI_SERVICES[st.service]) return st.service;
@@ -1939,8 +2130,10 @@ function buildSample() {
     const base = sents.length; sents.push(...parts); for (const _ of parts) sentPara.push(para);
     const keys = new Set();
     block.querySelectorAll("a[data-w]").forEach(el => {
-      el.href = BASE + el.dataset.w; el.target = "_blank"; el.rel = "noopener"; el.classList.add("kw");
+      el.href = BASE + el.dataset.w; el.target = "_blank"; el.rel = "noopener";
       const label = el.textContent.replace(/\s+/g, " ").trim(), key = label.toLowerCase();
+      // a keyword the spider catches once: later mentions are echoes of it, like in your own texts
+      el.classList.add(kw.has(key) ? "echo" : "kw");
       el.dataset.k = key;
       if (!kw.has(key)) kw.set(key, mkKw(key, label, +el.dataset.c));
       const k = kw.get(key); k.count++;
@@ -1950,8 +2143,25 @@ function buildSample() {
     });
     addCooc(kw, [...keys]);
   });
-  return { title: "Spider", mode: "sample", kw, sents, marks, sentPara, cite: "Sample article written for Arachnotes; keyword links go to Wikipedia",
+  return { title: "Arachnotes", mode: "sample", kw, sents, marks, sentPara, cite: "The Arachnotes guide; keyword links go to Wikipedia",
     cats: SAMPLE_CATS.map((name, i) => ({ name, color: i })), words: page.textContent.trim().split(/\s+/).length };
+}
+
+// a blank page: nothing to crawl yet, with ways to get started
+function buildBlank() {
+  page.innerHTML = `<h1>New page</h1><p class="from">A blank page · nothing to crawl yet</p>
+    <div class="blank-start">
+      <svg viewBox="0 0 200 120" aria-hidden="true" class="blank-web"><path d="M100 60 L100 4 M100 60 L156 22 M100 60 L172 78 M100 60 L120 116 M100 60 L48 108 M100 60 L28 50 M100 60 L62 10"/><path d="M100 40 L116 48 L120 66 L108 80 L88 78 L82 62 L88 46 Z M100 24 L132 38 L140 70 L114 98 L76 94 L64 58 L80 30 Z"/></svg>
+      <p>Give the spider something to read.</p>
+      <div class="tryit" role="group" aria-label="Get started">
+        <button type="button" class="btn primary" data-try="open">Open text, a file or a link</button>
+        <button type="button" class="btn" data-try="searchOpen">Search the web</button>
+        <button type="button" class="btn" data-try="guide">Open the guide</button>
+        <button type="button" class="btn" data-try="lib">My library</button>
+      </div>
+      <p class="meta">Choose what the app opens with in Settings → Research.</p>
+    </div>`;
+  return { title: "New page", mode: "blank", kw: new Map(), sents: [], marks: [], sentPara: [], cats: [], words: 0, cite: "" };
 }
 
 // ---- languages: common-word lists, detected automatically or chosen in Source
@@ -5501,11 +5711,13 @@ $("pickWrap").onclick = () => { const keys = [...WV.picks]; WV.picks.clear(); WV
 
 function jumpToSentence(i) {
   const want = s => s.replace(/\s+/g, " ").trim().toLowerCase().slice(0, 40);
-  const blocks = page.querySelectorAll("p, h2, li, td");
+  const blocks = page.querySelectorAll("p, h2, li, tr, td");
+  // a table row is read as "cell: cell", so match it the same way
+  const textOf = b => (b.tagName === "TR" ? [...b.cells].map(c => c.textContent).join(": ") : b.textContent).replace(/\s+/g, " ").toLowerCase();
   for (let d = 0; d < 4; d++) {
     const s = DOC.sents[i + d]; if (!s) continue;
     const w = want(s); if (w.length < 6) continue;
-    for (const b of blocks) if (b.textContent.replace(/\s+/g, " ").toLowerCase().includes(w)) {
+    for (const b of blocks) if (textOf(b).includes(w)) {
       if (WV.open) closeWeb(); for (const dl of document.querySelectorAll("dialog[open]")) dl.close();
       if (!findP.hidden && innerWidth < 700) closeFind(); // on a phone the Find panel covers the page you want to see
       setFollow(false); b.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
@@ -5981,16 +6193,21 @@ function renderCompare() {
       <p class="meta">Paste or open a second text. The crawler pulls its keywords the same way and shows which topics the two share and which belong to only one.</p>
       <label class="field"><span>Title</span><input type="text" id="cmpTitle" placeholder="e.g. Chapter 2"></label>
       <label class="field"><span>Text</span><textarea id="cmpText" placeholder="Paste the second text here…"></textarea></label>
-      <label class="field"><span>Or open a file</span><input type="file" id="cmpFile" accept=".txt,.md,.text,text/plain,text/markdown"></label>
+      <label class="field"><span>Or open a file (PDF, EPUB, Word, text and more)</span><input type="file" id="cmpFile"></label>
       <p class="err" id="cmpErr" hidden></p>
       <div><button class="btn primary" type="button" id="cmpGo">Compare</button></div></div>`;
-    $("cmpFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { $("cmpText").value = String(rd.result || "").slice(0, MAX_CHARS); if (!$("cmpTitle").value) $("cmpTitle").value = f.name.replace(/\.[^.]+$/, ""); }; rd.readAsText(f); };
+    $("cmpFile").onchange = async e => {
+      const f = e.target.files && e.target.files[0]; if (!f) return;
+      try { const got = await readingFromFile(f); $("cmpText").value = got.text.slice(0, MAX_CHARS); if (!$("cmpTitle").value) $("cmpTitle").value = got.title || f.name.replace(/\.[^.]+$/, ""); $("cmpErr").hidden = true; }
+      catch (ex) { $("cmpErr").textContent = fileError(ex, f); $("cmpErr").hidden = false; }
+    };
     $("cmpGo").onclick = () => {
       const raw = $("cmpText").value.trim();
       if (raw.split(/\s+/).length < 30) { $("cmpErr").textContent = "Paste at least a paragraph or two (30+ words)."; $("cmpErr").hidden = false; return; }
+      if (!webGate()) return;
       const c = buildCompare(raw.slice(0, MAX_CHARS), $("cmpTitle").value.trim());
       if (!c) { $("cmpErr").textContent = "No repeated keywords were found in that text. Try a longer passage."; $("cmpErr").hidden = false; return; }
-      DOC.compare = c; renderCompare();
+      DOC.compare = c; webSpend(); renderCompare();
     };
     return;
   }
@@ -6296,7 +6513,11 @@ $("fAsk").addEventListener("submit", async e => {
   const terms = [...new Set((q.toLowerCase().match(/\p{L}[\p{L}'’-]{2,}/gu) || []).filter(w => !STOP.has(w) && !QSTOP.has(w) && !(STOPS[DOC.lang] || STOP).has(w)))];
   if (!terms.length) { err.textContent = "Ask about something specific, like a name, a place or an idea from the text."; err.hidden = false; return; }
   for (const w of terms) bump(w, 2);
-  $("focus").value = terms.join(" "); applyFocus(); wake();
+  // the question becomes the crawl's focus, unless nothing in the text is about it: then the crawl carries on as it was
+  const prevFocus = $("focus").value;
+  $("focus").value = terms.join(" "); applyFocus();
+  if (![...DOC.kw.values()].some(k => k.rel > 0)) { $("focus").value = prevFocus; applyFocus(); }
+  wake();
   const si = rankPassages(terms);
   const entry = { q, a: "", si };
   showAsk(entry);
@@ -6391,7 +6612,7 @@ function captureState(name) {
 function restoreState(st, raw, craw, id) {
   cfg.sort = st.sort || cfg.sort; cfg.topics = st.topics || ""; cfg.k = st.k || cfg.k; saveCfg(); syncSettings();
   $("focus").value = st.focus || "";
-  const d = st.mode === "sample" ? buildSample() : buildText(raw, st.docTitle || st.title, cfg.k, st.lang);
+  const d = st.mode === "sample" ? buildSample() : st.mode === "blank" ? buildBlank() : buildText(raw, st.docTitle || st.title, cfg.k, st.lang);
   if (!d) throw { code: "broken" };
   d.libId = id; d.asks = st.asks || []; if (st.cite) d.cite = st.cite;
   if (st.sources && st.sources.length) d.sources = st.sources;
@@ -6837,7 +7058,7 @@ $("weaveIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preve
 // a backup: everything this device keeps for the app except AI keys and purchases (those come back from Google Play)
 $("backupMake").onclick = () => {
   const data = {};
-  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix"].includes(k)) data[k] = localStorage.getItem(k);
+  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix", "cak3d-resume"].includes(k)) data[k] = localStorage.getItem(k);
   saveFile(`arachnotes-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "arachnotes", backup: 1, at: Date.now(), data }));
   $("backupMsg").textContent = `Backed up ${plural(Object.keys(data).filter(k => /^cak3d-lib-/.test(k)).length, "saved crawl")} and your settings.`;
 };
@@ -6847,8 +7068,10 @@ $("backupIn").addEventListener("change", async e => {
     const j = JSON.parse(await file.text());
     if (!["arachnotes", "cak3d-crawler"].includes(j.app) || !j.backup || !j.data) throw new Error("bad");
     // crawls merge into this device's library; settings come from the backup
+    if (!webGate()) return;
     const lib = (store.get("cak3d-lib") || []), theirs = JSON.parse(j.data["cak3d-lib"] || "[]");
     for (const [k, v] of Object.entries(j.data)) if (k !== "cak3d-lib") localStorage.setItem(k, v);
+    webSpend();
     const ids = new Set(lib.map(m => m.id)); store.set("cak3d-lib", lib.concat(theirs.filter(m => !ids.has(m.id))));
     $("backupMsg").textContent = "Restored. Reloading…";
     setTimeout(() => location.reload(), 600);
@@ -6868,7 +7091,7 @@ $("crawlImport").addEventListener("change", async e => {
 function importCrawl(j, who) {
     if (!["arachnotes", "cak3d-crawler"].includes(j.app) || !j.state) throw new Error("bad");
     const same = j.state.docTitle === DOC.title && j.state.words === DOC.words;
-    if (!same) { restoreState(j.state, j.raw, j.craw, null); return `Opened “${j.state.title}”${who && who !== "someone" ? " from " + who : ""}. Save it to your library to keep it.`; }
+    if (!same) { if (!webGate()) return ""; restoreState(j.state, j.raw, j.craw, null); webSpend(); return `Opened “${j.state.title}”${who && who !== "someone" ? " from " + who : ""}. Save it to your library to keep it.`; }
     DOC.extNotes = DOC.extNotes || [];
     let nNotes = 0, nSacs = 0;
     for (const [kind, map] of Object.entries(j.state.notes || {})) for (const [target, text] of Object.entries(map)) {
@@ -7167,7 +7390,7 @@ const HELP = [
   ["Code reader", "#cdCanvas", "Code map", "The whole project as a spider web: each section is a file or a kind of thing, each cell a function, class or variable. Tap one to see what it does, what it calls, what calls it, and what it reads and changes."],
   ["Code reader", "#cdSrc", "The code", "The source with line numbers. Tap any name to see what it is and light up every place it's used."],
   ["Code reader", "#cdDocs", "Explained", "Every function, class and variable in plain words, with where it's used. Search it, or save it as notes."],
-  ["Code reader", "#cdOpen", "Open code", "Paste code, pick files or a .zip of a whole project, or open a GitHub link. Works with JavaScript, TypeScript, Python, Java, C, C++, C#, Go, Rust, Kotlin, Scala, Swift, Dart, PHP, Ruby, Lua, HTML and shell scripts."],
+  ["Code reader", "#cdOpen", "Open code", "Paste code, pick files or a .zip of a whole project, or open a GitHub link. Works with JavaScript, TypeScript, Python, Java, C, C++, C#, Go, Rust, Kotlin, Scala, Swift, Dart, PHP, Ruby, Lua, HTML, shell scripts and Jupyter notebooks, and reads close relatives like Elixir, PowerShell, Solidity and Zig with the nearest language's rules."],
   ["Toolbar", "#bSettings", "Settings", "The spider's look and moves, the theme, live stats, your AI, the store, your support ID and Report an issue."],
   ["Toolbar", "#bHelp", "Help", "This panel. Point at anything shows what any part of the screen is."],
   ["Toolbar", "#bHideBar", "Hide", "Hides the toolbar for more room to read. The Toolbar tab in the top corner, or H, brings it back."],
@@ -7237,7 +7460,8 @@ function renderFaq() { $("helpFaq").innerHTML = `<dl class="hw-list faq">${FAQ.m
 function renderAbout() {
   $("helpAbout").innerHTML = `<p><b>${esc(APP.name)}</b> ${esc(APP.version)}. ${esc(APP.tagline)}</p>
     <p class="meta">Your support ID: <b class="mono">${esc(supportId())}</b> (also in Settings → Help &amp; support).</p>
-    <p class="meta">${esc(APP.legal)}${window.CRAWLER_CONFIG ? ' · <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>' : ""}</p>`;
+    <p class="meta">${esc(APP.legal)}</p>
+    <p class="meta"><a href="${WEBSITE}" target="_blank" rel="noopener">Website</a> · <a href="${WEBSITE}issues" target="_blank" rel="noopener">Issues</a> · <a href="${WEBSITE}ideas" target="_blank" rel="noopener">Ideas</a> · <a href="${WEBSITE}privacy" target="_blank" rel="noopener">Privacy policy</a> · <a href="${WEBSITE}terms" target="_blank" rel="noopener">Terms</a></p>`;
 }
 // ---- point at anything
 let explaining = false;
@@ -7422,7 +7646,10 @@ const CodeParse = (() => {
     py: "py", pyw: "py", rb: "rb", sh: "sh", bash: "sh", zsh: "sh",
     java: "java", kt: "kt", kts: "kt", scala: "scala", groovy: "java", dart: "dart",
     c: "c", h: "c", cpp: "c", cc: "c", cxx: "c", hpp: "c", hh: "c", cs: "cs", go: "go", rs: "rs", swift: "swift", php: "php", m: "c",
-    html: "html", htm: "html", lua: "lua"
+    html: "html", htm: "html", lua: "lua",
+    // close relatives, read with the nearest language's rules
+    pyi: "py", ipynb: "py", gradle: "java", astro: "html", ejs: "html", hbs: "html", xhtml: "html", ex: "rb", exs: "rb", cr: "rb", rake: "rb", gemspec: "rb",
+    ps1: "sh", psm1: "sh", fish: "sh", ksh: "sh", sol: "js", zig: "rs", d: "c", mm: "c", ino: "c", cu: "c", cuh: "c", hxx: "c"
   };
   const LANG_NAME = { js: "JavaScript", py: "Python", rb: "Ruby", sh: "Shell", java: "Java", kt: "Kotlin", scala: "Scala", dart: "Dart", c: "C/C++", cs: "C#", go: "Go", rs: "Rust", swift: "Swift", php: "PHP", html: "HTML", lua: "Lua" };
   const langOf = (name, text) => {
@@ -7950,7 +8177,17 @@ const KIND_LABEL = { function: "function", method: "method", class: "class", typ
 const codeColor = i => C.cats[i % 8];
 // the parts worth listing: top level and class members, not every local inside a function
 const mainPart = s => !s.parent || ["class", "type", "module"].includes(s.parent.kind);
+// a Jupyter notebook becomes its code cells, with its text cells as comments
+function notebookToCode(f) {
+  try {
+    const j = JSON.parse(f.text), lang = ((j.metadata && (j.metadata.kernelspec || j.metadata.language_info)) || {}).language || "python";
+    const src = c => Array.isArray(c.source) ? c.source.join("") : String(c.source || "");
+    const text = (j.cells || []).map(c => c.cell_type === "code" ? src(c) : src(c).split("\n").map(l => "# " + l).join("\n")).join("\n\n");
+    return { name: f.name.replace(/\.ipynb$/i, /^py/i.test(lang) ? ".py" : /^(r)$/i.test(lang) ? ".r.py" : ".py"), text };
+  } catch (e) { return null; }
+}
 function codeLoad(inputs, label) {
+  inputs = inputs.map(x => x && /\.ipynb$/i.test(x.name) ? notebookToCode(x) : x);
   const files = inputs.filter(f => f && typeof f.text === "string" && f.text.length && !/\u0000/.test(f.text.slice(0, 2000)));
   if (!files.length) { toast("There's no code in that to read."); return false; }
   CODE.inputs = files; CODE.label = label || (files.length === 1 ? files[0].name : `${files.length} files`);
@@ -8124,10 +8361,11 @@ function codeRender() {
   codeTrail(); codeSide(); codeTab(CODE.tab);
 }
 // ---- getting code in: paste, files, a .zip of a project, or a GitHub link
-const CODE_EXT = /\.(js|mjs|cjs|jsx|ts|tsx|mts|cts|vue|svelte|py|pyw|rb|sh|bash|zsh|java|kt|kts|scala|groovy|dart|c|h|cpp|cc|cxx|hpp|hh|cs|go|rs|swift|php|m|html?|lua)$/i;
+const CODE_EXT = /\.(js|mjs|cjs|jsx|ts|tsx|mts|cts|vue|svelte|astro|ejs|hbs|py|pyw|pyi|ipynb|rb|rake|gemspec|ex|exs|cr|sh|bash|zsh|fish|ksh|ps1|psm1|java|gradle|kt|kts|scala|groovy|dart|c|h|cpp|cc|cxx|hpp|hh|hxx|mm|ino|cu|cuh|d|cs|go|rs|zig|swift|php|m|sol|html?|xhtml|lua)$/i;
 const CODE_SKIP = /(^|\/)(node_modules|\.git|dist|build|out|vendor|bower_components|\.next|\.nuxt|target|bin|obj|__pycache__|\.venv|venv|coverage|Pods)\//;
 const CODE_LIMIT = { files: 400, bytes: 8 * 1024 * 1024, one: 2 * 1024 * 1024 };
 async function codeFromFiles(list) {
+  if (!webGate()) return;
   const files = [], skipped = []; let bytes = 0;
   for (const file of list) {
     if (/\.zip$/i.test(file.name)) { await codeFromZip(file); return; }
@@ -8137,7 +8375,7 @@ async function codeFromFiles(list) {
   }
   if (!files.length) { toast(skipped.length ? "Those don't look like code files. Try .js, .py, .java, .cs, .go and so on, or a .zip of a project." : "No files picked."); return; }
   CODE.example = false;
-  if (codeLoad(files)) toast(`Read ${plural(files.length, "file")}${skipped.length ? `, skipped ${skipped.length} that aren't code or are too big` : ""}.`);
+  if (codeLoad(files)) webSpend(), toast(`Read ${plural(files.length, "file")}${skipped.length ? `, skipped ${skipped.length} that aren't code or are too big` : ""}.`);
 }
 async function codeFromZip(file) {
   try {
@@ -8151,11 +8389,12 @@ async function codeFromZip(file) {
     }
     if (!files.length) { toast("That .zip doesn't have any code files in it."); return; }
     CODE.example = false;
-    if (codeLoad(files, file.name.replace(/\.zip$/i, ""))) toast(`Read ${plural(files.length, "file")} from ${file.name}${entries.length > files.length ? ` (the first ${files.length} of ${entries.length})` : ""}.`);
+    if (codeLoad(files, file.name.replace(/\.zip$/i, ""))) webSpend(), toast(`Read ${plural(files.length, "file")} from ${file.name}${entries.length > files.length ? ` (the first ${files.length} of ${entries.length})` : ""}.`);
   } catch (e) { toast("Couldn't open that .zip. Is it a complete download?"); }
 }
-async function codeFromGitHub(url) {
+async function codeFromGitHub(url, demo) {
   const note = $("cdGitNote"), say = t => { note.textContent = t; };
+  if (!demo && !webGate()) { $("dCodeGit").close(); return; }
   const m = /github\.com\/([^/\s]+)\/([^/\s#?]+)(?:\/(tree|blob)\/([^/\s]+)\/?([^\s#?]*))?/i.exec(url.trim());
   if (!m) { say("That isn't a GitHub link. It should look like github.com/owner/project."); return; }
   const [, owner, repo0, kind, branch0, path = ""] = m, repo = repo0.replace(/\.git$/, "");
@@ -8163,7 +8402,7 @@ async function codeFromGitHub(url) {
     if (kind === "blob") { // one file
       say("Getting the file…");
       const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch0}/${path}`); if (!r.ok) throw new Error(r.status);
-      CODE.example = false; if (codeLoad([{ name: path.split("/").pop(), text: await r.text() }])) { $("dCodeGit").close(); } return;
+      CODE.example = false; if (codeLoad([{ name: path.split("/").pop(), text: await r.text() }])) { if (!demo) webSpend(); $("dCodeGit").close(); } return;
     }
     say("Looking at the project…");
     let branch = branch0;
@@ -8178,7 +8417,7 @@ async function codeFromGitHub(url) {
     await Promise.all(Array.from({ length: 6 }, async () => { while (queue.length) { const e = queue.shift(); try { const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${e.path}`); if (r.ok) files.push({ name: e.path, text: await r.text() }); } catch (err) { /* skip it */ } say(`Reading files… ${++done} of ${want.length}`); } }));
     files.sort((a, b) => a.name.localeCompare(b.name));
     CODE.example = false;
-    if (codeLoad(files, `${owner}/${repo}`)) { $("dCodeGit").close(); toast(`Read ${plural(files.length, "file")} from ${owner}/${repo}${want.length >= 150 ? " (the first 150)" : ""}.`); }
+    if (codeLoad(files, `${owner}/${repo}`)) { if (!demo) webSpend(); $("dCodeGit").close(); toast(`Read ${plural(files.length, "file")} from ${owner}/${repo}${want.length >= 150 ? " (the first 150)" : ""}.`); }
   } catch (e) {
     say(String(e.message) === "missing" ? "Couldn't find that project. Is it public, and is the name right?" : String(e.message) === "403" ? "GitHub says to slow down (it allows 60 project looks an hour without a login). Try again later, or download the project as a .zip and open that." : IN_CLAUDE ? "This version can't reach GitHub. Open the web or Android app, or download the project as a .zip." : "Couldn't reach GitHub. Check your connection, or download the project as a .zip and open that.");
   }
@@ -8231,8 +8470,9 @@ $("cdPasteGo").onclick = () => {
   const text = $("cdPasteText").value; if (!text.trim()) { $("cdPasteText").focus(); return; }
   let name = $("cdPasteName").value.trim();
   if (!name) { const lang = CodeParse.langOf("", text); name = "pasted." + ({ js: "js", py: "py", rb: "rb", sh: "sh", java: "java", kt: "kt", c: "c", cs: "cs", go: "go", rs: "rs", swift: "swift", php: "php" }[lang] || "js"); }
+  if (!webGate()) { $("dCodePaste").close(); return; }
   CODE.example = false;
-  if (codeLoad([{ name, text }], name)) $("dCodePaste").close();
+  if (codeLoad([{ name, text }], name)) { webSpend(); $("dCodePaste").close(); }
 };
 $("cdFiles").addEventListener("change", async e => { const list = [...e.target.files]; e.target.value = ""; if (list.length) await codeFromFiles(list); });
 $("cdGitBtn").onclick = () => { $("cdGitNote").textContent = "A whole project (github.com/owner/project), a folder in it, or one file."; $("dCodeGit").showModal(); $("cdGitUrl").focus(); };
@@ -8512,7 +8752,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
-  ["cfgCiteStyle", "citeStyle", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
+  ["cfgCiteStyle", "citeStyle", String], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
   ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgPurpose", "purpose", String], ["cfgBored", "bored", String], ["cfgDetach", "detach", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
@@ -8861,6 +9101,150 @@ async function pdfToText(buf, onProgress) {
   } finally { if (ocr) ocr.terminate(); }
   return { title: info.Title || "", author: info.Author || "", text: out.join("\n\n"), pages: pdf.numPages, ocrPages };
 }
+// ---- more kinds of files, turned into reading text: Word, PowerPoint, Excel and OpenDocument (all .zip inside),
+// RTF, saved web pages, subtitles, Jupyter notebooks, CSV/TSV, JSON, XML, LaTeX, and anything else that's plain text
+const NS_DC = "http://purl.org/dc/elements/1.1/";
+const xmlDoc = t => new DOMParser().parseFromString(t, "application/xml");
+const tagsNS = (d, ns, n) => [...d.getElementsByTagNameNS(ns, n)];
+const byNum = (a, b) => +(a.match(/(\d+)\.xml$/) || [0, 0])[1] - +(b.match(/(\d+)\.xml$/) || [0, 0])[1];
+// a table as sentences: with a header row, "Name: Ada; Born: 1815." per row; without, the cells in order
+function tableText(rows) {
+  rows = rows.filter(r => r.some(c => String(c).trim()));
+  if (!rows.length) return "";
+  const head = rows[0], hasHead = rows.length > 1 && head.every(c => c && isNaN(+c));
+  const line = r => (hasHead ? r.map((c, i) => c === "" ? "" : `${head[i] || "Column " + (i + 1)}: ${c}`).filter(Boolean).join("; ") : r.filter(Boolean).join(", ")).replace(/[.;,]?$/, ".");
+  return (hasHead ? rows.slice(1) : rows).map(line).join("\n\n");
+}
+function parseCsv(t, sep) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; continue; }
+    if (c === '"') q = true; else if (c === sep) { row.push(cell.trim()); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && t[i + 1] === "\n") i++; row.push(cell.trim()); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell.trim()); rows.push(row); }
+  return rows;
+}
+async function officeToText(buf, ext) {
+  const JSZip = await getJSZip(), zip = await JSZip.loadAsync(buf);
+  const read = p => { const z = zip.file(p); return z ? z.async("text") : Promise.resolve(""); };
+  const files = Object.keys(zip.files), out = [];
+  const meta = xmlDoc(await read(/^(docx|pptx|xlsx)$/.test(ext) ? "docProps/core.xml" : "meta.xml") || "<x/>");
+  const title = (tagsNS(meta, NS_DC, "title")[0] || {}).textContent || "";
+  const author = (tagsNS(meta, NS_DC, "creator")[0] || tagsNS(meta, "urn:oasis:names:tc:opendocument:xmlns:meta:1.0", "initial-creator")[0] || {}).textContent || "";
+  if (ext === "docx") {
+    const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main", d = xmlDoc(await read("word/document.xml"));
+    for (const p of tagsNS(d, W, "p")) {
+      if (p.parentNode && p.parentNode.closest && p.parentNode.closest("txbxContent")) continue;
+      let t = ""; for (const n of tagsNS(p, W, "*")) { if (n.localName === "t") t += n.textContent; else if (n.localName === "tab") t += " "; else if (n.localName === "br") t += " "; }
+      t = t.replace(/\s+/g, " ").trim(); if (t) out.push(t);
+    }
+  } else if (ext === "pptx") {
+    const A = "http://schemas.openxmlformats.org/drawingml/2006/main";
+    for (const n of files.filter(x => /^ppt\/slides\/slide\d+\.xml$/.test(x)).sort(byNum)) {
+      const d = xmlDoc(await read(n));
+      for (const p of tagsNS(d, A, "p")) { const t = tagsNS(p, A, "t").map(x => x.textContent).join("").replace(/\s+/g, " ").trim(); if (t) out.push(t); }
+    }
+  } else if (ext === "xlsx") {
+    const S = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+    const ss = tagsNS(xmlDoc(await read("xl/sharedStrings.xml") || "<x/>"), S, "si").map(si => tagsNS(si, S, "t").map(t => t.textContent).join(""));
+    for (const n of files.filter(x => /^xl\/worksheets\/sheet\d+\.xml$/.test(x)).sort(byNum)) {
+      const rows = tagsNS(xmlDoc(await read(n)), S, "row").map(r => tagsNS(r, S, "c").map(c => {
+        const v = (tagsNS(c, S, "v")[0] || {}).textContent, ty = c.getAttribute("t");
+        return String(ty === "s" ? ss[+v] || "" : ty === "inlineStr" ? tagsNS(c, S, "t").map(t => t.textContent).join("") : v == null ? "" : v).trim();
+      }));
+      const t = tableText(rows); if (t) out.push(t);
+    }
+  } else { // OpenDocument text, slides and spreadsheets
+    const T = "urn:oasis:names:tc:opendocument:xmlns:text:1.0", TB = "urn:oasis:names:tc:opendocument:xmlns:table:1.0", d = xmlDoc(await read("content.xml"));
+    if (ext === "ods") {
+      for (const tb of tagsNS(d, TB, "table")) { const t = tableText(tagsNS(tb, TB, "table-row").map(r => tagsNS(r, TB, "table-cell").map(c => c.textContent.trim()))); if (t) out.push(t); }
+    } else for (const n of tagsNS(d, T, "*")) if ((n.localName === "p" || n.localName === "h") && !(n.parentNode && n.parentNode.namespaceURI === T && n.parentNode.localName === "p")) { const t = n.textContent.replace(/\s+/g, " ").trim(); if (t) out.push(t); }
+  }
+  return { title, author, text: out.join("\n\n") };
+}
+function rtfToText(src) {
+  // skip the font, color, style and info tables, and anything marked ignorable
+  let s = "", i = 0;
+  while (i < src.length) {
+    if (src[i] === "{" && /^\{\\(\*|fonttbl|colortbl|stylesheet|info|pict|header|footer)/.test(src.slice(i, i + 14))) {
+      let depth = 0; for (; i < src.length; i++) { if (src[i] === "\\") { i++; continue; } if (src[i] === "{") depth++; else if (src[i] === "}" && --depth === 0) { i++; break; } }
+      continue;
+    }
+    s += src[i++];
+  }
+  return s.replace(/\\par[d]?\b ?|\\line\b ?/g, "\n").replace(/\\tab\b ?/g, " ")
+    .replace(/\\'([0-9a-f]{2})/gi, (m, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/\\u(-?\d+)\??/g, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
+    .replace(/\\([{}\\])/g, "$1").replace(/\\[a-z]+-?\d* ?/gi, "").replace(/[{}]/g, "")
+    .split(/\n/).map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n\n");
+}
+function htmlToText(t) {
+  const d = new DOMParser().parseFromString(t, "text/html");
+  d.querySelectorAll("script, style, noscript, nav, header, footer, aside, form, svg, iframe").forEach(e => e.remove());
+  const root = d.querySelector("article, main, [role=main]") || d.body || d.documentElement, parts = [];
+  root.querySelectorAll("h1, h2, h3, h4, p, li, blockquote, dt, dd, figcaption, td").forEach(e => { if (e.querySelector("p, li")) return; const x = e.textContent.replace(/\s+/g, " ").trim(); if (x) parts.push(x); });
+  const title = (d.querySelector("title") || {}).textContent || "", author = ((d.querySelector('meta[name="author"]') || {}).content) || "";
+  return { title: title.trim(), author, text: (parts.length ? parts : [root.textContent.replace(/\s+/g, " ").trim()]).join("\n\n") };
+}
+function subsToText(t) {
+  // cues without their numbers, times and styling, grouped into paragraphs of a few lines
+  const lines = t.replace(/\r/g, "").split("\n").map(l => l.trim()).filter(l => l && !/^\d+$/.test(l) && !/-->|^\d+:\d+:\d+[.,]\d+,\d+:\d+/.test(l) && !/^(WEBVTT|NOTE|STYLE|REGION)\b/.test(l)).map(l => l.replace(/<[^>]+>|\{[^}]+\}/g, "").trim()).filter(Boolean);
+  const paras = []; for (let i = 0; i < lines.length; i += 8) paras.push(lines.slice(i, i + 8).join(" "));
+  return { text: paras.join("\n\n") };
+}
+function notebookToText(t) {
+  const j = JSON.parse(t), cells = j.cells || (j.worksheets && j.worksheets[0] && j.worksheets[0].cells) || [];
+  const src = c => Array.isArray(c.source) ? c.source.join("") : Array.isArray(c.input) ? c.input.join("") : String(c.source || "");
+  const md = cells.filter(c => c.cell_type === "markdown").map(src);
+  const text = (md.length ? md : cells.map(src)).join("\n\n").replace(/^#+\s*/gm, "");
+  const h = (md.join("\n").match(/^#\s+(.+)$/m) || [])[1] || "";
+  return { title: h.trim(), text };
+}
+function jsonToText(t, lines) {
+  const out = [], walk = (v, key) => {
+    if (typeof v === "string") { if (v.trim().length > 1) out.push(key && isNaN(+key) ? `${key}: ${v.trim()}` : v.trim()); }
+    else if (Array.isArray(v)) v.forEach(x => walk(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walk(x, k);
+  };
+  if (lines) t.split("\n").forEach(l => { try { walk(JSON.parse(l), ""); } catch (e) { /* skip */ } }); else walk(JSON.parse(t), "");
+  return { text: out.map(x => /[.!?]$/.test(x) ? x : x + ".").join("\n\n") };
+}
+function texToText(t) {
+  const title = (/\\title\{([^}]*)\}/.exec(t) || [])[1] || "", author = (/\\author\{([^}]*)\}/.exec(t) || [])[1] || "";
+  const body = t.replace(/(^|[^\\])%.*$/gm, "$1").replace(/\\(sub)*section\*?\{([^}]*)\}/g, "\n\n$2\n\n").replace(/\\(begin|end)\{[^}]*\}/g, "\n")
+    .replace(/\\(emph|textbf|textit|underline|text)\{([^}]*)\}/g, "$2").replace(/\\cite\{[^}]*\}/g, "").replace(/\$[^$]*\$/g, "").replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?(\{[^}]*\})?/g, "").replace(/[{}]/g, "");
+  return { title, author, text: body.split(/\n{2,}/).map(p => p.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n\n") };
+}
+// any file to { title, author, year, text, pages?, note? }
+async function readingFromFile(f, onProgress) {
+  const ext = ((f.name.match(/\.([^.]+)$/) || [])[1] || "").toLowerCase();
+  if (/^(doc|ppt|xls|pps|dot)$/.test(ext)) throw new Error("olddoc");
+  if (/^(pages|key|numbers)$/.test(ext)) throw new Error("apple");
+  if (/^(heic|heif)$/.test(ext)) throw new Error("heic");
+  let got;
+  if (ext === "pdf") got = await pdfToText(await f.arrayBuffer(), onProgress);
+  else if (ext === "epub") got = await epubToText(await f.arrayBuffer());
+  else if (/^(docx|pptx|xlsx|odt|odp|ods)$/.test(ext)) got = await officeToText(await f.arrayBuffer(), ext), got.note = { docx: "a Word document", pptx: "slides, in order", xlsx: "each row as a sentence", odt: "an OpenDocument text", odp: "slides, in order", ods: "each row as a sentence" }[ext];
+  else {
+    const t = await f.text();
+    if (/\u0000/.test(t.slice(0, 4000))) throw new Error("binary");
+    if (ext === "rtf" || /^\{\\rtf/.test(t)) got = { text: rtfToText(t) };
+    else if (/^(html?|xhtml|mhtml?)$/.test(ext)) got = Object.assign(htmlToText(t), { note: "a saved web page" });
+    else if (/^(srt|vtt|sbv|sub)$/.test(ext)) got = Object.assign(subsToText(t), { note: "subtitles, without their times" });
+    else if (ext === "ipynb") got = Object.assign(notebookToText(t), { note: "the notebook's text cells" });
+    else if (ext === "json" || ext === "jsonl" || ext === "geojson") got = Object.assign(jsonToText(t, ext === "jsonl"), { note: "the text values in it" });
+    else if (ext === "csv" || ext === "tsv") got = { text: tableText(parseCsv(t, ext === "tsv" ? "\t" : (t.split("\n")[0].split(";").length > t.split("\n")[0].split(",").length ? ";" : ","))), note: "each row as a sentence" };
+    else if (ext === "xml" || ext === "opml" || ext === "rss" || ext === "atom") { const d = xmlDoc(t); got = { text: [...d.querySelectorAll("*")].filter(e => !e.children.length).map(e => e.textContent.replace(/\s+/g, " ").trim()).filter(x => x.length > 2).join("\n\n") }; }
+    else if (ext === "tex" || ext === "latex") got = texToText(t);
+    else if (CODE_EXT.test(f.name)) got = { text: t, note: "code read as text. For a map of the code, use Pages → Read code" };
+    else got = { text: t };
+  }
+  if (!got || !String(got.text || "").trim()) throw new Error(ext === "pdf" ? "scanned" : "empty");
+  return got;
+}
 async function epubToText(buf) {
   const JSZip = await getJSZip(), zip = await JSZip.loadAsync(buf);
   const read = p => { const f = zip.file(p); return f ? f.async("text") : Promise.resolve(""); };
@@ -8896,16 +9280,14 @@ $("srcFile").addEventListener("change", async e => {
       $("srcInfo").textContent = `Read the text from ${f.name}${cur ? " and added it below what was already here" : ""}. Open more photos to add more pages.`;
       srcMsg(""); return;
     }
-    if (ext === "pdf" || ext === "epub") {
+    if (ext !== "txt" && ext !== "text") {
       srcMsg(`Reading ${f.name}…`, true);
-      const buf = await f.arrayBuffer();
-      const got = ext === "pdf" ? await pdfToText(buf, (p, n, extra) => srcMsg(`Reading ${f.name}: page ${p} of ${n}${extra ? " (" + extra + ")" : ""}…`, true)) : await epubToText(buf);
-      if (!got.text.trim()) throw new Error(ext === "pdf" ? "scanned" : "empty");
+      const got = await readingFromFile(f, (p, n, extra) => srcMsg(`Reading ${f.name}: page ${p} of ${n}${extra ? " (" + extra + ")" : ""}…`, true));
       $("srcText").value = got.text.slice(0, MAX_CHARS);
       if (!$("srcTitle").value) $("srcTitle").value = got.title || name;
       if (!$("srcAuthor").value && got.author) $("srcAuthor").value = got.author;
       if (!$("srcYear").value && got.year) $("srcYear").value = got.year;
-      $("srcInfo").textContent = `Loaded ${f.name}${got.pages ? `: ${got.pages} pages${got.ocrPages ? `, ${got.ocrPages} of them read from scans` : ""}, and citations will show page numbers` : ""}.${got.text.length > MAX_CHARS ? ` Only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : ""}`;
+      $("srcInfo").textContent = `Loaded ${f.name}${got.pages ? `: ${got.pages} pages${got.ocrPages ? `, ${got.ocrPages} of them read from scans` : ""}, and citations will show page numbers` : got.note ? ": " + got.note : ""}.${got.text.length > MAX_CHARS ? ` Only the first ${MAX_CHARS.toLocaleString()} characters will be crawled.` : ""}`;
       srcMsg(""); return;
     }
     const t = await f.text();
@@ -8913,16 +9295,101 @@ $("srcFile").addEventListener("change", async e => {
     $("srcText").value = t.slice(0, MAX_CHARS);
     if (!$("srcTitle").value) $("srcTitle").value = name;
     srcMsg("");
-  } catch (ex) {
-    srcMsg(ex && ex.message === "scanned" ? "No text could be read from that PDF, even with text recognition. Try a clearer scan."
-      : ex && ex.message === "noimagetext" ? "No text could be read from that picture. Try a sharper, well-lit photo of the page."
-      : ex && ex.message === "load" ? (IN_CLAUDE ? "Inside claude.ai the PDF, EPUB and text-recognition readers can't always load. The web and Android versions include them." : "Couldn't load the file reader. Check your connection and try again.")
-      : IN_CLAUDE && /\.(png|jpe?g|webp|pdf)$/i.test(f.name) ? "Text recognition for scans and photos needs the web or Android version; claude.ai blocks the files it downloads."
-      : "That file couldn't be read. Try a PDF, EPUB or plain-text file.");
-  }
+  } catch (ex) { srcMsg(fileError(ex, f)); }
 });
+function fileError(ex, f) {
+  const m = ex && ex.message;
+  return m === "scanned" ? "No text could be read from that PDF, even with text recognition. Try a clearer scan."
+    : m === "noimagetext" ? "No text could be read from that picture. Try a sharper, well-lit photo of the page."
+    : m === "empty" ? "There's no readable text in that file."
+    : m === "olddoc" ? "That's an older Office file (.doc, .ppt or .xls), which can't be read here. Save it as .docx, .pptx, .xlsx or PDF and open that."
+    : m === "apple" ? "Pages, Keynote and Numbers files can't be read here. Export it as PDF or Word and open that."
+    : m === "heic" ? "HEIC photos can't be read here. Take the photo as JPEG, or share it as a JPEG, and open that."
+    : m === "binary" ? "That file isn't text Arachnotes can read. Try a PDF, EPUB, Word document or plain-text file."
+    : m === "load" ? (IN_CLAUDE ? "Inside claude.ai the PDF, EPUB and text-recognition readers can't always load. The web and Android versions include them." : "Couldn't load the file reader. Check your connection and try again.")
+    : IN_CLAUDE && /\.(png|jpe?g|webp|pdf)$/i.test(f.name) ? "Text recognition for scans and photos needs the web or Android version; claude.ai blocks the files it downloads."
+    : "That file couldn't be read. Try a PDF, EPUB, Word or plain-text file.";
+}
+// the guide's "try it" buttons, and the blank page's
+page.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-try]"); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const t = b.dataset.try, openSrc = mode => { $("bSource").click(); $(mode).checked = true; syncSrcMode(); };
+  if (t === "wiki" || t === "page") {
+    // fixed examples from the guide: free in the browser version too
+    openSrc("srcUrlR"); clearSourceInputs();
+    $("srcUrl").value = t === "wiki" ? "https://en.wikipedia.org/wiki/Orb-weaver_spider" : "https://www.gutenberg.org/files/1887/1887-h/1887-h.htm";
+    SRC.demo = true; $("fSource").requestSubmit();
+  } else if (t === "search") { openSrc("srcSearchR"); $("webQ").value = "spider silk"; $("webGo").click(); }
+  else if (t === "searchOpen") { openSrc("srcSearchR"); $("webQ").focus(); }
+  else if (t === "open") { $("bSource").click(); }
+  else if (t === "guide") { $("srcSample").checked = true; loadDoc(buildSample()); }
+  else if (t === "lib") openLib();
+  else if (t === "code") { openCode(); $("cdGitUrl").value = "https://github.com/expressjs/express/tree/master/lib"; $("cdGitNote").textContent = ""; $("dCodeGit").showModal(); codeFromGitHub($("cdGitUrl").value, true); }
+  else if (t === "codeSample") { openCode(); $("cdExample").click(); }
+}, true);
+
 // ---- loading a web page by link (web and Android versions; claude.ai blocks other sites)
 const IN_CLAUDE = !!window.claude;
+// The free browser version lets each browser crawl a set number of its own uploads (texts, files, links, searches, crawl files,
+// weave codes, backups and code projects). The guide, its fixed examples, the built-in code example and the library don't count.
+// The count is kept three ways (local storage, IndexedDB and a cookie) and the highest wins, so clearing one doesn't reset it.
+// The Android app and claude.ai have no limit.
+const WEBQ = { used: 0 };
+function webCap() {
+  const n = Math.floor(+(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.webUploads) || 0);
+  if (n <= 0 || IN_CLAUDE || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return 0;
+  return n;
+}
+function wqCookie() { const m = /(?:^|;\s*)an_wu=(\d+)/.exec(document.cookie || ""); return m ? +m[1] : 0; }
+function wqLocal() { try { return +(localStorage.getItem("an-wu") || 0) || 0; } catch (e) { return 0; } }
+function wqIdb(set) {
+  return new Promise(res => {
+    try {
+      const rq = indexedDB.open("arachnotes-meta", 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore("kv");
+      rq.onerror = () => res(0);
+      rq.onsuccess = () => {
+        const db = rq.result, tx = db.transaction("kv", "readwrite"), st = tx.objectStore("kv");
+        if (set != null) st.put(set, "wu");
+        const g = st.get("wu"); g.onsuccess = () => res(+g.result || 0); g.onerror = () => res(0);
+        tx.oncomplete = () => db.close();
+      };
+    } catch (e) { res(0); }
+  });
+}
+const webUsed = () => Math.max(WEBQ.used, wqCookie(), wqLocal());
+function webLeft() { const cap = webCap(); return cap ? Math.max(0, cap - webUsed()) : Infinity; }
+function webSpend(n = 1) {
+  if (!webCap() || n <= 0) return;
+  const v = webUsed() + n; WEBQ.used = v;
+  try { localStorage.setItem("an-wu", String(v)); } catch (e) { /* blocked */ }
+  try { document.cookie = `an_wu=${v}; max-age=315360000; path=/; SameSite=Lax`; } catch (e) { /* blocked */ }
+  wqIdb(v); syncWebQuota();
+}
+function syncWebQuota() {
+  const cap = webCap(), left = webLeft();
+  for (const id of ["webqSrc", "webqCode"]) {
+    const el = $(id); if (!el) continue;
+    el.hidden = !cap;
+    if (cap) el.textContent = left > 0 ? `Browser version: ${left} of ${cap} free uploads left. The Android app has no limit.` : `You've used the ${cap} free uploads in this browser. Get the Android app to keep crawling your own texts.`;
+  }
+}
+function webGate(n = 1) {
+  if (webLeft() >= n) return true;
+  const cap = webCap(), left = webLeft();
+  $("limMsg").textContent = left > 0
+    ? `The browser version can crawl ${cap} of your own uploads, and you have ${left} left. That's fewer than the ${n} you're adding. Remove some, or get the Android app, which has no limit.`
+    : `The browser version can crawl ${cap} of your own uploads (texts, files, links, searches, crawl files and code), and you've used them on this browser. The Android app is free and has no limit. The guide, its examples and the built-in code example still work here.`;
+  if (!$("dLimit").open) $("dLimit").showModal();
+  return false;
+}
+wqIdb().then(n => { WEBQ.used = Math.max(WEBQ.used, n); syncWebQuota(); });
+syncWebQuota();
+$("limGet").href = WEBSITE + "#download";
+$("srcFile").addEventListener("click", e => { if (!webGate()) e.preventDefault(); });
+document.querySelector('label[for="cdFiles"]').addEventListener("click", e => { if (!webGate()) e.preventDefault(); });
+
 if (IN_CLAUDE) $("urlHint").textContent = "Inside claude.ai this page can't reach other websites. Open the web or Android version of Arachnotes to load pages by link, or copy the page's text into “My own text”.";
 $("srcUrl").addEventListener("input", () => { $("srcUrlR").checked = true; });
 // short paragraphs from cookie and consent banners aren't part of the page
@@ -9218,16 +9685,21 @@ function crawlSources(list) {
 }
 $("fSource").addEventListener("submit", async e => {
   e.preventDefault();
+  const demo = SRC.demo; SRC.demo = false;
   if ($("srcSample").checked && !SRC.list.length) { loadDoc(buildSample()); store.set("cak3d-src", null); dSource.close(); return; }
+  if (!demo && !webGate()) return;
   $("srcGo").disabled = true;
   try {
     const list = SRC.list.slice();
-    // adding pages to the crawl already open: keep its sources first
-    if ($("srcSearchR").checked && !$("srcKeepRow").hidden && $("srcKeep").checked && DOC) list.unshift(...currentDocSources());
+    let kept = 0;
+    // adding pages to the crawl already open: keep its sources first (they were counted when they came in)
+    if ($("srcSearchR").checked && !$("srcKeepRow").hidden && $("srcKeep").checked && DOC) { const cur = currentDocSources(); list.unshift(...cur); kept = cur.length; }
     const pending = $("srcSearchR").checked ? document.querySelector("#webResults [data-res]:checked") : $("srcUrlR").checked ? $("srcUrl").value.trim() : $("srcText").value.trim();
     if (pending || !list.length) list.push(...await currentSources());
+    if (!demo && !webGate(list.length - kept)) return;
     srcMsg("Crawling…", true);
     crawlSources(list);
+    if (!demo) webSpend(list.length - kept);
     SRC.list = []; renderSrcList(); clearSourceInputs(); srcMsg(""); dSource.close();
   } catch (ex) { srcMsg(ex.message || "Something went wrong loading that source."); }
   finally { $("srcGo").disabled = false; }
@@ -9282,14 +9754,33 @@ function frame(now) {
 }
 setFollow(follow);
 resize();
-const saved = store.get("cak3d-src");
-let first = null;
-if (saved && saved.raw) {
-  try { first = buildText(saved.raw, saved.title, cfg.k, saved.lang); } catch (e) { first = null; }
-  if (first) { first.cite = saved.cite || ""; if (saved.sources) first.sources = saved.sources; }
+// what the app opens with (Settings → Research): where you left off, the guide, or a blank page
+let started = false;
+if (cfg.startWith === "blank") { loadDoc(buildBlank()); started = true; }
+else if (cfg.startWith !== "guide") {
+  const resume = store.get("cak3d-resume");
+  if (resume && resume.state) { try { restoreState(resume.state, resume.raw || "", resume.craw || "", resume.libId || null); started = true; } catch (e) { started = false; } }
+  if (!started) {
+    const saved = store.get("cak3d-src");
+    if (saved && saved.raw) {
+      let first = null; try { first = buildText(saved.raw, saved.title, cfg.k, saved.lang); } catch (e) { first = null; }
+      if (first) { first.cite = saved.cite || ""; if (saved.sources) first.sources = saved.sources; loadDoc(first); started = true; }
+    }
+  }
 }
-if (!first) { first = buildSample(); $("srcSample").checked = true; }
-loadDoc(first);
+if (!started) { $("srcSample").checked = true; loadDoc(buildSample()); }
+// remember where you are, so the app can open there next time
+function saveResume() {
+  if (!DOC) return;
+  try {
+    const raw = DOC.mode === "text" ? DOC.raw || "" : "", craw = DOC.compare ? DOC.compare.raw || "" : "";
+    if (raw.length + craw.length > 1500000) { store.set("cak3d-resume", null); return; }
+    store.set("cak3d-resume", { state: captureState(DOC.title), raw, craw, libId: DOC.libId || null, at: Date.now() });
+  } catch (e) { /* storage full: the app opens on the guide instead */ }
+}
+addEventListener("pagehide", saveResume);
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveResume(); });
+setInterval(saveResume, 20000);
 capsReady();
 requestAnimationFrame(frame);
 })();

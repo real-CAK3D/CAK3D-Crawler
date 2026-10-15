@@ -25,9 +25,9 @@ test("the stats panel shows every decision live", async ({ page }) => {
 
 test("a focused crawl asks about the focus", async ({ page }) => {
   await openApp(page);
-  await page.locator("#focus").fill("venom");
+  await page.locator("#focus").fill("citation");
   await tool(page, "bStats");
-  await expect(page.locator("#spMode")).toContainText("for “venom”");
+  await expect(page.locator("#spMode")).toContainText("for “citation”");
   await expect(page.locator("#spStream")).toContainText("relevant to focus?", { timeout: 60_000 });
 });
 

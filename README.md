@@ -2,11 +2,18 @@
 
 Arachnotes is a reading and study app for Android and the web. You give it a text: a web page, a PDF, an EPUB, a photo of a page, or something you paste in. An animated spider crawls the text keyword by keyword, sorts the keywords into topics, and builds study material from what it finds: a study guide, flashcards, a keyword map, and notes with citations.
 
-Made by CAK3D_Creations. **Android:** coming to Google Play (package `com.arachnotes.web`). **Web:** [real-cak3d.github.io/CAK3D-Crawler](https://real-cak3d.github.io/CAK3D-Crawler/).
+Made by CAK3D_Creations. **Android:** coming to Google Play (package `com.arachnotes.web`). **Website:** [arachnotes-web.vercel.app](https://arachnotes-web.vercel.app/), with the download, the public Issues and Ideas forum, the privacy policy and the terms. **Web app:** [arachnotes.vercel.app](https://arachnotes.vercel.app/), which allows 2 uploads per browser.
 
 ## What it does
 
-- **Opens almost any text.** Paste text, open a link, or open a PDF (page numbers are kept for citations), an EPUB, a `.txt` or `.md` file, a scanned PDF or a photo of a page (read on the device with OCR). It can also search the web for more pages on the same subject and crawl several sources together.
+- **Starts with a guide.** The first time, the app opens on a guide to itself. It has moving examples, and its buttons open a real Wikipedia article, a real web page and real code. The spider crawls the guide as you read it. **Settings → Research → When the app opens** chooses between where you left off, the guide, or a blank page.
+- **Opens almost any text.** Paste text, or open a link. You can also open a file:
+  - a PDF (page numbers are kept for citations) or an EPUB
+  - Word, PowerPoint, Excel or OpenDocument files
+  - RTF, a saved web page, Markdown or plain text
+  - subtitles (`.srt`, `.vtt`), a Jupyter notebook, CSV or JSON
+  - code files
+  - a scanned PDF or a photo of a page, read on the device with OCR It can also search the web for more pages on the same subject and crawl several sources together.
 - **Finds keywords and topics.** The spider reads each keyword in context and decides which topic it belongs to. The live stats panel shows each decision, how sure it is, and which ones it leaves for you to decide. Type a focus topic and it goes for matching keywords first.
 - **Makes study material.** A study guide (key points, terms, questions, sources), flashcards with spaced repetition, a keyword map, a timeline, an outline you can save as Markdown, and notes on any keyword or passage.
 - **Cites its sources.** Numbered sources with page numbers, APA, MLA or Chicago style, a bibliography, and export to Zotero (RIS) and BibTeX.
@@ -68,7 +75,8 @@ npm test           # checks the features and accessibility in a real browser
 ### Releases
 
 - **Tests** (`.github/workflows/test.yml`) run on every push. Deploys and Android builds only run when they pass.
-- **Web:** every push to `main` deploys to GitHub Pages (`web.yml`). `vercel.json` lets Vercel build the same site.
+- **Web app:** every push to `main` deploys the app to Vercel at arachnotes.vercel.app (`vercel.json`) and to GitHub Pages (`web.yml`). Both builds set `CRAWLER_WEB_UPLOADS=2`, which allows 2 uploads per browser. The limit counts texts, files, links, search results (each source in a combined crawl counts), texts added in Compare, crawl files, weave codes, restored backups and code projects. The guide's examples, the built-in code example and the library don't count. The count is stored in local storage, IndexedDB and a cookie, and the highest of the three is used. Android has no limit.
+- **Website:** `site/` is a plain static site, deployed by Vercel to arachnotes-web.vercel.app. Its Issues and Ideas forum keeps posts in the Supabase project and reads and writes them only through the `forum_*` functions. Posts that are alike are tied together with `forum_web` and `forum_related`. To moderate, change a post's `status` (to `hidden`, `planned`, `fixed` and so on) in the `forum_posts` table. Write your reply in `dev_note`, or add a row to `forum_replies` with `is_dev` set to true.
 - **Android:** pushing a tag like `v1.9.0` builds a signed APK and a Play app bundle (`.aab`) with [Capacitor](https://capacitorjs.com) and attaches them to a GitHub release (`android.yml`). If the `PLAY_SERVICE_ACCOUNT_JSON` secret is set, the bundle is also uploaded to the Play Console's internal testing track as a draft.
 
 The Android upload key lives in the repository secrets `ANDROID_KEYSTORE_B64` and `ANDROID_KEYSTORE_PASSWORD`. Use the same key for every release.
@@ -84,6 +92,7 @@ The Android upload key lives in the repository secrets `ANDROID_KEYSTORE_B64` an
 | `scripts/play-products.mjs` | Writes the Play Console product list from the store catalog |
 | `tests/` | Playwright browser tests, with axe accessibility checks |
 | `web/` | Web manifest, offline service worker, privacy policy, and the `/connect` setup page |
+| `site/` | The Arachnotes website: home and download, the Issues and Ideas forum, privacy policy and terms |
 | `proxy/` | Optional Cloudflare Worker that holds an AI key for a deployment |
 
 ## License

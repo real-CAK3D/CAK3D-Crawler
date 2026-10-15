@@ -81,43 +81,69 @@
   // ---------- Issues and Ideas as one web ----------
   // Each post is a dew drop; posts that say similar things are tied together with silk. Issues and Ideas share one web,
   // so an idea that would fix an issue hangs right next to it.
-  const NS = "http://www.w3.org/2000/svg";
-  function layout(nodes, links, W, H) {
-    const idx = new Map(nodes.map((n, i) => [n.id, i]));
-    let seed = 9; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    nodes.forEach((n, i) => { const a = i * 2.39996, r = 30 + 9 * Math.sqrt(i); n.x = W / 2 + Math.cos(a) * r; n.y = H / 2 + Math.sin(a) * r; n.vx = n.vy = 0; });
-    const L = links.map(l => ({ a: nodes[idx.get(l.a)], b: nodes[idx.get(l.b)], s: l.s })).filter(l => l.a && l.b);
-    for (let it = 0; it < 320; it++) {
-      const k = 1 - it / 320;
-      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j]; let dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy || .01;
-        if (d2 > 90000) continue; const f = 900 / d2; dx *= f; dy *= f; a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy;
-      }
-      for (const l of L) { const dx = l.b.x - l.a.x, dy = l.b.y - l.a.y, d = Math.hypot(dx, dy) || 1, f = (d - (70 - l.s * 60)) * .04 * (.5 + l.s); l.a.vx += dx / d * f; l.a.vy += dy / d * f; l.b.vx -= dx / d * f; l.b.vy -= dy / d * f; }
-      for (const n of nodes) { n.vx += (W / 2 - n.x) * .006; n.vy += (H / 2 - n.y) * .006; n.x += Math.max(-12, Math.min(12, n.vx)) * k; n.y += Math.max(-12, Math.min(12, n.vy)) * k; n.vx *= .5; n.vy *= .5;
-        n.x = Math.max(24, Math.min(W - 24, n.x + (rnd() - .5) * .01)); n.y = Math.max(24, Math.min(H - 24, n.y)); }
+  // An orb web: spokes from a hub, a spiral of capture thread, and a frame. Each post is a dew drop where a spoke
+  // meets a ring; the most-voted sit nearest the hub. Posts that say similar things share neighbouring spokes and are
+  // tied together with silk, so a cluster of alike posts shows as a knot in the web.
+  function orderBySimilarity(nodes, links) {
+    const sim = new Map(); for (const l of links) { sim.set(l.a + ":" + l.b, l.s); sim.set(l.b + ":" + l.a, l.s); }
+    const left = nodes.slice().sort((x, y) => y.votes - x.votes || y.replies - x.replies), out = [];
+    while (left.length) {
+      let i = 0;
+      if (out.length) { const last = out[out.length - 1]; let best = 0; left.forEach((n, j) => { const v = sim.get(last.id + ":" + n.id) || 0; if (v > best) { best = v; i = j; } }); }
+      out.push(left.splice(i, 1)[0]);
     }
-    return L;
+    return out;
   }
   async function drawWeb(box) {
     box.innerHTML = SPIN; webs(box);
     let d; try { d = await rpc("forum_web", { p_limit: 150 }); } catch (e) { box.innerHTML = `<p class="msg err">Couldn't load the web: ${esc(e.message)}</p>`; return; }
     if (!d.nodes.length) { box.innerHTML = EMPTY(T.none); webs(box); return; }
-    const W = 1000, H = Math.max(520, Math.min(900, 260 + d.nodes.length * 14)), L = layout(d.nodes, d.links, W, H);
-    const linked = new Set(L.flatMap(l => [l.a.id, l.b.id]));
-    const r = n => 10 + Math.min(12, Math.sqrt(n.votes) * 2.4);
-    box.innerHTML = `<div class="webwrap"><svg class="forumweb" viewBox="0 0 ${W} ${H}" role="group" aria-label="Issues and ideas, tied together when they're alike">
-      <g class="bg"></g>
-      ${L.map(l => `<line class="tie" x1="${l.a.x.toFixed(1)}" y1="${l.a.y.toFixed(1)}" x2="${l.b.x.toFixed(1)}" y2="${l.b.y.toFixed(1)}" style="stroke-width:${(.6 + l.s * 3).toFixed(2)};opacity:${(.35 + l.s).toFixed(2)}"/>`).join("")}
-      ${d.nodes.map(n => `<a href="${n.kind === "idea" ? "ideas" : "issues"}#${n.id}" class="drop ${n.kind}${n.kind === KIND ? " mine" : ""}${linked.has(n.id) ? "" : " lone"}" aria-label="${n.kind === "idea" ? "Idea" : "Issue"}: ${esc(n.title)}, ${n.votes} votes">
-        <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r(n).toFixed(1)}"/><title>${esc(n.title)}</title>
-        <text x="${n.x.toFixed(1)}" y="${(n.y + r(n) + 14).toFixed(1)}">${esc(n.title.length > 34 ? n.title.slice(0, 32) + "…" : n.title)}</text></a>`).join("")}
+    const nodes = orderBySimilarity(d.nodes, d.links), n = nodes.length;
+    const S = Math.min(36, Math.max(12, n)), RINGS = 9;
+    const W = 1000, H = 820, cx = W / 2, cy = H / 2 + 6, R = 330;
+    let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const ang = Array.from({ length: S }, (_, i) => -Math.PI / 2 + (i / S) * Math.PI * 2 + (rnd() - .5) * .05);
+    const spokeLen = ang.map(() => R * (.93 + rnd() * .07));
+    const ringF = k => .16 + (k / (RINGS - 1)) * .8; // ring k as a share of the spoke's length
+    const pt = (i, k) => ({ x: cx + Math.cos(ang[i]) * spokeLen[i] * ringF(k), y: cy + Math.sin(ang[i]) * spokeLen[i] * ringF(k) });
+    // place posts: in order around the web; more votes, closer to the hub; a second lap uses the next rings out
+    const maxV = Math.max(1, ...nodes.map(x => x.votes)), taken = new Set();
+    nodes.forEach((p, i) => {
+      const sp = i % S, lap = Math.floor(i / S);
+      let k = Math.round(1 + (1 - Math.sqrt(p.votes / maxV)) * 4) + lap * 2; k = Math.max(1, Math.min(RINGS - 1, k));
+      while (taken.has(sp + ":" + k) && k < RINGS - 1) k++;
+      taken.add(sp + ":" + k); Object.assign(p, pt(sp, k), { sp, k });
+    });
+    const byId = new Map(nodes.map(p => [p.id, p]));
+    const ties = d.links.map(l => ({ a: byId.get(l.a), b: byId.get(l.b), s: l.s })).filter(l => l.a && l.b);
+    const linked = new Set(ties.flatMap(l => [l.a.id, l.b.id]));
+    // the web itself
+    let web = "";
+    for (let i = 0; i < S; i++) web += `M${cx} ${cy} L${(cx + Math.cos(ang[i]) * spokeLen[i]).toFixed(1)} ${(cy + Math.sin(ang[i]) * spokeLen[i]).toFixed(1)} `;
+    for (let k = 0; k < RINGS; k++) {
+      for (let i = 0; i <= S; i++) {
+        const j = i % S, q = pt(j, k);
+        if (!i) { web += `M${q.x.toFixed(1)} ${q.y.toFixed(1)} `; continue; }
+        const p0 = pt(i - 1, k), mx = (p0.x + q.x) / 2, my = (p0.y + q.y) / 2, sag = .1; // sag toward the hub
+        web += `Q${(mx + (cx - mx) * sag).toFixed(1)} ${(my + (cy - my) * sag).toFixed(1)} ${q.x.toFixed(1)} ${q.y.toFixed(1)} `;
+      }
+    }
+    // the frame and the anchor threads to the corners
+    const frame = ang.map((a2, i) => ({ x: cx + Math.cos(a2) * spokeLen[i], y: cy + Math.sin(a2) * spokeLen[i] }));
+    let fr = "M" + frame.map(q => `${q.x.toFixed(1)} ${q.y.toFixed(1)}`).join(" L") + " Z";
+    for (const [x, y] of [[0, 0], [W, 0], [0, H], [W, H]]) { let best = frame[0], bd = Infinity; for (const q of frame) { const dd = Math.hypot(q.x - x, q.y - y); if (dd < bd) { bd = dd; best = q; } } fr += ` M${best.x.toFixed(1)} ${best.y.toFixed(1)} L${x} ${y}`; }
+    // silk ties between similar posts, sagging toward the hub like real thread
+    const tie = l => { const mx = (l.a.x + l.b.x) / 2, my = (l.a.y + l.b.y) / 2; return `M${l.a.x.toFixed(1)} ${l.a.y.toFixed(1)} Q${(mx + (cx - mx) * .25).toFixed(1)} ${(my + (cy - my) * .25).toFixed(1)} ${l.b.x.toFixed(1)} ${l.b.y.toFixed(1)}`; };
+    const r = p => 8 + Math.min(10, Math.sqrt(p.votes) * 2.2);
+    const label = p => { const right = p.x >= cx, t = p.title.length > 30 ? p.title.slice(0, 28) + "…" : p.title, dx = right ? r(p) + 6 : -r(p) - 6; return `<text x="${(p.x + dx).toFixed(1)}" y="${(p.y + 4).toFixed(1)}" text-anchor="${right ? "start" : "end"}">${esc(t)}</text>`; };
+    box.innerHTML = `<div class="webwrap"><svg class="forumweb" viewBox="0 0 ${W} ${H}" role="group" aria-label="Issues and ideas on one web. Posts that are alike are tied together.">
+      <path class="frame" d="${fr}"/><path class="silk" d="${web}"/>
+      ${ties.map(l => `<path class="tie" d="${tie(l)}" style="stroke-width:${(1 + l.s * 3.5).toFixed(2)}"/>`).join("")}
+      <g class="hub"><circle cx="${cx}" cy="${cy}" r="16"/><g transform="translate(${cx} ${cy}) rotate(-90)"><ellipse cx="-4" cy="0" rx="6" ry="4.6"/><circle cx="4" cy="0" r="3.4"/><path d="M4-2l4-7M2-3l1-9M0-3l-3-8M-2-3l-6-6M4 2l4 7M2 3l1 9M0 3l-3 8M-2 3l-6 6"/></g></g>
+      ${nodes.map(p => `<a href="${p.kind === "idea" ? "ideas" : "issues"}#${p.id}" class="drop ${p.kind}${p.kind === KIND ? " mine" : ""}${linked.has(p.id) ? " tied" : ""}" aria-label="${p.kind === "idea" ? "Idea" : "Issue"}: ${esc(p.title)}, ${p.votes} vote${p.votes === 1 ? "" : "s"}">
+        <title>${esc(p.title)}</title><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r(p).toFixed(1)}"/><circle class="shine" cx="${(p.x - r(p) * .35).toFixed(1)}" cy="${(p.y - r(p) * .35).toFixed(1)}" r="${(r(p) * .28).toFixed(1)}"/>${label(p)}</a>`).join("")}
     </svg></div>
-    <p class="web-key"><span class="key issue"></span>Issue <span class="key idea"></span>Idea · Bigger drops have more votes. Threads tie together posts that say similar things. Tap a drop to open it.</p>`;
-    // a faint orb web behind it all
-    const bg = box.querySelector(".bg"), cx = W / 2, cy = H / 2, R = Math.hypot(W, H) / 2;
-    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; const l = document.createElementNS(NS, "line"); l.setAttribute("x1", cx); l.setAttribute("y1", cy); l.setAttribute("x2", cx + Math.cos(a) * R); l.setAttribute("y2", cy + Math.sin(a) * R); bg.appendChild(l); }
-    for (let k = 1; k < 9; k++) { const c = document.createElementNS(NS, "circle"); c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", k * R / 8.5); bg.appendChild(c); }
+    <p class="web-key"><span class="key issue"></span>Issue <span class="key idea"></span>Idea · The more votes, the closer to the hub and the bigger the drop. Bright silk ties together posts that say similar things. Tap a drop to open it.</p>`;
   }
   function postRow(p) {
     const voted = myVotes.has(String(p.id));

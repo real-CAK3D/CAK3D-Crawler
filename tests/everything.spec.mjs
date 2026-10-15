@@ -152,7 +152,8 @@ test("egg sacs, notes, Ask, Find and the study guide", async ({ page }) => {
   if (await page.locator("#sacMergeSel option").count()) { await page.locator("#sacMergeSel").selectOption({ index: 0 }); await page.locator("#sacMerge").click(); }
   await page.locator("#sacClose").click(); await expect(page.locator("#dSac")).toBeHidden();
   await page.locator("#wvClose").click();
-  // a note on a keyword, then deleting it
+  // a note on a keyword, then deleting it (scrolling yourself stops the page following the spider)
+  await page.mouse.wheel(0, -20);
   await page.locator("#page .kw").first().click();
   const addNote = page.locator('#pop [data-note], #pop button', { hasText: /note/i }).first();
   if (await addNote.count()) {
@@ -172,7 +173,7 @@ test("egg sacs, notes, Ask, Find and the study guide", async ({ page }) => {
   await page.locator("#askClose").click();
   // Find: search, contents, sources, copy bibliography
   await tool(page, "bFind");
-  await page.locator("#findQ").fill("silk"); await expect(page.locator("#findResults li").first()).toBeVisible();
+  await page.locator("#findQ").fill("web"); await expect(page.locator("#findResults li").first()).toBeVisible();
   await page.locator("#findResults [data-si]").first().click();
   if (await page.locator("#findPanel").isHidden()) await tool(page, "bFind");
   await page.locator('#findTabs [data-ft="contents"]').click(); await page.locator("#tocList button, #tocList a").first().click();

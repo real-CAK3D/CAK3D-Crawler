@@ -7,12 +7,12 @@ export async function openApp(page, cfg = {}) {
   await expect(page.locator("#page")).toBeVisible();
 }
 
-// waits until every keyword in the sample is crawled
+// waits until every keyword in the guide is crawled (the guide is long, so allow for a slow machine)
 export async function crawlDone(page) {
   await expect.poll(async () => {
     const [a, b] = await Promise.all([page.locator("#sCrawled").textContent(), page.locator("#sTotal").textContent()]);
     return +a > 0 && a === b;
-  }, { timeout: 100_000, intervals: [500] }).toBe(true);
+  }, { timeout: 200_000, intervals: [500] }).toBe(true);
 }
 
 // a small text PDF, one page per string, built by hand so the tests need no fixtures

@@ -63,3 +63,18 @@ test("a real GitHub project in the code reader", async ({ page }) => {
   await expect(page.locator("#cdDocs")).toContainText("protect"); // a function in scripts/build-web.mjs
   expect(errs).toEqual([]);
 });
+
+test("the guide's Try it buttons crawl real pages and real code", async ({ page }) => {
+  const errs = watch(page);
+  await openApp(page);
+  await page.mouse.wheel(0, 10); // scrolling yourself stops the page following the spider
+  await page.locator('#page [data-try="wiki"]').click();
+  await expect(page.locator("#docTitle")).toHaveText("Orb-weaver spider", { timeout: 90_000 });
+  await tool(page, "bSource"); await page.locator("#srcSample").check(); await page.locator("#srcGo").click();
+  await page.mouse.wheel(0, 10); await page.locator('#page [data-try="page"]').click();
+  await expect(page.locator("#docTitle")).toContainText("Spider", { timeout: 120_000 });
+  await tool(page, "bSource"); await page.locator("#srcSample").check(); await page.locator("#srcGo").click();
+  await page.mouse.wheel(0, 10); await page.locator('#page [data-try="code"]').click();
+  await expect(page.locator("#cdSide")).toContainText("expressjs/express", { timeout: 60_000 });
+  expect(errs).toEqual([]);
+});

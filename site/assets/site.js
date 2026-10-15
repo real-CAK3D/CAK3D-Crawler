@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const REPO = "real-CAK3D/CAK3D-Crawler";
-  const WEB_APP = "https://cak3d-crawler.vercel.app/";
+  const WEB_APP = "https://arachnotes.vercel.app/";
   // set this to the Play Store link once the app is live there; the download buttons switch over by themselves
   const PLAY_URL = "";
   const LEGAL = "© 2026 CAK3D_Creations. Arachnotes™ and the Arachnotes spider are trademarks of CAK3D_Creations.";
@@ -16,10 +16,10 @@
   const head = document.querySelector("header.site-head");
   if (head) head.innerHTML = `<a class="skip" href="#main">Skip to content</a><div class="wrap">
     <a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="34" height="34">Arachnotes</a>
-    <nav class="nav" aria-label="Site">${links.map(([id, href, name]) => `<a href="${href}"${id === here ? ' aria-current="page"' : ""}>${name}</a>`).join("")}<a class="dl" href="./#download">Download</a></nav></div>`;
+    <nav class="nav" aria-label="Site">${links.map(([id, href, name]) => `<a href="${href}"${id === here ? ' aria-current="page"' : ""}>${name}</a>`).join("")}</nav></div>`;
   const foot = document.querySelector("footer.site-foot");
   if (foot) {
-    foot.innerHTML = `<div class="wrap"><p>${LEGAL}</p><nav aria-label="Footer">${links.map(([, href, name]) => `<a href="${href}">${name}</a>`).join("")}<a href="${WEB_APP}">Web app</a></nav>
+    foot.innerHTML = `<div class="wrap"><p>${LEGAL}</p>
       <button type="button" id="spiderToggle" aria-pressed="true">Spider: on</button></div>`;
   }
 
@@ -99,8 +99,9 @@
   });
 
   // ---------- the spider ----------
-  // A little orb weaver drawn on a canvas over the page. It wanders the edges, rests, drops on a thread now and then,
-  // and walks over to wherever you tap, waits, circles the spot and wanders off again.
+  // The app's orb weaver, drawn on a canvas over the page. It wanders the edges, spins a small orb web when it
+  // settles somewhere, drops on a thread now and then, and walks over to wherever you tap, waits, circles the spot
+  // and wanders off again.
   const toggle = document.getElementById("spiderToggle");
   let on = store.get("an-spider") !== "off";
   const cv = document.createElement("canvas"); cv.className = "crawler"; cv.setAttribute("aria-hidden", "true");
@@ -114,7 +115,13 @@
   readCols(); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readCols);
 
   const sp = { x: W - 70, y: H - 90, a: -Math.PI / 2, mode: "rest", t: 1.2, tx: 0, ty: 0, phase: 0, speed: 0, thread: null, circle: null };
-  const trail = [];
+  const trail = [], webs = [];
+  // an orb web spun around a spot: spokes first, then the spiral, from the outside in, like the real thing
+  function spinWeb(x, y) {
+    if (webs.length >= 3) webs.shift();
+    const n = 10 + Math.floor(Math.random() * 4), R = r(34, 52), ang = Array.from({ length: n }, (_, i) => i / n * Math.PI * 2 + r(-.08, .08));
+    webs.push({ x, y, R, ang, len: ang.map(() => R * r(.85, 1)), grow: 0, fade: 1, done: false });
+  }
   const r = (a, b) => a + Math.random() * (b - a);
   function pickWander() {
     // mostly along the edges, where it won't sit on the words; sometimes across the page
@@ -135,8 +142,18 @@
     return d;
   }
   function update(dt) {
-    if (sp.mode === "rest") { sp.speed = 0; if ((sp.t -= dt) <= 0) { if (sp.y < H * .45 && Math.random() < .22) dropThread(); else pickWander(); } }
-    else if (sp.mode === "walk") { if (steer(sp.tx, sp.ty, 64, dt) < 4) { sp.mode = "rest"; sp.t = r(1.5, 5); } }
+    if (sp.mode === "rest") {
+      sp.speed = 0;
+      const w = sp.web; if (w && !w.done) { w.grow = Math.min(1, w.grow + dt / 4); sp.a += dt * 1.6; sp.phase += dt * 3; if (w.grow >= 1) w.done = true; }
+      if ((sp.t -= dt) <= 0) { if (sp.web) { sp.web.leaving = true; sp.web = null; } if (sp.y < H * .45 && Math.random() < .22) dropThread(); else pickWander(); }
+    }
+    else if (sp.mode === "walk") {
+      if (steer(sp.tx, sp.ty, 64, dt) < 4) {
+        sp.mode = "rest"; sp.t = r(1.5, 5);
+        // settled away from the words: sometimes it spins a web and waits in the middle of it
+        if (Math.random() < .45 && sp.x > 50 && sp.x < W - 50 && sp.y > 110 && sp.y < H - 50) { spinWeb(sp.x, sp.y); sp.web = webs[webs.length - 1]; sp.t = r(7, 12); }
+      }
+    }
     else if (sp.mode === "visit") { if (steer(sp.tx, sp.ty, 150, dt) < 5) { sp.mode = "wait"; sp.t = .9; } }
     else if (sp.mode === "wait") { sp.speed = 0; sp.phase += dt * .6; if ((sp.t -= dt) <= 0) { sp.mode = "circle"; sp.circle = { cx: sp.tx, cy: sp.ty, ang: Math.atan2(sp.y - sp.ty, sp.x - sp.tx) - Math.PI / 2, left: Math.PI * 2 }; } }
     else if (sp.mode === "circle") {
@@ -153,6 +170,8 @@
     }
     sp.x = Math.max(8, Math.min(W - 8, sp.x)); sp.y = Math.max(8, Math.min(H - 8, sp.y));
     if (sp.speed > 5 && sp.mode !== "drop") { trail.push({ x: sp.x - Math.cos(sp.a) * 12, y: sp.y - Math.sin(sp.a) * 12, life: 1 }); if (trail.length > 90) trail.shift(); }
+    for (const w of webs) if (w.leaving) w.fade -= dt / 6;
+    while (webs.length && webs[0].fade <= 0) webs.shift();
     for (const p of trail) p.life -= dt * .35;
     while (trail.length && trail[0].life <= 0) trail.shift();
   }
@@ -162,26 +181,47 @@
     ctx.lineWidth = .8; ctx.strokeStyle = col.silk; ctx.lineCap = "round";
     for (let i = 1; i < trail.length; i++) { const a = trail[i - 1], b = trail[i]; if (Math.hypot(a.x - b.x, a.y - b.y) > 30) continue; ctx.globalAlpha = Math.max(0, b.life) * .5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
     ctx.globalAlpha = 1;
+    // its webs: the spokes reach out first, then the capture spiral is laid
+    for (const w of webs) {
+      const g = w.grow, spokes = Math.min(1, g / .35), spiral = Math.max(0, (g - .35) / .65);
+      ctx.globalAlpha = .55 * w.fade; ctx.lineWidth = .7;
+      ctx.beginPath();
+      w.ang.forEach((a, i) => { ctx.moveTo(w.x, w.y); ctx.lineTo(w.x + Math.cos(a) * w.len[i] * spokes, w.y + Math.sin(a) * w.len[i] * spokes); });
+      const rings = 7, shown = Math.floor(spiral * rings * w.ang.length);
+      let c = 0;
+      for (let k = rings; k >= 1 && c < shown; k--) {
+        const f = .18 + (k / rings) * .8;
+        for (let i = 0; i < w.ang.length && c < shown; i++, c++) {
+          const a0 = w.ang[i], a1 = w.ang[(i + 1) % w.ang.length], l0 = w.len[i] * f, l1 = w.len[(i + 1) % w.ang.length] * f;
+          const x0 = w.x + Math.cos(a0) * l0, y0 = w.y + Math.sin(a0) * l0, x1 = w.x + Math.cos(a1) * l1, y1 = w.y + Math.sin(a1) * l1;
+          ctx.moveTo(x0, y0); ctx.quadraticCurveTo((x0 + x1) / 2 + (w.x - (x0 + x1) / 2) * .12, (y0 + y1) / 2 + (w.y - (y0 + y1) / 2) * .12, x1, y1);
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
     if (sp.thread) { ctx.globalAlpha = .7; ctx.beginPath(); ctx.moveTo(sp.thread.x, sp.thread.top - 8); ctx.lineTo(sp.x, sp.y); ctx.stroke(); ctx.globalAlpha = 1; }
-    ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(sp.a); ctx.scale(.85, .85);
-    ctx.strokeStyle = col.body; ctx.lineWidth = 1.5; ctx.lineJoin = "round";
-    // eight legs, four a side, moving in two alternating sets
-    const rest = [.55, 1.15, 1.85, 2.45], L = [17, 15, 15, 17];
+    ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(sp.a); ctx.scale(.62, .62);
+    ctx.strokeStyle = col.body; ctx.lineWidth = 2; ctx.lineJoin = "round";
+    // eight long legs, four a side, moving in two alternating sets (the orb weaver's front legs are the longest)
+    const rest = [.5, 1.1, 1.9, 2.5], L = [27, 22, 19, 23];
     for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
       const set = (i + (side > 0 ? 0 : 1)) % 2, swing = Math.sin(sp.phase + set * Math.PI) * .22;
-      const ax = 4 - i * 2.2, ay = side * 2.2, th = rest[i] - swing * (i < 2 ? 1 : -1);
+      const ax = 5 - i * 2.4, ay = side * 3, th = rest[i] - swing * (i < 2 ? 1 : -1);
       const fx = ax + Math.cos(th) * L[i], fy = ay + side * Math.sin(th) * L[i];
-      const kx = ax + (fx - ax) * .42 + Math.cos(th) * 2, ky = ay + (fy - ay) * .42 + side * 6;
+      const kx = ax + (fx - ax) * .42 + Math.cos(th) * 3, ky = ay + (fy - ay) * .42 + side * 8;
       ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
     }
+    // the orb weaver, as the app draws it: a big round abdomen with a pale saddle and spots, a small head, two bright eyes
     ctx.fillStyle = col.body;
-    ctx.beginPath(); ctx.ellipse(-8.5, 0, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(3.5, 0, 5.5, 4.4, 0, 0, Math.PI * 2); ctx.fill();
-    // the orb weaver's mark, and eyes
-    ctx.fillStyle = col.mark; ctx.globalAlpha = .85;
-    ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-8.5, -2.4); ctx.lineTo(-5, 0); ctx.lineTo(-8.5, 2.4); ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = 1; ctx.fillStyle = col.eye;
-    ctx.beginPath(); ctx.arc(7.2, -1.5, .95, 0, Math.PI * 2); ctx.arc(7.2, 1.5, .95, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-15, 0, 14, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(2, 0, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = col.eye; ctx.globalAlpha = .35;
+    ctx.beginPath(); ctx.ellipse(-16, 0, 8, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = .6;
+    for (const [x, y] of [[-10, -5], [-10, 5], [-19, -6], [-19, 6], [-24, 0]]) { ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(7, -1.8, 1.1, 0, Math.PI * 2); ctx.arc(7, 1.8, 1.1, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
   let last = 0, raf = 0;
@@ -193,7 +233,7 @@
   document.addEventListener("pointerdown", e => {
     if (!on || reduced || e.button > 0) return;
     if (e.target.closest("a,button,input,textarea,select,label,summary,[contenteditable],.post,.compose")) return;
-    sp.thread = null; sp.tx = e.clientX; sp.ty = e.clientY; sp.mode = "visit";
+    sp.thread = null; if (sp.web) { sp.web.leaving = true; sp.web = null; } sp.tx = e.clientX; sp.ty = e.clientY; sp.mode = "visit";
   });
   function setOn(v) {
     on = v; store.set("an-spider", v ? "on" : "off");

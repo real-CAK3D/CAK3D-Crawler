@@ -11,7 +11,7 @@ test("the toolbar can be hidden and shown again, and stays that way", async ({ p
   await page.locator("#bShowBar").click();
   await expect(page.locator("#bar")).toBeVisible();
   await expect(page.locator("#bShowBar")).toBeHidden();
-  await page.locator("#page").click({ position: { x: 5, y: 5 } });
+  await page.locator("#page").click({ position: { x: 5, y: 5 }, force: true }); // the page may be following the spider
   await page.keyboard.press("h");
   await expect(page.locator("#bar")).toBeHidden();
   await page.keyboard.press("h");

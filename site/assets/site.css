@@ -134,7 +134,7 @@ section { padding-block: 56px; }
 .sheet .holes i { position: absolute; left: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 1px 2px rgba(0,0,0,.25); }
 .sheet .holes i:nth-child(1) { top: 9%; } .sheet .holes i:nth-child(2) { top: calc(50% - 10px); } .sheet .holes i:nth-child(3) { bottom: 9%; }
 .sheet * { margin: 0; }
-.sheet h1 { font-size: clamp(1.9rem, 5vw, 2.5rem); line-height: calc(var(--line) * 2); position: relative; top: 14px; }
+.sheet h1 { font-size: clamp(1.9rem, 5vw, 2.5rem); line-height: calc(var(--line) * 2); position: relative; top: 12px; }
 .sheet h2 { font-size: 1.25rem; line-height: var(--line); margin-top: var(--line); }
 .sheet p, .sheet li { font-size: 17px; line-height: var(--line); }
 .sheet p + p { text-indent: 1.6em; }
@@ -220,15 +220,21 @@ select { width: auto; font: 14px var(--mono); padding: 10px; }
 /* Issues and Ideas as a web */
 .webwrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 14px; background: var(--card); }
 .forumweb { display: block; width: 100%; min-width: 640px; height: auto; }
-.forumweb .bg line, .forumweb .bg circle { stroke: var(--silk); stroke-width: .6; opacity: .18; fill: none; }
-.forumweb .tie { stroke: var(--silk); stroke-linecap: round; }
-.forumweb .drop circle { stroke: var(--card); stroke-width: 2; transition: r .15s ease; }
-.forumweb .drop.issue circle { fill: var(--margin); } .forumweb .drop.idea circle { fill: var(--grip); stroke: var(--grip-ink); stroke-width: 1; }
-.forumweb .drop:not(.mine) { opacity: .55; }
-.forumweb .drop text { font: 12px var(--mono); fill: var(--muted); text-anchor: middle; paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
-.forumweb .drop:hover text, .forumweb .drop:focus text { fill: var(--ink); }
+.forumweb .frame { fill: none; stroke: var(--silk); stroke-width: 1.2; opacity: .55; }
+.forumweb .silk { fill: none; stroke: var(--silk); stroke-width: .8; opacity: .5; }
+.forumweb .tie { fill: none; stroke: var(--grip); stroke-linecap: round; opacity: .95; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--grip) 70%, transparent)); }
+.forumweb .hub circle { fill: var(--card); stroke: var(--silk); }
+.forumweb .hub ellipse, .forumweb .hub circle + circle { fill: var(--spider); } .forumweb .hub path { stroke: var(--spider); stroke-width: 1.3; fill: none; stroke-linecap: round; }
+.forumweb .hub g circle { fill: var(--spider); stroke: none; }
+.forumweb .drop circle { stroke: var(--card); stroke-width: 2; transition: transform .15s ease; transform-box: fill-box; transform-origin: center; }
+.forumweb .drop .shine { fill: rgba(255,255,255,.55); stroke: none; }
+.forumweb .drop.issue circle:not(.shine) { fill: var(--margin); } .forumweb .drop.idea circle:not(.shine) { fill: var(--grip); stroke: var(--grip-ink); stroke-width: 1; }
+.forumweb .drop:not(.mine) { opacity: .6; }
+.forumweb .drop text { font: 12px var(--mono); fill: var(--muted); paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
 .forumweb .drop:hover, .forumweb .drop:focus { opacity: 1; outline: none; }
-.forumweb .drop:focus-visible circle { stroke: var(--link); stroke-width: 3; }
+.forumweb .drop:hover circle:not(.shine), .forumweb .drop:focus circle:not(.shine) { transform: scale(1.25); }
+.forumweb .drop:hover text, .forumweb .drop:focus text { fill: var(--ink); }
+.forumweb .drop:focus-visible circle:not(.shine) { stroke: var(--link); stroke-width: 3; }
 .web-key { font: 12px/1.6 var(--mono); color: var(--muted); margin-top: 10px; }
 .key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 8px; vertical-align: -1px; }
 .key.issue { background: var(--margin); } .key.idea { background: var(--grip); border: 1px solid var(--grip-ink); }

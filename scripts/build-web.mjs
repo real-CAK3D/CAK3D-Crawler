@@ -93,18 +93,22 @@ const ai = {
 // CRAWLER_PLAY_URL is the Google Play listing that the web version's store links to.
 const lockPaid = process.env.CRAWLER_LOCK_PAID === "1", playUrl = process.env.CRAWLER_PLAY_URL || "";
 // The public website: the app points people to its /connect page to set up Ollama on their computer.
-const siteUrl = (process.env.CRAWLER_SITE_URL || "https://real-cak3d.github.io/CAK3D-Crawler/").replace(/\/?$/, "/");
+const siteUrl = (process.env.CRAWLER_SITE_URL || "https://arachnotes.vercel.app/").replace(/\/?$/, "/");
+// the Arachnotes website (download, Issues and Ideas forum, privacy policy, terms)
+const website = (process.env.CRAWLER_WEBSITE || "https://arachnotes-web.vercel.app/").replace(/\/?$/, "/");
+// the free browser version's upload limit per browser; 0 (the default, used for Android and tests) means no limit
+const webUploads = Math.max(0, Math.floor(+process.env.CRAWLER_WEB_UPLOADS || 0));
 // Issue reports and per-user fixes (Supabase). The publishable key is meant to be public: with it the app can
 // only call the report_issue and get_fix functions, and can't read anyone's reports.
 const support = {
   url: process.env.CRAWLER_SUPPORT_URL || "https://gepkziwvlczkwernhtjm.supabase.co",
   key: process.env.CRAWLER_SUPPORT_KEY || "sb_publishable_xMcywbR7DxLl_Ygy_yxPdQ_UbF3HOzd"
 };
-writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/", lockPaid, playUrl, siteUrl, support, version: pkg.version }, null, 2)};\n`);
+writeFileSync(`${OUT}/config.js`, `window.CRAWLER_CONFIG = ${JSON.stringify({ ai, vendor: "vendor/", lockPaid, playUrl, siteUrl, website, webUploads, support, version: pkg.version }, null, 2)};\n`);
 
 // The computer setup page and scripts. Ollama always accepts the Android app (https://localhost); these
 // website origins are added so the website can use Ollama on the same computer too.
-const origins = [...new Set([new URL(siteUrl).origin, "https://real-cak3d.github.io", ...(process.env.CRAWLER_SITE_ORIGINS || "").split(",").map(x => x.trim()).filter(Boolean)])].join(",");
+const origins = [...new Set([new URL(siteUrl).origin, "https://arachnotes.vercel.app", "https://cak3d-crawler.vercel.app", "https://real-cak3d.github.io", ...(process.env.CRAWLER_SITE_ORIGINS || "").split(",").map(x => x.trim()).filter(Boolean)])].join(",");
 mkdirSync(`${OUT}/connect`, { recursive: true });
 for (const name of readdirSync("web/connect")) {
   let t = readFileSync(`web/connect/${name}`, "utf8").split("__SITE__").join(siteUrl).split("__ORIGINS__").join(origins).replace(/\r\n/g, "\n");

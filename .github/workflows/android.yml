@@ -103,6 +103,6 @@ jobs:
             3. Open **Arachnotes** from your home screen.
 
             ## Use it on the web
-            Open https://real-cak3d.github.io/CAK3D-Crawler/ in any browser. On a phone, use the browser menu's **Add to Home screen** to install it like an app.
+            Open https://arachnotes.vercel.app/ in any browser. On a phone, use the browser menu's **Add to Home screen** to install it like an app.
 
             The `.aab` file is the app bundle for uploading to Google Play.

@@ -38,6 +38,7 @@ jobs:
           CRAWLER_AI_MODEL: ${{ vars.CRAWLER_AI_MODEL }}
           CRAWLER_LOCK_PAID: ${{ vars.CRAWLER_LOCK_PAID }}
           CRAWLER_PLAY_URL: ${{ vars.CRAWLER_PLAY_URL }}
+          CRAWLER_WEB_UPLOADS: 2
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
