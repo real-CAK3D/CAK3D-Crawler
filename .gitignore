@@ -9,3 +9,4 @@ web/icons/
 *.pem
 playwright-report/
 test-results/
+store-listing/*.webm
