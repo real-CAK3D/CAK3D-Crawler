@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Delete Your Arachnotes Data</title>
+<meta name="description" content="How to delete the data Arachnotes holds about you: issue reports, fixes and forum posts.">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header class="site-head"></header>
+<main id="main" class="paper-page">
+<div class="wrap">
+<article class="sheet"><span class="holes" aria-hidden="true"><i></i><i></i><i></i></span>
+  <h1>Delete your data</h1>
+  <p class="meta">Arachnotes by CAK3D_Creations · Last updated October 15, 2026</p>
+
+  <p class="short">Arachnotes has no accounts, so there is no account to delete. This page explains what we hold about you and how to delete it. The only data we ever receive is the issue reports you choose to send, any fixes we leave for your app, and anything you post in the public Issues and Ideas forum.</p>
+
+  <h2>What can be deleted, and how</h2>
+  <ul>
+    <li><b>Issue reports and fixes:</b> deleted straight away when you send the form below with your support ID.</li>
+    <li><b>Forum posts and replies:</b> removed within 30 days of your request. Include the links to them in the form.</li>
+    <li><b>Everything on your device</b> (your texts, notes, library, settings and AI keys): this never reaches us. Delete it yourself by uninstalling the app, or with Android Settings → Apps → Arachnotes → Storage → Clear storage. In the browser version, clear the website's data in your browser.</li>
+  </ul>
+
+  <h2>Step by step</h2>
+  <ul class="steps">
+    <li><b>1.</b> In the app, open <b>Settings</b>, then the <b>?</b> (Help &amp; support).</li>
+    <li><b>2.</b> Find <b>Your support ID</b>, which looks like AN-7K3Q-9XWD-2M4P, and tap <b>Copy</b>.</li>
+    <li><b>3.</b> Paste it into the form below. If you also want forum posts removed, paste their links.</li>
+    <li><b>4.</b> Press <b>Delete my data</b>. Reports and fixes for that ID are deleted at once, and the page tells you how many.</li>
+  </ul>
+  <p>If you've uninstalled the app and no longer have your support ID, list your forum post links, or use the form to tell us the email address you gave in a report, and we'll find and delete it.</p>
+
+  <form class="del-form" id="delForm" novalidate>
+    <label>Your support ID<input name="sid" placeholder="AN-7K3Q-9XWD-2M4P" autocomplete="off" spellcheck="false" maxlength="17"></label>
+    <label>Links to your forum posts (optional)<textarea name="posts" maxlength="2000" placeholder="https://arachnotes-web.vercel.app/issues#12"></textarea></label>
+    <label>Anything else (optional)<textarea name="note" maxlength="2000" placeholder="For example, the email you gave in a report"></textarea></label>
+    <div><button class="btn" type="submit">Delete my data</button></div>
+    <p class="msg" id="delMsg" role="status" hidden></p>
+  </form>
+
+  <h2>What is kept</h2>
+  <p>We keep a short record of each request (the support ID, the post links you listed, and when it was done) for 12 months, so we can show the deletion was carried out. It is then deleted automatically. Reports we haven't been asked to delete are deleted after 12 months anyway.</p>
+
+  <h2>Questions</h2>
+  <p>See the <a href="privacy">privacy policy</a>, or post in <a href="issues">Issues</a> without personal details.</p>
+</article>
+</div>
+</main>
+<footer class="site-foot"></footer>
+<script src="assets/site.js" defer></script>
+<script src="assets/delete.js" defer></script>
+</body>
+</html>

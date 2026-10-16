@@ -117,8 +117,8 @@ test("Settings links to the website, its Issues and Ideas, privacy policy and te
   await openApp(page);
   await page.locator("#bSettings").click();
   const links = page.locator(".site-links a");
-  await expect(links).toHaveCount(5);
-  expect(await links.evaluateAll(a => a.map(x => x.href))).toEqual(["https://arachnotes-web.vercel.app/", "https://arachnotes-web.vercel.app/issues", "https://arachnotes-web.vercel.app/ideas", "https://arachnotes-web.vercel.app/privacy", "https://arachnotes-web.vercel.app/terms"]);
+  await expect(links).toHaveCount(6);
+  expect(await links.evaluateAll(a => a.map(x => x.href))).toEqual(["https://arachnotes-web.vercel.app/", "https://arachnotes-web.vercel.app/issues", "https://arachnotes-web.vercel.app/ideas", "https://arachnotes-web.vercel.app/privacy", "https://arachnotes-web.vercel.app/terms", "https://arachnotes-web.vercel.app/delete-data"]);
 });
 
 test.describe("the browser version's 2 free uploads", () => {

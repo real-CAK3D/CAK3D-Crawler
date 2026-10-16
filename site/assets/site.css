@@ -250,3 +250,10 @@ select { width: auto; font: 14px var(--mono); padding: 10px; }
 .related-list { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; font-size: 1rem; }
 .sheet .toc { padding-left: 0; }
 .web-key { margin-bottom: 24px; }
+
+/* the delete-your-data form, on the paper */
+.sheet ul.steps { list-style: none; padding-left: 0; }
+.sheet .del-form { display: flex; flex-direction: column; gap: 12px; margin: var(--line) 0; padding: 16px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; line-height: 1.4; }
+.sheet .del-form label { display: flex; flex-direction: column; gap: 6px; font: 500 13px/1.4 var(--mono); color: var(--muted); }
+.sheet .del-form textarea { min-height: 80px; }
+.sheet .del-form .msg { line-height: 1.5; }
