@@ -20,6 +20,7 @@
     { "source": "/privacy-policy", "destination": "/privacy", "permanent": true },
     { "source": "/tos", "destination": "/terms", "permanent": true },
     { "source": "/suggestions", "destination": "/ideas", "permanent": true },
-    { "source": "/download", "destination": "/#download", "permanent": false }
+    { "source": "/download", "destination": "/#download", "permanent": false },
+    { "source": "/delete-data", "destination": "/data", "permanent": true }
   ]
 }
