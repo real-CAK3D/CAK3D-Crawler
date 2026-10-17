@@ -1571,12 +1571,15 @@ body.bar-off .bar { display: none; }
               <option value="balloon">Floats down on silk (ballooning)</option><option value="hatch">Hatches out of an egg</option>
               <option value="fade">Fades in</option><option value="random">Surprise me each time</option>
             </select></label>
-          <label class="field"><span>When the crawl is done, the spider…</span>
+          <label class="field"><span>When it's done and you leave it alone, the spider…</span>
             <select id="cfgExit">
               <option value="stay">Stays put</option><option value="wander">Wanders around its web</option><option value="sleep">Falls asleep</option>
               <option value="left">Walks off to the left</option><option value="right">Walks off to the right</option>
               <option value="up">Climbs a thread up and away</option><option value="balloon">Floats away on silk</option><option value="burrow">Burrows into the page</option>
             </select></label>
+          <label class="field"><span>…once you've left it alone for</span>
+            <select id="cfgIdleWait"><option value="15">15 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option></select>
+            <small>Like a screensaver: until then it stays and keeps busy, and when you touch the screen again it comes back.</small></label>
           <div class="field"><span>Try it</span><button class="btn" type="button" id="replay" style="align-self:flex-start">Replay entrance</button></div>
         </div>
         <p class="hintline">If it leaves, it comes back as soon as there's more to crawl: change the focus, click the page, or add a keyword.</p>
@@ -1912,7 +1915,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2589,8 +2592,8 @@ function updateStatus() {
   const ft = focusTerms().join(" "), rel = relevantCount();
   let s;
   if (ft && !rel) s = `No keywords near “${ft}”. Try a broader topic, or clear the focus.`;
-  else if (S.mode === "done") s = `Crawl complete: ${plural(crawled, "keyword")} across ${plural(new Set(nodes.filter(n => n.caught).map(n => kwOf(n).cat)).size, "topic")}. Open the web view to explore them.`;
-  else if (S.mode === "gone") s = `${spiderName()} left. It comes back when there's more to crawl.`;
+  else if (S.mode === "done" || (crawled && S.doneAt === crawled && RESTING.includes(S.mode))) s = `Crawl complete: ${plural(crawled, "keyword")} across ${plural(new Set(nodes.filter(n => n.caught).map(n => kwOf(n).cat)).size, "topic")}. Open the web view to explore them.`;
+  else if (S.mode === "gone") s = S.away ? `${spiderName()} went off while you were away. Tap the page and it comes back.` : `${spiderName()} left. It comes back when there's more to crawl.`;
   else s = `${spiderName()} crawling “${DOC.title}”${ft ? ` for “${ft}”` : ""} · ${plural(rel, "keyword")} to find${cfg.stop ? ` · stops at ${cfg.stop}` : ""}`;
   if (WV.picks.size) s += ` · ${WV.picks.size} picked for a sac`;
   $("status").textContent = (COLLAB ? `Shared crawl ${COLLAB.id} · ${peopleCount()} · ` : "") + (paused && S.mode !== "done" ? "Paused · " : "") + s;
@@ -2829,8 +2832,8 @@ function finish() {
   announce(`Crawl complete: ${plural(crawled, "keyword")} collected.`);
   S.mode = "done"; S.target = null; S.finishing = false;
   if (S.doneAt !== crawled) { S.doneAt = crawled; log("DONE", plural(crawled, "keyword") + " collected"); }
-  // it stays a while to look over its work before it leaves (if it's set to leave at all)
-  if (["stay", "wander", "sleep"].includes(cfg.exit)) startExit(); else { S.wanderT = 2; S.leaveAt = performance.now() + 12000; }
+  // it stays and keeps busy; what it does when it's done waits until you've left the app alone (see the screensaver below)
+  S.wanderT = 2; S.away = false; IDLE.at = performance.now(); // the time alone counts from when it finished
   updateStatus();
 }
 
@@ -2923,10 +2926,10 @@ function splitSac(sac, majorKey) {
   return ns;
 }
 
-function enter() {
-  const first = nextTarget() || nodes[0];
+function enter(at) {
+  const first = at ? null : nextTarget() || nodes[0];
   const pr = pageBox(), vw = document.documentElement.clientWidth;
-  const ty = first ? first.cy : -pr.top + 200, tx = first ? first.cx : 200;
+  const ty = at ? at.y : first ? first.cy : -pr.top + 200, tx = at ? at.x : first ? first.cx : 200;
   S.hop = null; S.hopZ = 0; S.zip = null; S.appear = null;
   let how = cfg.entrance;
   if (how === "random") how = ["left", "right", "drop", "bottom", "balloon", "hatch", "fade"][Math.floor(Math.random() * 7)];
@@ -2950,12 +2953,36 @@ const ENTER_TEXT = { left: "crawled in from the left", right: "crawled in from t
   balloon: "floated in on silk", hatch: "hatched onto the page", fade: "appeared" };
 const EXIT_TEXT = { left: "walked off to the left", right: "walked off to the right", up: "climbed away on a thread", balloon: "floated away", burrow: "burrowed into the page" };
 const spiderName = () => cfg.name.trim() || "The " + TYPES[cfg.type].name.toLowerCase();
+const IDLE = { at: performance.now() };
+const RESTING = ["done", "sit", "build", "toWeb", "patrol", "trick"];
+function screensaver(now) {
+  if (S.away || paused || !DOC || !crawled || S.doneAt !== crawled || hasWork() || !RESTING.includes(S.mode)) return;
+  if (now - IDLE.at < (cfg.idleWait || 60) * 1000) return;
+  S.away = true;
+  if (S.mode === "trick") endTrick();
+  if (S.mode === "patrol") S.patrol = null;
+  if (["sit", "build", "toWeb", "patrol"].includes(S.mode)) S.mode = "done";
+  if (!["stay", "wander", "sleep"].includes(cfg.exit)) startExit();
+  else if (cfg.exit === "sleep") log("SLEEP", `${spiderName()} fell asleep`);
+}
+function comeBack() {
+  IDLE.at = performance.now();
+  if (!S.away) return;
+  S.away = false;
+  if (S.mode === "gone") { const v = viewBox(); enter({ x: (v.x0 + v.x1) / 2, y: (v.y0 + v.y1) / 2 }); }
+  else if (["exit", "exitUp", "exitBalloon", "exitBurrow"].includes(S.mode)) { S.appear = null; S.hole = null; S.burrow = null; S.mode = "done"; }
+}
+for (const ev of ["pointerdown", "keydown", "wheel", "touchstart"]) addEventListener(ev, comeBack, { passive: true, capture: true });
 function startExit() {
   const pr = pageBox(), vw = document.documentElement.clientWidth, e = cfg.exit;
   if (e === "left" || e === "right") { S.mode = "exit"; S.exitPt = { x: e === "left" ? -pr.left - 110 : vw - pr.left + 110, y: S.y }; }
   else if (e === "up") S.mode = "exitUp";
   else if (e === "balloon") S.mode = "exitBalloon";
-  else if (e === "burrow") { S.mode = "exitBurrow"; S.appear = { t: 1, how: "burrow" }; S.hole = { x: S.x, y: S.y, born: performance.now(), r: Array.from({ length: 18 }, () => 0.72 + Math.random() * 0.55), closeAt: 0 }; }
+  else if (e === "burrow") {
+    const v = viewBox(), ax = Math.cos(S.a), ay = Math.sin(S.a), d = 58 * cfg.size;
+    const hx = clamp(S.x + ax * d, v.x0 + 40, v.x1 - 40), hy = clamp(S.y + ay * d, v.y0 + 40, v.y1 - 40);
+    S.mode = "exitBurrow"; S.appear = null; S.burrow = { stage: "open", t: 0 };
+    S.hole = { x: hx, y: hy, born: performance.now(), r: Array.from({ length: 18 }, () => 0.72 + Math.random() * 0.55), closeAt: 0 }; }
   else { S.mode = "done"; S.wanderT = 2; return; }
   log("OUT", `${spiderName()} ${EXIT_TEXT[e]}`);
   sfx("exit");
@@ -3010,7 +3037,7 @@ function updateFlies(dt) {
 function canHunt() {
   if (!flies.length || S.prey || paused) return false;
   if (S.mode === "sit") return flies.some(f => f.state === "stuck");
-  if (S.mode === "done") return ["stay", "wander", "sleep"].includes(cfg.exit);
+  if (S.mode === "done") return !S.away;
   return S.mode === "walk" && !S.target && !S.goto && !S.sacQueue.length && !S.finishing && helpers.some(h => h.target);
 }
 function startHunt() {
@@ -3212,8 +3239,7 @@ function updateCornerWeb(dt) {
   if (reduce || paused || cfg.bored === "rest") return;
   // taking turns: after sitting in a finished web for a while, it goes for a walk around the screen
   if (cfg.bored === "both" && S.mode === "sit" && CW && CW.done && S.sitT > 25 && !flies.some(fl => fl.state === "stuck")) { startPatrol(); return; }
-  if (S.idleT < 6 || !idle) return;
-  if (S.mode === "done" && !["stay", "wander", "sleep"].includes(cfg.exit)) return;
+  if (S.idleT < 6 || !idle || S.away) return;
   if (cfg.bored === "edges") { if (S.idleT > 8) startPatrol(); return; }
   if (["dance", "nap", "groom", "yoyo", "tricks"].includes(cfg.bored)) { if (S.idleT > 7) startTrick(); return; }
   if (!CW) planCornerWeb();
@@ -3757,7 +3783,8 @@ function update(dt, now) {
   if (["done", "sit", "build", "toWeb", "patrol", "trick"].includes(S.mode) && (S.goto || S.manual.some(n => !n.caught) || S.sacQueue.length)) { if (S.mode === "trick") endTrick(); S.mode = "walk"; }
   if (S.mode !== "trick" && S.trick) { S.hopZ = 0; S.trick = null; } // a trick that was cut short doesn't leave it floating
   if (S.mode === "gone") { if (hasWork()) enter(); else return; }
-  if (S.mode === "done" && cfg.exit === "wander" && !S.goto) {
+  screensaver(now);
+  if (S.mode === "done" && cfg.exit === "wander" && S.away && !S.goto) {
     S.wanderT -= dt;
     if (S.wanderT <= 0) {
       S.wanderT = 3 + Math.random() * 4;
@@ -3777,8 +3804,6 @@ function update(dt, now) {
   } else if (S.mode === "balloonIn") {
     S.y += 75 * sp * dt; S.x += Math.sin(now * 0.0018) * 22 * dt; S.v = 0; tuckFeet();
     if (S.y >= S.dropTo) { S.y = S.dropTo; S.mode = "walk"; plantFeet(); }
-  } else if (S.mode === "done" && S.leaveAt && now > S.leaveAt) {
-    S.leaveAt = 0; if (!hasWork()) startExit();
   } else if (S.mode === "exit") {
     const d = travel(S.exitPt.x, S.exitPt.y, dt);
     if (d < 20 && !S.hop) S.mode = "gone";
@@ -3788,9 +3813,18 @@ function update(dt, now) {
     S.a += clamp(wrapA(-Math.PI / 2 - S.a), -4 * dt, 4 * dt); S.v = 0; tuckFeet();
     if (S.y < -pageBox().top - 120) S.mode = "gone";
   } else if (S.mode === "exitBurrow") {
-    S.appear.t -= dt * Math.min(sp, 2) * 0.7; S.v = 0; S.a += Math.sin(now * 0.05) * 0.04;
-    if (Math.random() < 0.5) fluff.push({ x: S.x + (Math.random() - 0.5) * 30, y: S.y + 8, vx: (Math.random() - 0.5) * 40, vy: -20 - Math.random() * 30, life: 0.6 });
-    if (S.appear.t <= 0) { S.appear = null; S.mode = "gone"; }
+    const h = S.hole, B = S.burrow || (S.burrow = { stage: "walk", t: 0 }); B.t += dt;
+    if (!h) { S.mode = "gone"; S.burrow = null; }
+    else if (B.stage === "open") { // the paper tears open; it turns to face the hole
+      S.v = 0; S.a += clamp(wrapA(Math.atan2(h.y - S.y, h.x - S.x) - S.a), -4 * dt, 4 * dt);
+      if (Math.random() < 0.4) fluff.push({ x: h.x + (Math.random() - 0.5) * 30, y: h.y, vx: (Math.random() - 0.5) * 50, vy: -20 - Math.random() * 30, life: 0.5 });
+      if (B.t > 0.8) { B.stage = "walk"; B.t = 0; }
+    } else if (B.stage === "walk") { // it walks to the edge and in, slowly; whatever is over the hole is already under the paper
+      if (travel(h.x, h.y, dt * 0.45) < 3 || B.t > 6) { B.stage = "down"; B.t = 0; }
+    } else { // and climbs down out of sight
+      S.v = 0; S.appear = { t: 1 - B.t / 0.9, how: "burrow" };
+      if (B.t >= 0.9) { S.appear = null; S.burrow = null; S.mode = "gone"; }
+    }
   }
 
   if (S.mode === "walk" && S.target && cfg.notice && S.noticedFor !== S.target && Math.hypot(S.target.cx - S.x, S.target.cy - S.y) < 170) {
@@ -4245,7 +4279,7 @@ function drawSpider(now) {
     else if (S.trick === "yoyo") { ctx.globalAlpha = 0.8; ctx.strokeStyle = C.silk; ctx.lineWidth = 0.8; seg(S.x, S.y - S.hopZ, S.x, S.y - S.hopZ - 120); }
     ctx.globalAlpha = 1; ctx.textAlign = "start";
   }
-  if (S.mode === "done" && cfg.exit === "sleep") {
+  if (S.mode === "done" && cfg.exit === "sleep" && S.away) {
     ctx.fillStyle = C.ink; ctx.textBaseline = "middle";
     for (let i = 0; i < 3; i++) {
       const p = ((now / 1000 + i * 0.8) % 2.4) / 2.4;
@@ -4446,14 +4480,21 @@ function drawLobsterBody(P, now) {
 }
 // the caped flyer: a blue suit, a red belt, and a red cape over its back whose hem ripples as it crawls
 // burrowing: the page tears open, the torn paper curls back, the spider crawls in, and the page closes after it
+function holeShape(now) {
+  const h = S.hole; if (!h) return null;
+  const open = clamp((now - h.born) / 650, 0, 1), close = h.closeAt ? clamp((now - h.closeAt) / 900, 0, 1) : 0;
+  const R = 26 * cfg.size * ease(open) * (1 - ease(close)), N = h.r.length;
+  return { h, R, close, N, pt: (i, k) => { const an = (i % N) / N * Math.PI * 2; return [h.x + Math.cos(an) * R * h.r[i % N] * k, h.y + Math.sin(an) * R * h.r[i % N] * k * 0.78]; } };
+}
+function holePath(sh) { ctx.beginPath(); for (let i = 0; i < sh.N; i++) { const [x, y] = sh.pt(i, 1); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); }
 function drawHole(now) {
   const h = S.hole; if (!h) return;
   if (S.mode !== "exitBurrow" && S.mode !== "gone") { S.hole = null; return; }
   if (S.mode === "gone" && !h.closeAt) h.closeAt = now + 1500;
-  const open = clamp((now - h.born) / 650, 0, 1), close = h.closeAt ? clamp((now - h.closeAt) / 900, 0, 1) : 0;
-  if (close >= 1) { S.hole = null; return; }
-  const R = 26 * cfg.size * ease(open) * (1 - ease(close)); if (R < 0.6) return;
-  const N = h.r.length, pt = (i, k) => { const an = (i % N) / N * Math.PI * 2; return [h.x + Math.cos(an) * R * h.r[i % N] * k, h.y + Math.sin(an) * R * h.r[i % N] * k * 0.78]; };
+  const sh = holeShape(now);
+  if (sh.close >= 1) { S.hole = null; return; }
+  const R = sh.R; if (R < 0.6) return;
+  const N = sh.N, pt = sh.pt;
   ctx.save();
   ctx.fillStyle = "#050506"; ctx.beginPath();
   for (let i = 0; i < N; i++) { const [x, y] = pt(i, 1); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.fill();
@@ -4761,7 +4802,12 @@ function draw(now) {
   ctx.globalAlpha = 1;
   for (const h of helpers) if (vis(h.y, h.y)) drawHelper(h);
   drawHole(now);
-  drawSpider(now);
+  if (S.mode === "exitBurrow" && S.hole) {
+    // the part of the spider over the hole has gone in: it's drawn down in the dark, and the rest on the paper
+    const sh = holeShape(now);
+    ctx.save(); holePath(sh); ctx.clip(); drawSpider(now); holePath(sh); ctx.fillStyle = "rgba(5,5,6,.72)"; ctx.fill(); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(-1e5, -1e5, 2e5, 2e5); for (let i = 0; i < sh.N; i++) { const [x, y] = sh.pt(i, 1); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.clip("evenodd"); drawSpider(now); ctx.restore();
+  } else drawSpider(now);
 }
 function threadStyle(t, i, A, B) {
   const m = cfg.threadColor;
@@ -8768,7 +8814,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgSacs", "sacs", Boolean], ["cfgSort", "sort", String], ["cfgTopics", "topics", String], ["cfgCap", "cap", Number, "oCap"],
   ["cfgHatch", "hatch", Number, "oHatch"], ["cfgStop", "stop", Number, "oStop"], ["cfgPrey", "prey", Boolean], ["cfgK", "k", Number, "oK"],
   ["cfgLook", "look", String], ["cfgBugLook", "bugLook", String], ["cfgHunt", "hunt", String], ["cfgWebStyle", "webStyle", String],
-  ["cfgSteps", "steps", Boolean], ["cfgAmbience", "ambience", String], ["cfgMusic", "music", String], ["cfgVolume", "volume", Number, "oVolume"], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String],
+  ["cfgSteps", "steps", Boolean], ["cfgAmbience", "ambience", String], ["cfgMusic", "music", String], ["cfgVolume", "volume", Number, "oVolume"], ["cfgTint", "tint", String], ["cfgSize", "size", Number, "oSize"], ["cfgName", "name", String], ["cfgExit", "exit", String], ["cfgIdleWait", "idleWait", Number],
   ["cfgLayout", "layout", String], ["cfgLinks", "links", Number, "oLinks"], ["cfgThreadColor", "threadColor", String], ["cfgWordColor", "wordColor", String],
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],

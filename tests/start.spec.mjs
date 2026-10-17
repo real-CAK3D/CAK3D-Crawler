@@ -229,3 +229,23 @@ test.describe("upload counting is exact", () => {
     await expect(page.locator("#dLimit")).toBeVisible(); // 3 queued + the example: only 2 left
   });
 });
+
+test("when it's done, the spider waits until you've left it alone, does its thing, and comes back when you tap", async ({ page }) => {
+  test.setTimeout(300_000);
+  const errs = watch(page);
+  await openApp(page, { exit: "burrow", idleWait: 15, bored: "edges", flies: 0 });
+  const logText = () => page.locator("#log").textContent();
+  await crawlDone(page);
+  // it keeps busy first: a walk around the edges of the screen, and it hasn't left yet
+  await expect.poll(logText, { timeout: 20_000 }).toMatch(/goes for a walk around the screen/);
+  expect(await logText()).not.toMatch(/burrowed into the page/);
+  await expect(page.locator("#status")).toContainText("Crawl complete");
+  // left alone for 15 seconds, it burrows into the page
+  await expect.poll(logText, { timeout: 30_000 }).toMatch(/burrowed into the page/);
+  await expect(page.locator("#status")).toContainText("went off while you were away", { timeout: 15_000 });
+  // a tap brings it back
+  const before = (await logText()).match(/crawled in|dropped in|climbed up|floated in|hatched onto|appeared/g)?.length || 0;
+  await page.mouse.click(640, 500);
+  await expect.poll(async () => ((await logText()).match(/crawled in|dropped in|climbed up|floated in|hatched onto|appeared/g)?.length || 0), { timeout: 10_000 }).toBeGreaterThan(before);
+  expect(errs).toEqual([]);
+});
