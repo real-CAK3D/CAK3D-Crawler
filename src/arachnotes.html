@@ -422,6 +422,7 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .infobox table { width: 100%; border-collapse: collapse; }
 .infobox td { padding: 3px 10px; vertical-align: top; }
 /* the guide's moving examples */
+#page .demo:not(.playing), #page .demo:not(.playing) *, body.resting #page .demo, body.resting #page .demo * { animation-play-state: paused !important; }
 #page .demo { margin: 18px 0 22px; padding: 14px 14px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); max-width: 34rem; }
 #page .demo svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; overflow: visible; }
 #page .demo figcaption { font-size: .85rem; color: var(--muted); margin-top: 8px; line-height: 1.4; }
@@ -488,6 +489,9 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .blank-start .tryit { justify-content: center; border: 0; }
 .webq { margin: 4px 0 10px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--grip) 35%, transparent); color: var(--ink); }
 .site-links { flex-wrap: wrap; }
+/* asking before an error report is sent */
+.err-ask { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; z-index: 70; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
+.err-ask p { margin: 0 0 10px; line-height: 1.45; }
 /* the walkthrough */
 #tour { position: fixed; inset: 0; z-index: 2147483000; }
 #tour .tour-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(10, 12, 11, .62); pointer-events: none; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; outline: 2px solid var(--grip, #f3d27a); outline-offset: 2px; }
@@ -1782,6 +1786,7 @@ body.bar-off .bar { display: none; }
           <label class="chk"><input type="checkbox" id="repCfg" checked> Include my app settings (no texts, notes or API keys)</label>
           <div class="rowi"><button class="btn primary" type="button" id="repSend">Send report</button><span class="meta" id="repNote" aria-live="polite"></span></div>
         </fieldset>
+        <label class="chk"><input type="checkbox" id="cfgErrReports"> Send error reports automatically when something goes wrong (the error, the app version and your support ID; never your texts, notes or keys)</label>
         <div class="field"><span>Updates</span>
           <div class="rowi"><button class="btn" type="button" id="updCheck">Check for updates</button><span class="meta" id="updNote" aria-live="polite"></span></div>
           <small>On Android, Google Play updates the app automatically. This checks right now.</small></div>
@@ -1795,6 +1800,12 @@ body.bar-off .bar { display: none; }
     <div class="actions"><button class="btn" type="button" id="bRestart">Restart crawl</button><button class="btn primary" type="submit">Done</button></div>
   </form>
 </dialog>
+
+<!-- asks before sending an error report -->
+<div id="errAsk" class="err-ask" role="alertdialog" aria-labelledby="errAskH" hidden>
+  <p id="errAskH"><b>Something went wrong.</b> Send a report so it can be fixed? It has the error, the app version and your support ID; never your texts, notes or keys.</p>
+  <div class="rowi"><button class="btn primary" type="button" id="errSend">Send</button><button class="btn" type="button" id="errAlways">Always send</button><button class="btn" type="button" id="errNo">Don't ask</button></div>
+</div>
 
 <!-- the first-run walkthrough: a spotlight on one thing at a time, with Next, Back and Skip -->
 <div id="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tourH">
@@ -1951,7 +1962,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2254,8 +2265,20 @@ function addCooc(kw, keys) {
   }
 }
 
+// the guide's moving examples only move while they're on screen and someone's around: left running they cost battery
+const demoIO = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => playDemo(e.target, e.isIntersecting)), { threshold: 0.15 }) : null;
+function playDemo(fig, on) {
+  fig.classList.toggle("playing", on);
+  const svg = fig.querySelector("svg"); if (svg && svg.pauseAnimations) { if (on && !document.body.classList.contains("resting")) svg.unpauseAnimations(); else svg.pauseAnimations(); }
+}
+function watchDemos() {
+  const figs = page.querySelectorAll(".demo"); if (!figs.length) return;
+  if (!demoIO) { figs.forEach(f => playDemo(f, true)); return; }
+  demoIO.disconnect(); figs.forEach(f => { playDemo(f, false); demoIO.observe(f); });
+}
 function buildSample() {
   page.innerHTML = SAMPLE_HTML;
+  setTimeout(watchDemos);
   const kw = new Map(), sents = [], marks = [], sentPara = [];
   let para = 0;
   page.querySelectorAll("article > h2, article > p:not(.from), article > ul, .infobox table").forEach(block => {
@@ -7526,6 +7549,27 @@ async function rpc(fn, body) {
   if (!r.ok) throw new Error((j && j.message) || `The report server answered ${r.status}.`);
   return j;
 }
+// ---- error reports: when something breaks, and only with your OK, the app sends the error, where it happened, the app
+// version and your support ID, so it can be fixed. Never your texts, notes, library or keys. Reports are kept 90 days.
+const ERR = { seen: new Set(), sent: 0, queue: [], asking: false };
+function reportError(err, place) {
+  if (!SUPPORT || IN_CLAUDE || cfg.errReports === "off") return;
+  const message = String((err && (err.message || (err.reason && err.reason.message))) || err || "Unknown error").slice(0, 500);
+  if (/ResizeObserver loop|^Script error\.?$|NetworkError|Failed to fetch|Load failed|AbortError|aborted/i.test(message)) return; // not bugs
+  const key = message + "|" + place; if (ERR.seen.has(key) || ERR.sent + ERR.queue.length >= 5) return; ERR.seen.add(key);
+  const item = { p_user: supportId(), p_version: APP.version, p_platform: platformName(), p_place: place, p_message: message, p_stack: String((err && err.stack) || "").slice(0, 4000) };
+  if (cfg.errReports === "on") { sendErr(item); return; }
+  ERR.queue.push(item);
+  if (!ERR.asking) { ERR.asking = true; $("errAsk").hidden = false; }
+}
+function sendErr(item) { ERR.sent++; rpc("report_error", item).catch(() => { /* offline: it's only a report */ }); }
+const closeErrAsk = () => { $("errAsk").hidden = true; ERR.asking = false; };
+$("errSend").onclick = () => { ERR.queue.splice(0).forEach(sendErr); closeErrAsk(); toast("Sent. Thank you."); };
+$("errAlways").onclick = () => { cfg.errReports = "on"; saveCfg(); $("cfgErrReports").checked = true; ERR.queue.splice(0).forEach(sendErr); closeErrAsk(); toast("Sent. Future errors will be sent automatically; you can change that in Help & support."); };
+$("errNo").onclick = () => { cfg.errReports = "off"; saveCfg(); $("cfgErrReports").checked = false; ERR.queue = []; closeErrAsk(); };
+$("cfgErrReports").addEventListener("change", e => { cfg.errReports = e.target.checked ? "on" : "off"; saveCfg(); });
+addEventListener("error", e => reportError(e.error || e.message, "page"));
+addEventListener("unhandledrejection", e => { const r = e.reason; if (r && r.code) return; reportError(r, "promise"); }); // app errors with a code are handled
 $("supCopy").onclick = () => copyText(supportId(), "Copied your support ID.");
 $("supHelp").onclick = () => { $("dSettings").close(); openHelp(); };
 $("supTour").onclick = () => { $("dSettings").close(); startExplain(); };
@@ -7577,7 +7621,7 @@ async function checkUpdate(manual) {
   } catch (e) { say("Couldn't check for updates right now."); }
 }
 $("updCheck").onclick = () => checkUpdate(true);
-function syncSupport() { $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; }
+function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; }
 setTimeout(() => { checkFixes(); if (NATIVE) checkUpdate(false); }, 2500);
 // ---- help: one list of what everything is, used by the "What's what" tab and by "point at anything"
 const HELP = [
@@ -10055,9 +10099,18 @@ addEventListener("keydown", e => {
 // ---------------- boot ----------------
 let prev = performance.now(), frameN = 0;
 let frameErrors = 0;
+// battery: while the spider is away (gone, or asleep, after you've left the app alone) and nothing else is moving,
+// the screen is redrawn about 10 times a second instead of 60
+const lowPower = () => (S.mode === "gone" || (S.away && S.mode === "done")) && !babies.length && !fluff.length && !confetti.length && !WV.open && !codeOpen() && !TR.open && !S.hole;
 function frame(now) {
   requestAnimationFrame(frame); // scheduled first, so a problem below can't stop the animation
-  const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+  const slow = lowPower();
+  if (slow !== frame.slow) { // resting: the guide's examples stop too
+    frame.slow = slow; document.body.classList.toggle("resting", slow);
+    page.querySelectorAll(".demo.playing svg").forEach(svg => { if (svg.pauseAnimations) slow ? svg.pauseAnimations() : svg.unpauseAnimations(); });
+  }
+  if (slow && now - prev < 95) return;
+  const dt = Math.min(slow ? 0.12 : 0.05, (now - prev) / 1000); prev = now;
   try {
     update(dt, now);
     if (!WV.open) updAmbient(dt, now);
@@ -10066,7 +10119,7 @@ function frame(now) {
     else { draw(now); if (++frameN % 6 === 0) drawMini(); }
   } catch (e) {
     // put the spider back on its feet and carry on; report once so it can be fixed
-    if (frameErrors++ < 3) console.error(e);
+    if (frameErrors++ < 3) { console.error(e); reportError(e, "animation"); }
     try { if (S.mode !== "gone") { S.zip = null; S.pounce = S.lasso = null; S.hopZ = 0; S.hop = null; if (!["walk", "done"].includes(S.mode)) S.mode = "walk"; } ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.shadowBlur = 0; } catch (e2) {}
   }
 }
@@ -10116,6 +10169,33 @@ requestAnimationFrame(frame);
     const q = new URLSearchParams(location.search), t = [q.get("url"), q.get("text")].filter(Boolean).join(" ");
     if (t) { history.replaceState(null, "", location.pathname + location.hash); setTimeout(() => crawlShared({ kind: "text", text: t, subject: q.get("title") || "" }), 700); }
   }
+}
+// Android's Back button (and back gesture): closes whatever is on top, one thing per press. On the page itself the
+// first press says so, and a second press within 2 seconds leaves the app.
+function goBack() {
+  if (TR.open) { endTour(); return true; }
+  if (typeof openMenu !== "undefined" && openMenu) { closeMenu(); return true; }
+  if (POP) { hidePop(); return true; }
+  const dialogs = [...document.querySelectorAll("dialog[open]")];
+  if (dialogs.length) { dialogs[dialogs.length - 1].close(); return true; }
+  if (explaining) { stopExplain(); return true; }
+  if (!$("stSheet").hidden) { closeSheet(); return true; }
+  if (storeOpen()) { closeStore(); return true; }
+  if (codeOpen()) { closeCode(); return true; }
+  if (WV.open) { closeWeb(); return true; }
+  if (!findP.hidden) { closeFind(); return true; }
+  if (!$("statsPanel").hidden) { toggleStats(false); return true; }
+  return false;
+}
+{
+  const AppPlugin = NATIVE && window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin("App") : null;
+  let leaveAt = 0;
+  if (AppPlugin) AppPlugin.addListener("backButton", () => {
+    comeBack();
+    if (goBack()) return;
+    if (performance.now() - leaveAt < 2000) { AppPlugin.exitApp(); return; }
+    leaveAt = performance.now(); toast("Press back again to leave Arachnotes");
+  });
 }
 // the first time, a short walkthrough of what's what
 if (!cfg.tourDone) setTimeout(() => { if (!cfg.tourDone && !document.querySelector("dialog[open]") && !codeOpen()) startTour(); }, 1600);

@@ -320,3 +320,53 @@ test("Settings offers a free on-device AI with its own download panel", async ({
   await page.locator("#aiTest").click();
   await expect(page.locator("#aiNote")).toContainText(/Download the model first|It works/, { timeout: 15_000 });
 });
+
+test("Android's Back button closes what's on top, one thing at a time, and asks before leaving", async ({ page }) => {
+  const errs = watch(page);
+  // stand in for the Android app's Capacitor bridge
+  await page.addInitScript(() => {
+    window.Capacitor = { isNativePlatform: () => true, Plugins: {}, convertFileSrc: x => x,
+      registerPlugin: name => name === "App" ? { addListener: (ev, fn) => { window.__back = fn; return { remove() {} }; }, exitApp: () => { window.__exited = true; } }
+        : { addListener: () => ({ remove() {} }), take: async () => ({}) } };
+  });
+  await openApp(page);
+  const back = () => page.evaluate(() => window.__back());
+  await page.locator("#bSettings").click(); await expect(page.locator("#dSettings")).toBeVisible();
+  await back(); await expect(page.locator("#dSettings")).toBeHidden();
+  await page.locator("#bWeb").click(); await expect(page.locator("#wv")).toBeVisible();
+  await back(); await expect(page.locator("#wv")).toBeHidden();
+  await tool(page, "bCode"); await expect(page.locator("#codePage")).toBeVisible();
+  await back(); await expect(page.locator("#codePage")).toBeHidden();
+  await page.locator("#mbPages").click(); await expect(page.locator("#mPages")).toBeVisible();
+  await back(); await expect(page.locator("#mPages")).toBeHidden();
+  // on the page: the first press warns, the second leaves
+  await back(); await expect(page.locator(".toast")).toContainText("Press back again");
+  expect(await page.evaluate(() => !!window.__exited)).toBe(false);
+  await back();
+  expect(await page.evaluate(() => !!window.__exited)).toBe(true);
+  expect(errs).toEqual([]);
+});
+
+test("when something breaks, it asks before sending an error report, and remembers the answer", async ({ page }) => {
+  const sent = [];
+  await page.route("**/rest/v1/rpc/report_error", async r => { sent.push(JSON.parse(r.request().postData())); await r.fulfill({ status: 204, body: "" }); });
+  await openApp(page);
+  await page.evaluate(() => setTimeout(() => { throw new Error("Test error from the test suite"); }, 0));
+  await expect(page.locator("#errAsk")).toBeVisible();
+  expect(sent).toHaveLength(0); // nothing goes until you say so
+  await page.locator("#errSend").click();
+  await expect(page.locator("#errAsk")).toBeHidden();
+  await expect.poll(() => sent.length).toBe(1);
+  expect(sent[0].p_message).toContain("Test error from the test suite");
+  expect(sent[0].p_user).toMatch(/^AN-/);
+  expect(JSON.stringify(sent[0])).not.toContain("Arachnotes turns anything"); // no page text
+  // "Don't ask" turns it off for good
+  await page.evaluate(() => setTimeout(() => { throw new Error("Another test error"); }, 0));
+  await page.locator("#errNo").click();
+  await page.evaluate(() => setTimeout(() => { throw new Error("A third test error"); }, 0));
+  await page.waitForTimeout(500);
+  await expect(page.locator("#errAsk")).toBeHidden();
+  expect(sent).toHaveLength(1);
+  await page.locator("#bSettings").click(); await page.locator("#setHelp").click();
+  await expect(page.locator("#cfgErrReports")).not.toBeChecked();
+});

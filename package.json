@@ -1,6 +1,6 @@
 {
   "name": "arachnotes",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "private": true,
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "type": "module",
@@ -16,6 +16,7 @@
     "@anthropic-ai/sdk": "0.133.0",
     "@capacitor-community/text-to-speech": "8.0.2",
     "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
     "@capacitor/clipboard": "8.0.1",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.4",
