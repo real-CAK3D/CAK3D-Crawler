@@ -903,7 +903,7 @@ body.bar-off .bar { display: none; }
   </figure>
 
   <h2>Study with it</h2>
-  <p>When a topic is finished, the spider wraps its keywords into an egg sac, and opening a sac shows a summary of that topic with its sources. The study guide pulls the key points, terms and questions out of the whole text, and saves as an <a data-c="3" data-w="Outline_(list)">outline</a> with the pictures and their citations.</p>
+  <p>As it goes, the spider wraps what it has caught into egg sacs, and opening a sac shows a summary of those keywords with their sources. Settings can sort the sacs into one per topic instead. The study guide pulls the key points, terms and questions out of the whole text, and saves as an <a data-c="3" data-w="Outline_(list)">outline</a> with the pictures and their citations.</p>
   <p><a data-c="3" data-w="Flashcard">Flashcards</a> are made from your keywords automatically and scheduled with <a data-c="3" data-w="Spaced_repetition">spaced repetition</a>, in the spirit of the <a data-c="3" data-w="Leitner_system">Leitner system</a>: cards you know come back less often, and cards you miss come back soon. Testing yourself like this is called the <a data-c="3" data-w="Testing_effect">testing effect</a>, and it is one of the best-studied ways to remember. The idea goes back to <a data-c="3" data-w="Hermann_Ebbinghaus">Hermann Ebbinghaus</a>, who described the <a data-c="3" data-w="Forgetting_curve">forgetting curve</a> in 1885. The app can also read any passage aloud with <a data-c="3" data-w="Speech_synthesis">speech synthesis</a>.</p>
 
   <figure class="demo demo-card" aria-hidden="true">
@@ -2133,7 +2133,7 @@ function buildSample() {
       el.href = BASE + el.dataset.w; el.target = "_blank"; el.rel = "noopener";
       const label = el.textContent.replace(/\s+/g, " ").trim(), key = label.toLowerCase();
       // a keyword the spider catches once: later mentions are echoes of it, like in your own texts
-      el.classList.add(kw.has(key) ? "echo" : "kw");
+      if (kw.has(key)) { el.classList.add("echo"); el.removeAttribute("href"); el.removeAttribute("target"); } else el.classList.add("kw");
       el.dataset.k = key;
       if (!kw.has(key)) kw.set(key, mkKw(key, label, +el.dataset.c));
       const k = kw.get(key); k.count++;
@@ -2778,6 +2778,12 @@ function startSac(b) {
   x /= list.length; y /= list.length;
   if (y1 - y0 > 1200) { const last = list[list.length - 1].node; x = last.cx + 40; y = last.cy + 30; }
   const info = bucketInfo(b);
+  // a sac of keywords from several topics is named after the topic most of them are in, like "Silk & webs +2"
+  if (b === "all") {
+    const n = new Map(); for (const a of list) { const c = (DOC.kw.get(a.node.key) || {}).cat; if (c != null) n.set(c, (n.get(c) || 0) + 1); }
+    const top = [...n.entries()].sort((p, q) => q[1] - p[1])[0], cat = top && DOC.cats[top[0]];
+    if (cat) info.label = cat.name + (n.size > 1 ? ` +${n.size - 1}` : "");
+  }
   const sac = { n: ++sacCount, x, y, r: 0, wrap: 0, state: "waiting", keys: list.map(a => a.node.key), bucket: b, label: info.label, color: info.color, fullAt: 0, summary: "" };
   for (const a of list) a.sac = sac;
   for (const t of threads) if (t.bucket === b && !t.sac) t.sac = sac;
@@ -2823,12 +2829,13 @@ function finish() {
   announce(`Crawl complete: ${plural(crawled, "keyword")} collected.`);
   S.mode = "done"; S.target = null; S.finishing = false;
   if (S.doneAt !== crawled) { S.doneAt = crawled; log("DONE", plural(crawled, "keyword") + " collected"); }
-  startExit();
+  // it stays a while to look over its work before it leaves (if it's set to leave at all)
+  if (["stay", "wander", "sleep"].includes(cfg.exit)) startExit(); else { S.wanderT = 2; S.leaveAt = performance.now() + 12000; }
   updateStatus();
 }
 
 function hatch(sac) {
-  sac.state = "hatched";
+  sac.state = "hatched"; sac.hatchedAt = performance.now();
   const n = cfg.hatch, keys = [...new Set(sac.keys)], inSac = new Set(keys);
   // spiderlings head for keywords related to this sac that have not been crawled yet
   const score = new Map();
@@ -3541,7 +3548,8 @@ function drawBridges(vis) {
   ctx.save(); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.2;
   for (const br of bridges) {
     const { a, b } = br; if (!vis(Math.min(a.y, b.y), Math.max(a.y, b.y))) continue;
-    ctx.strokeStyle = sacColor(a); ctx.globalAlpha = 0.65;
+    const now = performance.now(), f = Math.min(sacFade(a, now), sacFade(b, now)); if (f <= 0) continue; // fades with its sacs
+    ctx.strokeStyle = sacColor(a); ctx.globalAlpha = 0.65 * f;
     silkPath(a.x, a.y, b.x, b.y, 1, false, 0, 10);
   }
   ctx.restore(); ctx.globalAlpha = 1;
@@ -3769,12 +3777,14 @@ function update(dt, now) {
   } else if (S.mode === "balloonIn") {
     S.y += 75 * sp * dt; S.x += Math.sin(now * 0.0018) * 22 * dt; S.v = 0; tuckFeet();
     if (S.y >= S.dropTo) { S.y = S.dropTo; S.mode = "walk"; plantFeet(); }
+  } else if (S.mode === "done" && S.leaveAt && now > S.leaveAt) {
+    S.leaveAt = 0; if (!hasWork()) startExit();
   } else if (S.mode === "exit") {
     const d = travel(S.exitPt.x, S.exitPt.y, dt);
     if (d < 20 && !S.hop) S.mode = "gone";
   } else if (S.mode === "exitUp" || S.mode === "exitBalloon") {
     const up = S.mode === "exitUp";
-    S.y -= (up ? 170 : 70) * sp * dt; if (!up) S.x += Math.sin(now * 0.0018) * 24 * dt;
+    S.y -= (up ? 170 : 38) * Math.min(sp, 1.5) * dt; if (!up) S.x += Math.sin(now * 0.0012) * 18 * dt;
     S.a += clamp(wrapA(-Math.PI / 2 - S.a), -4 * dt, 4 * dt); S.v = 0; tuckFeet();
     if (S.y < -pageBox().top - 120) S.mode = "gone";
   } else if (S.mode === "exitBurrow") {
@@ -4553,25 +4563,30 @@ function drawClassicBody(type, col) {
   for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(8, s * 2.5); ctx.quadraticCurveTo(13, s * 5, 14, s * 3); ctx.stroke(); }
 }
 function sacColor(s) { return s.color == null ? C.silk : C.cats[s.color]; }
+// an empty sac's shell fades from the page a few seconds after it hatches; the sac is still in the web view and the library
+const SAC_FADE = 9000, SAC_GONE = 13000;
+const sacFade = (s, now) => s.state !== "hatched" ? 1 : clamp(1 - (now - (s.hatchedAt || 0) - SAC_FADE) / (SAC_GONE - SAC_FADE), 0, 1);
 function drawSac(sac, now) {
   if (sac.r <= 0.3) return;
+  const fade = sacFade(sac, now); if (fade <= 0) return;
   const { x, y } = sac;
+  ctx.save();
   let r = sac.r;
   if (sac.state === "full") r *= 1 + 0.07 * Math.sin(now * 0.018) * clamp((now - sac.fullAt) / 400, 0, 1);
   ctx.strokeStyle = C.silk; ctx.fillStyle = C.silk; ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x, y - r - 16); ctx.stroke();
+  ctx.globalAlpha = 0.8 * fade; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x, y - r - 16); ctx.stroke();
   ctx.beginPath(); ctx.arc(x, y - r - 16, 1.6, 0, 7); ctx.fill();
   if (sac.state === "hatched") {
-    ctx.globalAlpha = 0.18; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0, 7); ctx.fill();
-    ctx.globalAlpha = 0.75; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0.9, Math.PI * 2 - 0.4); ctx.stroke();
+    ctx.globalAlpha = 0.18 * fade; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.75 * fade; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0.9, Math.PI * 2 - 0.4); ctx.stroke();
     for (let k = 0; k < 4; k++) { const a = 0.9 - k * 0.32; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); ctx.lineTo(x + Math.cos(a) * (r + 6), y + Math.sin(a) * (r + 6) - 3); ctx.stroke(); }
   } else {
-    ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0, 7); ctx.fill();
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.5 * fade; ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.85 * fade;
     const wraps = Math.floor((sac.state === "spinning" ? sac.wrap : 1) * 10);
     for (let k = 0; k < wraps; k++) { ctx.beginPath(); ctx.ellipse(x, y, r * 1.1, r * 0.4, k * 0.63, 0, 7); ctx.stroke(); }
   }
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 1 * fade;
   if (sac.state === "full" || sac.state === "hatched") {
     ctx.font = "600 10px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "top";
     ctx.fillStyle = sacColor(sac); ctx.fillText(trunc(sac.label, 22).toUpperCase(), x, y + r + 5);
@@ -4586,7 +4601,9 @@ function drawSac(sac, now) {
     ctx.fillStyle = C.ink; ctx.beginPath(); ctx.roundRect(x + r + 12, y - 11, tw + 14, 22, 4); ctx.fill();
     ctx.fillStyle = C.paper; ctx.fillText(label, x + r + 19, y);
   }
+  ctx.restore();
 }
+
 function babyColor(b) {
   if (cfg.babyColor === "parent") return spiderColor();
   if (cfg.babyColor === "rainbow") return `hsl(${(b.idx * 53) % 360} 80% ${C.dark ? 65 : 42}%)`;
@@ -4986,7 +5003,8 @@ $("mini").addEventListener("click", e => {
 
 // ---------------- keyword popover, steering, highlighter ----------------
 let POP = null;
-function showPop(el) {
+// at: where to show it, when that's another mention of the keyword (a repeated keyword in the guide)
+function showPop(el, at = el) {
   const key = el.dataset.k, k = DOC.kw.get(key), n = nodes.find(x => x.el === el);
   if (!k || !n) return;
   const pop = $("pop"), picked = WV.picks.has(key);
@@ -4999,8 +5017,8 @@ function showPop(el) {
     <div class="pop-btns">${noteBtn("k", key)}</div>
     ${el.tagName === "A" ? `<a href="${esc(el.href)}" target="_blank" rel="noopener">Read the article ↗</a>` : ""}`;
   pop.hidden = false; bump(k.label, 1);
-  placePop(el);
-  POP = { key, node: n };
+  placePop(at);
+  POP = { key, node: n, at };
   pop.querySelector("button").focus({ preventScroll: true });
 }
 function placePop(el) {
@@ -5079,6 +5097,8 @@ page.addEventListener("dblclick", e => {
 page.addEventListener("click", e => {
   const kwEl = e.target.closest(".kw");
   if (kwEl) { e.preventDefault(); showPop(kwEl); return; }
+  const echo = e.target.closest("a.echo[data-k]"), first = echo && page.querySelector(`.kw[data-k="${CSS.escape(echo.dataset.k)}"]`);
+  if (first) { e.preventDefault(); showPop(first, echo); return; }
   if (e.target.closest("a, button, input")) return;
   const sel = getSelection(); if (sel && !sel.isCollapsed) return;
   const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
@@ -5088,7 +5108,7 @@ page.addEventListener("click", e => {
   S.goto = { x, y, user: true, from }; rings.push({ x, y, born: performance.now() }); wake();
 });
 page.addEventListener("keydown", e => { const s = e.target.closest("span.kw"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showPop(s); } });
-document.addEventListener("click", e => { if (POP && !e.target.closest(".pop, .kw")) hidePop(); });
+document.addEventListener("click", e => { if (POP && !e.target.closest(".pop, .kw, a.echo")) hidePop(); });
 
 const HL = { text: "", range: null };
 let selTimer = 0;
@@ -5463,7 +5483,7 @@ $("sacTree").addEventListener("click", e => {
 });
 function sacAt(e) {
   const pr = pageBox(), x = e.clientX - pr.left, y = e.clientY - pr.top;
-  return sacs.find(s => (s.state === "full" || s.state === "hatched") && Math.hypot(s.x - x, s.y - y) < s.r + 14) || null;
+  return sacs.find(s => (s.state === "full" || s.state === "hatched") && sacFade(s, performance.now()) > 0.3 && Math.hypot(s.x - x, s.y - y) < s.r + 14) || null;
 }
 // tap a bug to squash it. If the spider is close enough to see, it isn't happy about losing its dinner.
 function squashAt(e) {
@@ -6196,6 +6216,7 @@ function renderCompare() {
       <label class="field"><span>Or open a file (PDF, EPUB, Word, text and more)</span><input type="file" id="cmpFile"></label>
       <p class="err" id="cmpErr" hidden></p>
       <div><button class="btn primary" type="button" id="cmpGo">Compare</button></div></div>`;
+    $("cmpFile").onclick = e => { if (!webGate()) e.preventDefault(); };
     $("cmpFile").onchange = async e => {
       const f = e.target.files && e.target.files[0]; if (!f) return;
       try { const got = await readingFromFile(f); $("cmpText").value = got.text.slice(0, MAX_CHARS); if (!$("cmpTitle").value) $("cmpTitle").value = got.title || f.name.replace(/\.[^.]+$/, ""); $("cmpErr").hidden = true; }
@@ -7562,7 +7583,7 @@ addEventListener("wheel", () => { if (!WV.open) stopFollow(); }, { passive: true
 addEventListener("touchmove", () => { if (!WV.open) stopFollow(); }, { passive: true });
 addEventListener("scroll", () => {
   if (!POP) return;
-  const el = POP.node && POP.node.el, top = $("bar").hidden ? 0 : $("bar").getBoundingClientRect().bottom;
+  const el = POP.at || (POP.node && POP.node.el), top = $("bar").hidden ? 0 : $("bar").getBoundingClientRect().bottom;
   if (!el || !el.isConnected) { hidePop(); return; }
   const r = el.getBoundingClientRect();
   if (r.bottom < top || r.top > innerHeight) hidePop(); else placePop(el);
@@ -9120,7 +9141,7 @@ function parseCsv(t, sep) {
   for (let i = 0; i < t.length; i++) {
     const c = t[i];
     if (q) { if (c === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; continue; }
-    if (c === '"') q = true; else if (c === sep) { row.push(cell.trim()); cell = ""; }
+    if (c === '"' && cell === "") q = true; else if (c === sep) { row.push(cell.trim()); cell = ""; }
     else if (c === "\n" || c === "\r") { if (c === "\r" && t[i + 1] === "\n") i++; row.push(cell.trim()); rows.push(row); row = []; cell = ""; }
     else cell += c;
   }
@@ -9165,6 +9186,9 @@ async function officeToText(buf, ext) {
   }
   return { title, author, text: out.join("\n\n") };
 }
+// Windows-1252: the bytes 0x80–0x9F are curly quotes, dashes and the like, not control characters
+const CP1252 = "€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008DŽ\u008F\u0090‘’“”•–—˜™š›œ\u009DžŸ";
+const cp1252 = b => b >= 0x80 && b <= 0x9f ? CP1252[b - 0x80] : String.fromCharCode(b);
 function rtfToText(src) {
   // skip the font, color, style and info tables, and anything marked ignorable
   let s = "", i = 0;
@@ -9176,12 +9200,12 @@ function rtfToText(src) {
     s += src[i++];
   }
   return s.replace(/\\par[d]?\b ?|\\line\b ?/g, "\n").replace(/\\tab\b ?/g, " ")
-    .replace(/\\'([0-9a-f]{2})/gi, (m, h) => String.fromCharCode(parseInt(h, 16)))
-    .replace(/\\u(-?\d+)\??/g, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
+    .replace(/\\u(-?\d+) ?(?:\\'[0-9a-f]{2}|\?|[^\\{}])?/gi, (m, n) => String.fromCharCode(n < 0 ? 65536 + +n : +n))
+    .replace(/\\'([0-9a-f]{2})/gi, (m, h) => cp1252(parseInt(h, 16)))
     .replace(/\\([{}\\])/g, "$1").replace(/\\[a-z]+-?\d* ?/gi, "").replace(/[{}]/g, "")
     .split(/\n/).map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n\n");
 }
-function htmlToText(t) {
+function savedHtmlToText(t) {
   const d = new DOMParser().parseFromString(t, "text/html");
   d.querySelectorAll("script, style, noscript, nav, header, footer, aside, form, svg, iframe").forEach(e => e.remove());
   const root = d.querySelector("article, main, [role=main]") || d.body || d.documentElement, parts = [];
@@ -9229,15 +9253,18 @@ async function readingFromFile(f, onProgress) {
   else if (ext === "epub") got = await epubToText(await f.arrayBuffer());
   else if (/^(docx|pptx|xlsx|odt|odp|ods)$/.test(ext)) got = await officeToText(await f.arrayBuffer(), ext), got.note = { docx: "a Word document", pptx: "slides, in order", xlsx: "each row as a sentence", odt: "an OpenDocument text", odp: "slides, in order", ods: "each row as a sentence" }[ext];
   else {
-    const t = await f.text();
+    const buf = new Uint8Array(await f.arrayBuffer());
+    // text saved as UTF-16 (Excel's "Unicode text", some Windows tools) starts with a byte order mark
+    const enc = buf[0] === 0xff && buf[1] === 0xfe ? "utf-16le" : buf[0] === 0xfe && buf[1] === 0xff ? "utf-16be" : "utf-8";
+    const t = new TextDecoder(enc).decode(buf).replace(/^\uFEFF/, "");
     if (/\u0000/.test(t.slice(0, 4000))) throw new Error("binary");
     if (ext === "rtf" || /^\{\\rtf/.test(t)) got = { text: rtfToText(t) };
-    else if (/^(html?|xhtml|mhtml?)$/.test(ext)) got = Object.assign(htmlToText(t), { note: "a saved web page" });
+    else if (/^(html?|xhtml|mhtml?)$/.test(ext)) got = Object.assign(savedHtmlToText(t), { note: "a saved web page" });
     else if (/^(srt|vtt|sbv|sub)$/.test(ext)) got = Object.assign(subsToText(t), { note: "subtitles, without their times" });
     else if (ext === "ipynb") got = Object.assign(notebookToText(t), { note: "the notebook's text cells" });
     else if (ext === "json" || ext === "jsonl" || ext === "geojson") got = Object.assign(jsonToText(t, ext === "jsonl"), { note: "the text values in it" });
     else if (ext === "csv" || ext === "tsv") got = { text: tableText(parseCsv(t, ext === "tsv" ? "\t" : (t.split("\n")[0].split(";").length > t.split("\n")[0].split(",").length ? ";" : ","))), note: "each row as a sentence" };
-    else if (ext === "xml" || ext === "opml" || ext === "rss" || ext === "atom") { const d = xmlDoc(t); got = { text: [...d.querySelectorAll("*")].filter(e => !e.children.length).map(e => e.textContent.replace(/\s+/g, " ").trim()).filter(x => x.length > 2).join("\n\n") }; }
+    else if (ext === "xml" || ext === "opml" || ext === "rss" || ext === "atom") { const d = xmlDoc(t); if (d.querySelector("parsererror")) throw new Error("badxml"); got = { text: [...d.querySelectorAll("*")].filter(e => !e.children.length).map(e => e.textContent.replace(/\s+/g, " ").trim()).filter(x => x.length > 2).join("\n\n") }; }
     else if (ext === "tex" || ext === "latex") got = texToText(t);
     else if (CODE_EXT.test(f.name)) got = { text: t, note: "code read as text. For a map of the code, use Pages → Read code" };
     else got = { text: t };
@@ -9305,6 +9332,7 @@ function fileError(ex, f) {
     : m === "olddoc" ? "That's an older Office file (.doc, .ppt or .xls), which can't be read here. Save it as .docx, .pptx, .xlsx or PDF and open that."
     : m === "apple" ? "Pages, Keynote and Numbers files can't be read here. Export it as PDF or Word and open that."
     : m === "heic" ? "HEIC photos can't be read here. Take the photo as JPEG, or share it as a JPEG, and open that."
+    : m === "badxml" ? "That XML file isn't complete or has an error in it, so it can't be read."
     : m === "binary" ? "That file isn't text Arachnotes can read. Try a PDF, EPUB, Word document or plain-text file."
     : m === "load" ? (IN_CLAUDE ? "Inside claude.ai the PDF, EPUB and text-recognition readers can't always load. The web and Android versions include them." : "Couldn't load the file reader. Check your connection and try again.")
     : IN_CLAUDE && /\.(png|jpe?g|webp|pdf)$/i.test(f.name) ? "Text recognition for scans and photos needs the web or Android version; claude.ai blocks the files it downloads."
@@ -9685,7 +9713,7 @@ function crawlSources(list) {
 }
 $("fSource").addEventListener("submit", async e => {
   e.preventDefault();
-  const demo = SRC.demo; SRC.demo = false;
+  const demo = SRC.demo && !SRC.list.length; SRC.demo = false;
   if ($("srcSample").checked && !SRC.list.length) { loadDoc(buildSample()); store.set("cak3d-src", null); dSource.close(); return; }
   if (!demo && !webGate()) return;
   $("srcGo").disabled = true;
@@ -9695,11 +9723,14 @@ $("fSource").addEventListener("submit", async e => {
     // adding pages to the crawl already open: keep its sources first (they were counted when they came in)
     if ($("srcSearchR").checked && !$("srcKeepRow").hidden && $("srcKeep").checked && DOC) { const cur = currentDocSources(); list.unshift(...cur); kept = cur.length; }
     const pending = $("srcSearchR").checked ? document.querySelector("#webResults [data-res]:checked") : $("srcUrlR").checked ? $("srcUrl").value.trim() : $("srcText").value.trim();
+    // stop before downloading anything if this would go over the browser version's limit
+    if (!demo && !webGate(list.length - kept + (pending || !list.length ? 1 : 0))) return;
     if (pending || !list.length) list.push(...await currentSources());
-    if (!demo && !webGate(list.length - kept)) return;
+    const mine = list.filter(x => !(x.depth > 0)).length - kept; // pages followed from a link come with it
+    if (!demo && !webGate(mine)) return;
     srcMsg("Crawling…", true);
     crawlSources(list);
-    if (!demo) webSpend(list.length - kept);
+    if (!demo) webSpend(mine);
     SRC.list = []; renderSrcList(); clearSourceInputs(); srcMsg(""); dSource.close();
   } catch (ex) { srcMsg(ex.message || "Something went wrong loading that source."); }
   finally { $("srcGo").disabled = false; }
@@ -9759,7 +9790,10 @@ let started = false;
 if (cfg.startWith === "blank") { loadDoc(buildBlank()); started = true; }
 else if (cfg.startWith !== "guide") {
   const resume = store.get("cak3d-resume");
-  if (resume && resume.state) { try { restoreState(resume.state, resume.raw || "", resume.craw || "", resume.libId || null); started = true; } catch (e) { started = false; } }
+  if (resume && resume.state) {
+    const raw = resume.sameAsSrc ? ((store.get("cak3d-src") || {}).raw || "") : resume.raw || "";
+    try { restoreState(resume.state, raw, resume.craw || "", resume.libId || null); started = true; } catch (e) { started = false; }
+  }
   if (!started) {
     const saved = store.get("cak3d-src");
     if (saved && saved.raw) {
@@ -9775,7 +9809,9 @@ function saveResume() {
   try {
     const raw = DOC.mode === "text" ? DOC.raw || "" : "", craw = DOC.compare ? DOC.compare.raw || "" : "";
     if (raw.length + craw.length > 1500000) { store.set("cak3d-resume", null); return; }
-    store.set("cak3d-resume", { state: captureState(DOC.title), raw, craw, libId: DOC.libId || null, at: Date.now() });
+    // the same text saved as the last source doesn't need a second copy
+    const src = store.get("cak3d-src"), same = raw && src && src.raw === raw;
+    if (!store.set("cak3d-resume", { state: captureState(DOC.title), raw: same ? "" : raw, sameAsSrc: !!same, craw, libId: DOC.libId || null, at: Date.now() })) store.set("cak3d-resume", null);
   } catch (e) { /* storage full: the app opens on the guide instead */ }
 }
 addEventListener("pagehide", saveResume);

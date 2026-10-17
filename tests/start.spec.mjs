@@ -185,3 +185,47 @@ test("asking about something that isn't in the text doesn't stop the crawl", asy
   expect(+(await page.locator("#sTotal").textContent())).toBeGreaterThan(40);
   await crawlDone(page);
 });
+
+test("tricky files: saved pages built from divs, Word-style RTF quotes, stray CSV quotes, UTF-16 text, broken XML", async ({ page }) => {
+  const errs = watch(page);
+  await openApp(page);
+  const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("Spiders spin silk.\r\nOrb weavers build webs.", "utf16le")]);
+  const cases = [
+    ["divs.html", Buffer.from("<html><body><div class='post'><div>Orb weavers rebuild their webs every night.</div></div></body></html>"), /Orb weavers rebuild their webs every night\./],
+    ["quotes.rtf", Buffer.from(String.raw`{\rtf1\ansi The spider\'92s web\par \'93Silk\'94 is strong \u8212? really\par}`, "latin1"), /The spider’s web\n\n“Silk” is strong — really/],
+    ["sizes.csv", Buffer.from('Item,Size\nMonitor,27" wide\nDesk,Large\n'), /Item: Monitor; Size: 27" wide\.\n\nItem: Desk; Size: Large\./],
+    ["notes.txt", utf16, /^Spiders spin silk\.\r?\nOrb weavers build webs\.$/]
+  ];
+  for (const [name, buf, want] of cases) {
+    await openFile(page, name, buf);
+    await expect(page.locator("#srcText"), name).toHaveValue(want);
+    await page.locator("#srcText").fill(""); await page.locator("#srcTitle").fill(""); await page.locator("#srcCancel").click();
+  }
+  await openFile(page, "broken.xml", Buffer.from("<feed><title>Spiders</title>"));
+  await expect(page.locator(".err, #srcErr").filter({ hasText: /XML file isn't complete/ }).first()).toBeVisible();
+  await page.locator("#srcCancel").click();
+  expect(errs).toEqual([]);
+});
+
+test("a repeated keyword in the guide opens the keyword, not Wikipedia", async ({ page }) => {
+  await openApp(page);
+  const echo = page.locator("#page a.echo").first();
+  await expect(echo).not.toHaveAttribute("href", /./);
+  await page.mouse.wheel(0, 5); await echo.click();
+  await expect(page.locator("#pop")).toBeVisible();
+});
+
+test.describe("upload counting is exact", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("**/config.js", async r => { const res = await r.fetch(); r.fulfill({ response: res, body: (await res.text()).replace(/"webUploads": \d+/, '"webUploads": 2') }); });
+  });
+  test("a guide example doesn't let queued sources crawl for free", async ({ page }) => {
+    await page.route("https://en.wikipedia.org/**", r => r.fulfill({ json: { parse: { title: "Orb-weaver spider", text: { "*": `<p>${TEXT}</p>` } } } }));
+    await openApp(page);
+    await tool(page, "bSource"); await page.locator("#srcTextR").check();
+    for (const t of ["A", "B", "C"]) { await page.locator("#srcText").fill(TEXT); await page.locator("#srcTitle").fill(t); await page.locator("#srcAdd").click(); }
+    await page.locator("#srcCancel").click();
+    await page.mouse.wheel(0, 5); await page.locator('#page [data-try="wiki"]').click();
+    await expect(page.locator("#dLimit")).toBeVisible(); // 3 queued + the example: only 2 left
+  });
+});

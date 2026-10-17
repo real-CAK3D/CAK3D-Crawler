@@ -10,3 +10,5 @@ web/icons/
 playwright-report/
 test-results/
 store-listing/*.webm
+store-listing/*.mp4
+.old-scratch/

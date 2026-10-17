@@ -99,7 +99,7 @@
     let d; try { d = await rpc("forum_web", { p_limit: 150 }); } catch (e) { box.innerHTML = `<p class="msg err">Couldn't load the web: ${esc(e.message)}</p>`; return; }
     if (!d.nodes.length) { box.innerHTML = EMPTY(T.none); webs(box); return; }
     const nodes = orderBySimilarity(d.nodes, d.links), n = nodes.length;
-    const S = Math.min(36, Math.max(12, n)), RINGS = 9;
+    const S = Math.min(36, Math.max(12, n)), RINGS = Math.min(24, Math.max(9, 6 + Math.ceil(n / S) * 2)); // more rings when there are more posts
     const W = 1000, H = 820, cx = W / 2, cy = H / 2 + 6, R = 330;
     let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const ang = Array.from({ length: S }, (_, i) => -Math.PI / 2 + (i / S) * Math.PI * 2 + (rnd() - .5) * .05);
@@ -111,7 +111,8 @@
     nodes.forEach((p, i) => {
       const sp = i % S, lap = Math.floor(i / S);
       let k = Math.round(1 + (1 - Math.sqrt(p.votes / maxV)) * 4) + lap * 2; k = Math.max(1, Math.min(RINGS - 1, k));
-      while (taken.has(sp + ":" + k) && k < RINGS - 1) k++;
+      // the nearest free spot on this spoke, outward first, then inward, so no drop hides another
+      for (let d = 0; taken.has(sp + ":" + k) && d < RINGS; d++) { const out = k + d, inn = k - d; if (out < RINGS && !taken.has(sp + ":" + out)) { k = out; break; } if (inn >= 1 && !taken.has(sp + ":" + inn)) { k = inn; break; } }
       taken.add(sp + ":" + k); Object.assign(p, pt(sp, k), { sp, k });
     });
     const byId = new Map(nodes.map(p => [p.id, p]));
