@@ -1,6 +1,6 @@
 {
   "name": "arachnotes",
-  "version": "1.14.2",
+  "version": "1.15.0",
   "private": true,
   "description": "A spider that crawls any text, sorts its keywords into topics, and builds cited research notes.",
   "type": "module",
