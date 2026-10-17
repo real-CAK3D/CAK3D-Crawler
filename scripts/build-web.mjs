@@ -28,6 +28,13 @@ await build({
   bundle: true, minify: true, format: "iife", platform: "browser", target: "es2020", outfile: `${OUT}/anthropic.js`, logLevel: "warning"
 });
 
+// the on-device AI engine (transformers.js), loaded only when someone turns on the free on-device AI. Its WebAssembly
+// runtime and the model itself download on first use and are kept in the browser's cache, so it then works offline.
+await build({
+  stdin: { contents: 'export { pipeline, TextStreamer, InterruptableStoppingCriteria, env } from "@huggingface/transformers";', resolveDir: ".", loader: "js" },
+  bundle: true, minify: true, format: "esm", platform: "browser", target: "es2022", outfile: `${OUT}/vendor/transformers.mjs`, logLevel: "warning"
+});
+
 const page = readFileSync("src/arachnotes.html", "utf8");
 const head = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">

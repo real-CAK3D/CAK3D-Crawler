@@ -31,7 +31,7 @@ async function shoot(browser, { name, viewport, scale, list }) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: scale, colorScheme: "light" });
   const page = await ctx.newPage();
   page.on("pageerror", e => console.log("page error:", e.message));
-  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 2, flies: 2 })));
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 2, flies: 2, tourDone: true })));
   await page.goto(URL);
   let n = 0;
   const snap = async label => { n++; if (!list || list.includes(label)) await page.screenshot({ path: `${OUT}/${name}-${String(n).padStart(2, "0")}-${label}.png` }); };
@@ -55,7 +55,7 @@ async function video(browser) {
   const dir = `${OUT}/_video`;
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir, size: { width: 1280, height: 720 } } });
   const page = await ctx.newPage();
-  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 1.6, flies: 2 })));
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 1.6, flies: 2, tourDone: true })));
   await page.goto(URL);
   await page.waitForTimeout(12000);
   await page.keyboard.press("s"); await page.waitForTimeout(5000); await page.keyboard.press("Escape");

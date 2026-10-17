@@ -488,6 +488,18 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .blank-start .tryit { justify-content: center; border: 0; }
 .webq { margin: 4px 0 10px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--grip) 35%, transparent); color: var(--ink); }
 .site-links { flex-wrap: wrap; }
+/* the walkthrough */
+#tour { position: fixed; inset: 0; z-index: 2147483000; }
+#tour .tour-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(10, 12, 11, .62); pointer-events: none; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; outline: 2px solid var(--grip, #f3d27a); outline-offset: 2px; }
+#tour .tour-card { position: fixed; box-sizing: border-box; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 16px 12px; box-shadow: 0 14px 40px rgba(0,0,0,.35); transition: top .3s ease, left .3s ease; }
+#tour .tour-card.tour-in { animation: tour-in .25s ease; }
+@keyframes tour-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+#tour .tour-step { margin: 0 0 4px; font: 600 11px var(--mono, monospace); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+#tour h2 { margin: 0 0 6px; font-size: 1.15rem; }
+#tour p { margin: 0 0 12px; line-height: 1.5; }
+#tour .tour-btns { display: flex; gap: 8px; align-items: center; }
+#tour .tour-gap { flex: 1; }
+@media (prefers-reduced-motion: reduce) { #tour .tour-hole, #tour .tour-card { transition: none; } #tour .tour-card.tour-in { animation: none; } }
 .infobox td:first-child { color: var(--muted); width: 42%; }
 ul.cols { columns: 2; padding-left: 1.2em; margin: 0; }
 
@@ -1724,6 +1736,9 @@ body.bar-off .bar { display: none; }
                 <option value="xai">Grok (xAI)</option>
                 <option value="together">Together AI</option>
               </optgroup>
+              <optgroup label="Free, with no key">
+                <option value="device">On this device: works offline, nothing leaves it</option>
+              </optgroup>
               <optgroup label="Free and private, on your own computer">
                 <option value="ollama-here">Ollama on this device</option>
                 <option value="ollama-pc">Ollama on my computer (use it from this phone or tablet)</option>
@@ -1739,6 +1754,15 @@ body.bar-off .bar { display: none; }
             <p class="meta" id="aiPcHelp"></p>
             <div class="rowi"><label class="field" style="flex:1 1 12rem"><span>Your computer's address</span><input type="text" id="aiHost" placeholder="e.g. 192.168.1.20" autocomplete="off" spellcheck="false" inputmode="url"></label>
               <button class="btn" type="button" id="aiScan">Find my computer</button><button class="btn" type="button" id="aiScanStop" hidden>Stop</button></div>
+          </div>
+          <div id="aiDeviceBox" hidden>
+            <label class="field"><span>Model</span><select id="aiDevModel">
+              <option value="small">Small and quick: SmolLM2, about 370 MB</option>
+              <option value="better">Smarter, a little slower: Qwen 2.5, about 520 MB</option></select></label>
+            <p class="meta" id="aiDevStatus" aria-live="polite"></p>
+            <progress id="aiDevProg" max="1" value="0" hidden></progress>
+            <div class="rowi"><button class="btn" type="button" id="aiDevGet">Download</button><button class="btn" type="button" id="aiDevDel" hidden>Delete the download</button></div>
+            <small>It downloads once (Wi-Fi is best), then runs on this device without the internet. Nothing you read is sent anywhere. It's much smaller than the AIs you connect with a key, so its answers are shorter and simpler, and slower on older phones.</small>
           </div>
           <label class="field" id="aiBaseBox"><span>Server address</span><input type="text" id="aiBase" autocomplete="off" spellcheck="false" placeholder="https://…/v1"></label>
           <div class="rowi"><label class="field" style="flex:1 1 14rem"><span>Model</span><input type="text" id="aiModel" list="aiModels" autocomplete="off" spellcheck="false"><datalist id="aiModels"></datalist></label>
@@ -1761,7 +1785,7 @@ body.bar-off .bar { display: none; }
         <div class="field"><span>Updates</span>
           <div class="rowi"><button class="btn" type="button" id="updCheck">Check for updates</button><span class="meta" id="updNote" aria-live="polite"></span></div>
           <small>On Android, Google Play updates the app automatically. This checks right now.</small></div>
-        <div class="rowi"><button class="btn" type="button" id="supHelp">Open help</button><button class="btn" type="button" id="supTour">Point at anything</button></div>
+        <div class="rowi"><button class="btn" type="button" id="supHelp">Open help</button><button class="btn" type="button" id="supTour">Point at anything</button><button class="btn" type="button" id="supWalk">Take the tour</button></div>
         <div class="field"><span>Website and community</span>
           <div class="rowi site-links"><a class="btn" data-site="" target="_blank" rel="noopener">Website</a><a class="btn" data-site="issues" target="_blank" rel="noopener">Issues</a><a class="btn" data-site="ideas" target="_blank" rel="noopener">Ideas</a><a class="btn" data-site="privacy" target="_blank" rel="noopener">Privacy</a><a class="btn" data-site="terms" target="_blank" rel="noopener">Terms</a><a class="btn" data-site="data" target="_blank" rel="noopener">Delete my data</a></div>
           <small>Issues and Ideas are public: see what other people found, vote for what matters to you, and suggest features. For anything about your own app or purchases, use Report an issue above.</small></div>
@@ -1772,11 +1796,23 @@ body.bar-off .bar { display: none; }
   </form>
 </dialog>
 
+<!-- the first-run walkthrough: a spotlight on one thing at a time, with Next, Back and Skip -->
+<div id="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tourH">
+  <div class="tour-hole" id="tourHole" aria-hidden="true"></div>
+  <div class="tour-card" id="tourCard">
+    <p class="tour-step" id="tourStep"></p>
+    <h2 id="tourH"></h2>
+    <p id="tourText"></p>
+    <div class="tour-btns"><button class="btn" type="button" id="tourSkip">Skip</button><span class="tour-gap"></span><button class="btn" type="button" id="tourBack">Back</button><button class="btn primary" type="button" id="tourNext">Next</button></div>
+  </div>
+</div>
+
 <!-- Help: what everything is, a legend, shortcuts, and "point at anything" -->
 <dialog id="dHelp" class="help page" aria-labelledby="helpH">
   <form method="dialog">
     <div class="help-head">
       <div><h2 id="helpH">Help</h2><p class="meta">What everything on the screen is, and how to use it.</p></div>
+      <button class="btn" type="button" id="helpTour">Take the tour</button>
       <button class="btn primary" type="button" id="helpPoint"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2.9-1.2 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor"/></svg> Point at anything</button>
     </div>
     <div class="tabs" id="helpTabs" role="tablist">
@@ -1915,7 +1951,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -1951,6 +1987,7 @@ const AI_SERVICES = {
   deepseek: { name: "DeepSeek", base: "https://api.deepseek.com/v1", key: "https://platform.deepseek.com/api_keys", site: "platform.deepseek.com" },
   xai: { name: "Grok", base: "https://api.x.ai/v1", key: "https://console.x.ai", site: "console.x.ai" },
   together: { name: "Together AI", base: "https://api.together.xyz/v1", key: "https://api.together.xyz/settings/api-keys", site: "api.together.xyz" },
+  device: { name: "On-device AI", provider: "device", device: true, local: true },
   "ollama-here": { name: "Ollama", base: "http://localhost:11434/v1", local: true },
   "ollama-pc": { name: "Ollama", pc: 11434, local: true },
   lmstudio: { name: "LM Studio", pc: 1234, local: true },
@@ -2035,9 +2072,101 @@ function openAiSampler(s) {
     return { text, truncated: finish === "length" };
   };
 }
+// ---- the free on-device AI: no key and no account; it works offline once its model has downloaded.
+// Uses the browser's own built-in AI when there is one (Chrome's Gemini Nano), otherwise a small open model run by
+// transformers.js (WebGPU when the device has it, WebAssembly otherwise). The model is kept in the browser's cache.
+const DEVICE_MODELS = {
+  small: { id: "HuggingFaceTB/SmolLM2-360M-Instruct", name: "SmolLM2", size: "about 370 MB", maxNew: 380 },
+  better: { id: "onnx-community/Qwen2.5-0.5B-Instruct", name: "Qwen 2.5", size: "about 520 MB", maxNew: 480 }
+};
+const DEV = { lib: null, gen: null, which: "", loading: null, gpu: null };
+async function builtinAI() {
+  try { const LM = window.LanguageModel; if (!LM || !LM.availability) return false; return (await LM.availability()) === "available"; } catch (e) { return false; }
+}
+async function devGpu() { if (DEV.gpu == null) { try { DEV.gpu = !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch (e) { DEV.gpu = false; } } return DEV.gpu; }
+async function devLib() {
+  if (!DEV.lib) {
+    const v = VENDOR(); if (!v) throw { code: "no_engine" };
+    DEV.lib = await import(new URL(v + "transformers.mjs", location.href).href);
+    DEV.lib.env.allowLocalModels = false; DEV.lib.env.useBrowserCache = true;
+    try { DEV.lib.env.useWasmCache = true; } catch (e) { /* older engine */ }
+  }
+  return DEV.lib;
+}
+// has this model been downloaded already? (its files are in the browser's cache)
+async function devDownloaded(which) {
+  const m = DEVICE_MODELS[which] || DEVICE_MODELS.small;
+  try { if (!window.caches) return false; const c = await caches.open("transformers-cache"); return (await c.keys()).some(r => r.url.includes(m.id) && /onnx\/model/.test(r.url)); } catch (e) { return false; }
+}
+async function devDelete(which) {
+  const m = DEVICE_MODELS[which] || DEVICE_MODELS.small;
+  const c = await caches.open("transformers-cache");
+  for (const r of await c.keys()) if (r.url.includes(m.id)) await c.delete(r);
+  if (DEV.which === which) { DEV.gen = null; DEV.which = ""; }
+}
+async function devLoad(which, onProgress) {
+  const m = DEVICE_MODELS[which] || DEVICE_MODELS.small;
+  if (DEV.gen && DEV.which === which) return DEV.gen;
+  if (DEV.loading && DEV.loading.which === which) return DEV.loading.p;
+  const p = (async () => {
+    const lib = await devLib(), gpu = await devGpu(), files = new Map();
+    const gen = await lib.pipeline("text-generation", m.id, {
+      device: gpu ? "webgpu" : "wasm", dtype: gpu ? "q4f16" : "int8",
+      progress_callback: e => {
+        if (e.status !== "progress" || !e.total) return;
+        files.set(e.file, [e.loaded, e.total]); let a = 0, b = 0; for (const [l, t] of files.values()) { a += l; b += t; }
+        if (onProgress) onProgress(a / b, b);
+      }
+    });
+    DEV.gen = gen; DEV.which = which; return gen;
+  })();
+  DEV.loading = { which, p };
+  try { return await p; } finally { DEV.loading = null; }
+}
+function deviceSampler(s) {
+  return async (prompt, opts = {}) => {
+    if (opts.signal && opts.signal.aborted) throw { code: "cancelled" };
+    // small models have small memories: keep the instructions at the start and the question at the end
+    const p = prompt.length > 7000 ? prompt.slice(0, 5200) + "\n…\n" + prompt.slice(-1800) : prompt;
+    let text = "";
+    const say = t => { text += t; if (opts.onText) opts.onText({ text, delta: t }); };
+    if (await builtinAI()) {
+      let ses = null;
+      try {
+        ses = await window.LanguageModel.create({ signal: opts.signal });
+        for await (const chunk of ses.promptStreaming(p, { signal: opts.signal })) say(chunk);
+      } catch (e) { throw opts.signal && opts.signal.aborted ? { code: "cancelled" } : { code: "upstream_error", text }; }
+      finally { if (ses && ses.destroy) ses.destroy(); }
+    } else {
+      const m = DEVICE_MODELS[s.model] || DEVICE_MODELS.small;
+      if (!(await devDownloaded(s.model)) && !(DEV.gen && DEV.which === s.model)) throw { code: "not_downloaded" };
+      const gen = await devLoad(s.model), lib = DEV.lib;
+      const stop = new lib.InterruptableStoppingCriteria();
+      const onAbort = () => stop.interrupt(); if (opts.signal) opts.signal.addEventListener("abort", onAbort);
+      try {
+        const streamer = new lib.TextStreamer(gen.tokenizer, { skip_prompt: true, skip_special_tokens: true, callback_function: say });
+        await gen([{ role: "user", content: p }], { max_new_tokens: m.maxNew, do_sample: false, repetition_penalty: 1.1, streamer, stopping_criteria: stop });
+      } catch (e) { throw { code: "upstream_error", text }; }
+      finally { if (opts.signal) opts.signal.removeEventListener("abort", onAbort); }
+      if (opts.signal && opts.signal.aborted) throw { code: "cancelled", text };
+    }
+    if (!text.trim()) throw { code: "empty_completion" };
+    return { text: text.trim(), truncated: false };
+  };
+}
+async function syncDeviceBox() {
+  const which = $("aiDevModel").value, m = DEVICE_MODELS[which], st = $("aiDevStatus");
+  if (!VENDOR()) { st.textContent = "This copy of the app can't run an on-device AI. Use the web or Android app."; $("aiDevGet").hidden = true; $("aiDevDel").hidden = true; return; }
+  if (await builtinAI()) { st.textContent = "This browser has its own built-in AI, so nothing needs to download. Save, then Test it."; $("aiDevGet").hidden = true; $("aiDevDel").hidden = true; return; }
+  const have = await devDownloaded(which);
+  st.textContent = have ? `${m.name} is downloaded and ready. Save, then Test it.` : `${m.name} isn't downloaded yet (${m.size}).`;
+  $("aiDevGet").hidden = have; $("aiDevDel").hidden = !have;
+}
+
 function useOwnAi() {
   if (window.claude) return false;
   const s = aiSettings();
+  if (s.provider === "device") { SAMPLE = deviceSampler(s); return true; }
   if (s.provider === "anthropic" && window.AnthropicSDK && (s.key || s.base)) { SAMPLE = claudeSampler(s); return true; }
   if (s.provider === "openai" && s.model) { SAMPLE = openAiSampler(s); return true; }
   SAMPLE = null; return false;
@@ -2045,6 +2174,7 @@ function useOwnAi() {
 function fillAiForm() {
   const st = aiSettings(), sv = serviceOf(st), v = AI_SERVICES[sv] || {};
   $("aiService").value = sv; $("aiModel").value = st.model; $("aiKey").value = st.key;
+  if (sv === "device") $("aiDevModel").value = DEVICE_MODELS[st.model] ? st.model : "small";
   $("aiBase").value = v.custom || sv === "anthropic" ? st.base : "";
   $("aiHost").value = v.pc ? (st.base || "").replace(/^https?:\/\//, "").replace(/(:\d+)?\/v1\/?$/, "") : "";
   $("aiModels").innerHTML = "";
@@ -2065,6 +2195,10 @@ function syncAiForm() {
   $("aiBaseBox").querySelector("span").textContent = sv === "anthropic" ? "Proxy address (optional)" : "Server address";
   $("aiModel").placeholder = v.model || (v.local ? "Load models to pick one" : "Load models, or type a model name");
   $("aiModel").disabled = $("aiLoad").disabled = none;
+  // the on-device AI has its own small panel: which model, and its download
+  $("aiDeviceBox").hidden = !v.device;
+  $("aiModel").closest(".rowi").hidden = !!v.device;
+  if (v.device) syncDeviceBox();
 }
 // the address this form points at, from the service, the computer address or the custom field
 function formBase(sv) { const v = AI_SERVICES[sv] || {}; return v.pc ? pcBase($("aiHost").value, v.pc) : v.custom || sv === "anthropic" ? $("aiBase").value.trim() : v.base || ""; }
@@ -7530,6 +7664,67 @@ function renderAbout() {
     <p class="meta">${esc(APP.legal)}</p>
     <p class="meta"><a href="${WEBSITE}" target="_blank" rel="noopener">Website</a> · <a href="${WEBSITE}issues" target="_blank" rel="noopener">Issues</a> · <a href="${WEBSITE}ideas" target="_blank" rel="noopener">Ideas</a> · <a href="${WEBSITE}privacy" target="_blank" rel="noopener">Privacy policy</a> · <a href="${WEBSITE}terms" target="_blank" rel="noopener">Terms</a></p>`;
 }
+// ---- the walkthrough: one step at a time, a spotlight on the part it describes, Next / Back / Skip
+const TOUR = [
+  { t: "Welcome to Arachnotes", d: "A quick look at how it works, in 8 short steps. Skip it any time; it's in Help if you want it again." },
+  { el: "#page", t: "The page", d: "This is what the spider crawls. It walks from keyword to keyword and sorts each one into a topic. Tap a highlighted keyword to see its topic, the sentences it's in, and your notes. Tap anywhere else and the spider comes over." },
+  { el: "#mbPages", t: "Open your own", d: "Pages → Open text: paste text, open a file (PDF, Word, a book, a photo of a page…) or a link, or search the web. You can also share a page or file to Arachnotes from any app's Share menu. The library and the code reader are here too." },
+  { el: "#bWeb", t: "See it as a web", d: "Everything the spider found, as a web: the subject in the middle and a topic on every spoke. Tap a topic for its own web, and a keyword for its notes. The Nest, Graph and Media are in there too." },
+  { el: "#mbAsk", t: "Ask and study", d: "Ask the text a question and get the passages that answer it, with citations. Find words, and make a study guide; flashcards are in the web view." },
+  { el: "#mbSpider", t: "The spider", d: "Pause or resume the crawl, follow the spider as it moves, or start again." },
+  { el: "#bSettings", t: "Make it yours", d: "Choose the spider, its look and moves, themes and sounds, what the app opens with, and an AI for written answers, including a free one that runs on this device." },
+  { el: "#bHelp", t: "Help is always here", d: "Tap ? to see what everything is, and Point at anything when something is new. That's it: happy crawling." }
+];
+const TR = { i: 0, open: false, raf: 0 };
+function startTour() {
+  if (TR.open) return;
+  for (const d of document.querySelectorAll("dialog[open]")) d.close();
+  if ($("bar").hidden && $("bShowBar")) $("bShowBar").click();
+  TR.open = true; TR.i = 0; $("tour").hidden = false; document.body.classList.add("touring");
+  showTourStep(); $("tourNext").focus();
+  const loop = () => { if (!TR.open) return; placeTour(); TR.raf = requestAnimationFrame(loop); }; TR.raf = requestAnimationFrame(loop);
+}
+function endTour() {
+  TR.open = false; cancelAnimationFrame(TR.raf); $("tour").hidden = true; document.body.classList.remove("touring");
+  cfg.tourDone = true; saveCfg();
+}
+const tourTarget = st => { const el = st.el && document.querySelector(st.el); if (!el) return null; const r = el.getBoundingClientRect(); return r.width && r.height ? el : null; };
+function showTourStep() {
+  // skip a step whose part isn't on screen (for example a hidden toolbar)
+  while (TR.i > 0 && TR.i < TOUR.length && TOUR[TR.i].el && !tourTarget(TOUR[TR.i])) TR.i++;
+  if (TR.i >= TOUR.length) { endTour(); return; }
+  const st = TOUR[TR.i];
+  $("tourStep").textContent = `${TR.i + 1} of ${TOUR.length}`; $("tourH").textContent = st.t; $("tourText").textContent = st.d;
+  $("tourBack").hidden = TR.i === 0; $("tourNext").textContent = TR.i === TOUR.length - 1 ? "Done" : TR.i === 0 ? "Start" : "Next";
+  const card = $("tourCard"); card.classList.remove("tour-in"); void card.offsetWidth; card.classList.add("tour-in");
+  placeTour();
+}
+function placeTour() {
+  const st = TOUR[TR.i], el = st && tourTarget(st), hole = $("tourHole"), card = $("tourCard");
+  const vw = innerWidth, vh = innerHeight, cw = Math.min(380, vw - 24);
+  card.style.width = cw + "px";
+  if (!el) { // a welcome card in the middle, with the page dimmed
+    hole.style.cssText = `left:${vw / 2}px;top:${vh / 2}px;width:1px;height:1px;outline:none`; // a zero-size box draws no shadow
+    card.style.left = (vw - cw) / 2 + "px"; card.style.top = Math.max(16, (vh - card.offsetHeight) / 2) + "px"; return;
+  }
+  const r = el.getBoundingClientRect(), pad = 6, big = el.id === "page";
+  // the page is taller than the screen: spotlight the part that's showing
+  const top = Math.max(r.top, big ? 90 : r.top) - pad, bottom = Math.min(r.bottom, big ? vh * 0.55 : r.bottom) + pad;
+  hole.style.cssText = `left:${r.left - pad}px;top:${top}px;width:${r.width + pad * 2}px;height:${Math.max(0, bottom - top)}px`;
+  const ch = card.offsetHeight, below = bottom + 12, above = top - 12 - ch;
+  card.style.top = (below + ch < vh - 8 ? below : above > 8 ? above : Math.max(8, vh - ch - 8)) + "px";
+  card.style.left = clamp(r.left + r.width / 2 - cw / 2, 12, vw - cw - 12) + "px";
+}
+$("tourNext").onclick = () => { if (TR.i >= TOUR.length - 1) { endTour(); return; } TR.i++; showTourStep(); };
+$("tourBack").onclick = () => { TR.i = Math.max(0, TR.i - 1); while (TR.i > 0 && TOUR[TR.i].el && !tourTarget(TOUR[TR.i])) TR.i--; showTourStep(); };
+$("tourSkip").onclick = endTour;
+$("tour").addEventListener("keydown", e => {
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); endTour(); }
+  else if (e.key === "ArrowRight") $("tourNext").click(); else if (e.key === "ArrowLeft" && !$("tourBack").hidden) $("tourBack").click();
+});
+$("helpTour").onclick = () => { $("dHelp").close(); startTour(); };
+$("supWalk").onclick = () => { $("dSettings").close(); startTour(); };
+
 // ---- point at anything
 let explaining = false;
 function startExplain() {
@@ -8961,6 +9156,7 @@ $("aiService").addEventListener("change", () => {
 });
 function readAiForm() {
   const sv = $("aiService").value, v = AI_SERVICES[sv] || {};
+  if (v.device) return { service: sv, provider: "device", model: $("aiDevModel").value, base: "", key: "" };
   return { service: sv, provider: sv === "none" ? "none" : v.provider || "openai", model: $("aiModel").value.trim(), base: formBase(sv), key: v.local ? "" : $("aiKey").value.trim() };
 }
 $("aiLoad").onclick = async () => {
@@ -8987,24 +9183,43 @@ $("aiSave").onclick = () => {
   if (s.provider === "openai" && !s.model) { note.textContent = "Pick a model: tap Load models, then choose one."; return; }
   if (s.provider === "anthropic" && !s.key && !s.base) { note.textContent = "Add your Anthropic API key, or the address of your own proxy."; return; }
   if (s.provider === "anthropic" && !window.AnthropicSDK) { note.textContent = "This copy of the app doesn't include the Claude library. Use the web or Android release."; return; }
+  if (s.provider === "device" && !VENDOR()) { note.textContent = "This copy of the app can't run an on-device AI. Use the web or Android app."; return; }
   try { localStorage.setItem("cak3d-ai", JSON.stringify(s)); localStorage.removeItem("cak3d-key"); } catch (e) { note.textContent = "This device blocked saving the settings."; return; }
   useOwnAi(); capsReady();
-  note.textContent = s.provider === "none" ? "Saved. Summaries and answers show passages only." : "Saved on this device. Use Test it to check the connection.";
+  note.textContent = s.provider === "none" ? "Saved. Summaries and answers show passages only." : s.provider === "device" ? "Saved. Summaries, answers and study guides are now written on this device." : "Saved on this device. Use Test it to check the connection.";
 };
 $("aiTest").onclick = async () => {
   const s = readAiForm(), note = $("aiNote");
   if (s.provider === "none") { note.textContent = "Pick an AI first."; return; }
   if (s.provider === "openai" && !s.model) { note.textContent = "Pick a model first: tap Load models."; return; }
-  const fn = s.provider === "anthropic" ? (window.AnthropicSDK ? claudeSampler(s) : null) : openAiSampler(s);
+  const fn = s.provider === "device" ? deviceSampler(s) : s.provider === "anthropic" ? (window.AnthropicSDK ? claudeSampler(s) : null) : openAiSampler(s);
   if (!fn) { note.textContent = "This copy of the app doesn't include the Claude library."; return; }
   note.textContent = "Testing…";
-  try { const { text } = await fn("Reply with exactly: Connected."); note.textContent = "It works. The AI replied: " + trunc(text.trim(), 80); }
+  try { const { text } = await fn(s.provider === "device" ? "In one short sentence, what do spiders use silk for?" : "Reply with exactly: Connected."); note.textContent = "It works. The AI replied: " + trunc(text.trim(), 120); }
   catch (e) {
-    note.textContent = e.code === "bad_key" ? "The server rejected the key." : e.code === "rate_limited" ? "The server says too many requests. Try again shortly."
+    note.textContent = e.code === "not_downloaded" ? "Download the model first." : e.code === "no_engine" ? "This copy of the app can't run an on-device AI." : s.provider === "device" ? "The on-device AI couldn't answer. This device may not have enough memory; try the small model." : e.code === "bad_key" ? "The server rejected the key." : e.code === "rate_limited" ? "The server says too many requests. Try again shortly."
       : (AI_SERVICES[s.service] || {}).pc ? "Couldn't reach your computer. Check the address, that both devices are on the same Wi-Fi, and that you ran the setup on the computer."
       : (AI_SERVICES[s.service] || {}).local ? "Couldn't reach it. Make sure it's running and the model is downloaded."
       : "Couldn't reach the AI. Check the model name and your connection.";
   }
+};
+$("aiDevModel").addEventListener("change", syncDeviceBox);
+$("aiDevGet").onclick = async () => {
+  const which = $("aiDevModel").value, m = DEVICE_MODELS[which], prog = $("aiDevProg"), st = $("aiDevStatus");
+  $("aiDevGet").disabled = true; prog.hidden = false; prog.value = 0;
+  st.textContent = `Downloading ${m.name} (${m.size})… You can keep using the app.`;
+  try {
+    await devLoad(which, (p, total) => { prog.value = p; st.textContent = `Downloading ${m.name}: ${Math.round(p * 100)}% of ${Math.round(total / 1e6)} MB…`; });
+    st.textContent = `${m.name} is downloaded and ready. Save, then Test it.`;
+  } catch (e) {
+    st.textContent = e && e.code === "no_engine" ? "This copy of the app can't run an on-device AI." : "The download stopped. Check your connection and try again; it carries on from where it got to.";
+  } finally { $("aiDevGet").disabled = false; prog.hidden = true; syncDeviceBox(); }
+};
+$("aiDevDel").onclick = async () => {
+  const b = $("aiDevDel"); if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Tap again to delete it"; setTimeout(() => { b.dataset.confirm = ""; b.textContent = "Delete the download"; }, 4000); return; }
+  b.dataset.confirm = ""; b.textContent = "Delete the download";
+  try { await devDelete($("aiDevModel").value); } catch (e) { /* nothing to delete */ }
+  syncDeviceBox();
 };
 let scanCtl = null;
 $("dSettings").addEventListener("close", () => { if (scanCtl) scanCtl.abort(); });
@@ -9338,8 +9553,9 @@ async function epubToText(buf) {
   return { title: dc("title"), author: dc("creator"), year: (dc("date").match(/\d{4}/) || [""])[0], text: out.join("\n\n") };
 }
 
-$("srcFile").addEventListener("change", async e => {
-  const f = e.target.files && e.target.files[0]; if (!f) return;
+$("srcFile").addEventListener("change", e => { const f = e.target.files && e.target.files[0]; if (f) openFileInSource(f); });
+// reads a file into the Open text form (from the file picker, or shared from another app)
+async function openFileInSource(f) {
   const name = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " "), ext = ((f.name.match(/\.([^.]+)$/) || [])[1] || "").toLowerCase();
   $("srcTextR").checked = true; syncSrcMode();
   try {
@@ -9369,7 +9585,7 @@ $("srcFile").addEventListener("change", async e => {
     if (!$("srcTitle").value) $("srcTitle").value = name;
     srcMsg("");
   } catch (ex) { srcMsg(fileError(ex, f)); }
-});
+}
 function fileError(ex, f) {
   const m = ex && ex.message;
   return m === "scanned" ? "No text could be read from that PDF, even with text recognition. Try a clearer scan."
@@ -9384,6 +9600,31 @@ function fileError(ex, f) {
     : IN_CLAUDE && /\.(png|jpe?g|webp|pdf)$/i.test(f.name) ? "Text recognition for scans and photos needs the web or Android version; claude.ai blocks the files it downloads."
     : "That file couldn't be read. Try a PDF, EPUB, Word or plain-text file.";
 }
+// ---- things shared to Arachnotes from other apps: Android's Share and "Open with" menus, or the installed web app
+// (share_target in the manifest). A link is crawled as a web page, text as text, and a file like any opened file.
+async function crawlShared(item) {
+  if (!item || !DOC) return;
+  if (item.kind === "error") { toast("Couldn't open what was shared. Try saving it and opening it from Pages → Open text."); return; }
+  for (const d of document.querySelectorAll("dialog[open]")) d.close();
+  if (WV.open) closeWeb();
+  if (item.kind === "file") {
+    let file;
+    try { const r = await fetch(window.Capacitor.convertFileSrc(item.path)); file = new File([await r.blob()], item.name || "shared", { type: item.type || "" }); }
+    catch (e) { toast("Couldn't open the shared file."); return; }
+    // code goes to the code reader
+    if (CODE_EXT.test(file.name) && !/\.(html?|xhtml|ipynb)$/i.test(file.name)) { openCode(); codeFromFiles([file]); return; }
+    $("bSource").click(); clearSourceInputs(); $("srcTextR").checked = true; syncSrcMode();
+    await openFileInSource(file);
+    if ($("srcText").value.trim()) $("fSource").requestSubmit();
+    return;
+  }
+  const text = String(item.text || "").trim(), url = (text.match(/https?:\/\/[^\s<>"]+/) || [""])[0].replace(/[)\].,;!?]+$/, "");
+  $("bSource").click(); clearSourceInputs();
+  if (url && text.replace(url, "").trim().length < 240) { $("srcUrlR").checked = true; syncSrcMode(); $("srcUrl").value = url; }
+  else { $("srcTextR").checked = true; syncSrcMode(); $("srcText").value = text; if (item.subject) $("srcTitle").value = String(item.subject).slice(0, 200); }
+  $("fSource").requestSubmit();
+}
+
 // the guide's "try it" buttons, and the blank page's
 page.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-try]"); if (!b) return;
@@ -9865,5 +10106,18 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) saveR
 setInterval(saveResume, 20000);
 capsReady();
 requestAnimationFrame(frame);
+// shared from another app: Android hands it over through the ShareIn plugin; the installed web app gets it in the address
+{
+  const SHARE = NATIVE && window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin("ShareIn") : null;
+  if (SHARE) {
+    SHARE.addListener("shared", item => crawlShared(item));
+    setTimeout(async () => { try { const r = await SHARE.take(); if (r && r.item) crawlShared(r.item); } catch (e) { /* an app build without the plugin */ } }, 700);
+  } else {
+    const q = new URLSearchParams(location.search), t = [q.get("url"), q.get("text")].filter(Boolean).join(" ");
+    if (t) { history.replaceState(null, "", location.pathname + location.hash); setTimeout(() => crawlShared({ kind: "text", text: t, subject: q.get("title") || "" }), 700); }
+  }
+}
+// the first time, a short walkthrough of what's what
+if (!cfg.tourDone) setTimeout(() => { if (!cfg.tourDone && !document.querySelector("dialog[open]") && !codeOpen()) startTour(); }, 1600);
 })();
 </script>

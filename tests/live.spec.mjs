@@ -78,3 +78,27 @@ test("the guide's Try it buttons crawl real pages and real code", async ({ page 
   await expect(page.locator("#cdSide")).toContainText("expressjs/express", { timeout: 60_000 });
   expect(errs).toEqual([]);
 });
+
+test("the free on-device AI downloads, answers, and works with the network off", async ({ page, context }) => {
+  test.setTimeout(1_200_000);
+  const errs = watch(page);
+  await openApp(page);
+  await page.locator("#bSettings").click(); await page.locator('#setTabs [data-g="research"]').click();
+  await page.locator("#aiService").selectOption("device");
+  await page.locator("#aiDevModel").selectOption("small");
+  if (await page.locator("#aiDevGet").isVisible()) {
+    await page.locator("#aiDevGet").click();
+    await expect(page.locator("#aiDevStatus")).toContainText("downloaded and ready", { timeout: 900_000 });
+  }
+  await page.locator("#aiSave").click();
+  await page.locator("#aiTest").click();
+  await expect(page.locator("#aiNote")).toContainText("It works", { timeout: 300_000 });
+  console.log("on-device reply:", await page.locator("#aiNote").textContent());
+  // offline: the model and its engine come from the browser's cache
+  await page.keyboard.press("Escape");
+  await context.setOffline(true);
+  await tool(page, "bAsk"); await page.locator("#askQ").fill("What does the spider do with keywords?"); await page.locator("#askGo").click();
+  await expect(page.locator("#askOut, #askAnswer, .answer").first()).not.toBeEmpty({ timeout: 300_000 });
+  await context.setOffline(false);
+  expect(errs).toEqual([]);
+});

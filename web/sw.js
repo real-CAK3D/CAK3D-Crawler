@@ -1,5 +1,6 @@
 // Offline support for the web app: the app itself is fetched fresh when online and served
-// from cache when offline. Fonts are cached after first use.
+// from cache when offline. Fonts are cached after first use. Only its own old caches are cleared on update, so
+// downloads kept in other caches (the on-device AI model) survive app updates.
 const CACHE = "crawler-__VERSION__";
 const SHELL = ["./", "index.html", "config.js", "anthropic.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png",
   "vendor/pdf.min.js", "vendor/pdf.worker.min.js", "vendor/jszip.min.js"];
@@ -8,7 +9,7 @@ self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith("crawler-") && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;

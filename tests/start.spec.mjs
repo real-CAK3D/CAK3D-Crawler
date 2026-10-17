@@ -249,3 +249,74 @@ test("when it's done, the spider waits until you've left it alone, does its thin
   await expect.poll(async () => ((await logText()).match(/crawled in|dropped in|climbed up|floated in|hatched onto|appeared/g)?.length || 0), { timeout: 10_000 }).toBeGreaterThan(before);
   expect(errs).toEqual([]);
 });
+
+test("the first-run walkthrough: Next, Back and Skip, and it doesn't come back once done", async ({ page }) => {
+  const errs = watch(page);
+  await openApp(page, { tourDone: false });
+  await expect(page.locator("#tour")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator("#tourH")).toHaveText("Welcome to Arachnotes");
+  await expect(page.locator("#tourBack")).toBeHidden();
+  await page.locator("#tourNext").click();
+  await expect(page.locator("#tourH")).toHaveText("The page");
+  await page.locator("#tourNext").click();
+  await expect(page.locator("#tourH")).toHaveText("Open your own");
+  // the spotlight sits on the Pages menu
+  await page.waitForTimeout(500);
+  const hole = await page.locator("#tourHole").boundingBox(), menu = await page.locator("#mbPages").boundingBox();
+  expect(Math.abs(hole.x + hole.width / 2 - (menu.x + menu.width / 2))).toBeLessThan(4);
+  await page.locator("#tourBack").click();
+  await expect(page.locator("#tourH")).toHaveText("The page");
+  for (let i = 0; i < 6; i++) await page.locator("#tourNext").click();
+  await expect(page.locator("#tourNext")).toHaveText("Done");
+  await page.locator("#tourNext").click();
+  await expect(page.locator("#tour")).toBeHidden();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cak3d-cfg")).tourDone)).toBe(true);
+  // it can be taken again from Help, and skipped
+  await page.locator("#bHelp").click(); await page.locator("#helpTour").click();
+  await expect(page.locator("#tour")).toBeVisible();
+  await page.locator("#tourSkip").click();
+  await expect(page.locator("#tour")).toBeHidden();
+  expect(errs).toEqual([]);
+});
+
+test("the walkthrough fits a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openApp(page, { tourDone: false });
+  await expect(page.locator("#tour")).toBeVisible({ timeout: 5000 });
+  for (let i = 0; i < 8; i++) {
+    await page.waitForTimeout(400);
+    const c = await page.locator("#tourCard").boundingBox();
+    expect(c.x).toBeGreaterThanOrEqual(0); expect(c.x + c.width).toBeLessThanOrEqual(390); expect(c.y + c.height).toBeLessThanOrEqual(844);
+    await page.locator("#tourNext").click();
+  }
+  await expect(page.locator("#tour")).toBeHidden();
+});
+
+test("sharing a link to the installed web app crawls it", async ({ page }) => {
+  await page.route("https://en.wikipedia.org/**", r => r.fulfill({ json: /media-list/.test(r.request().url()) ? { items: [] }
+    : { query: { pages: { 1: { title: "Orb-weaver spider", extract: TEXT, links: [] } } } } }));
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 4, tourDone: true })));
+  await page.goto("/?title=Orb&text=Look%20at%20this&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FOrb-weaver_spider");
+  await expect(page.locator("#docTitle")).toHaveText("Orb-weaver spider", { timeout: 30_000 });
+  expect(page.url()).not.toContain("?");
+});
+
+test("sharing plain text crawls it as text", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 4, tourDone: true })));
+  await page.goto("/?title=Bee%20notes&text=" + encodeURIComponent(TEXT));
+  await expect(page.locator("#docTitle")).toHaveText("Bee notes", { timeout: 30_000 });
+});
+
+test("Settings offers a free on-device AI with its own download panel", async ({ page }) => {
+  await openApp(page);
+  await page.locator("#bSettings").click(); await page.locator('#setTabs [data-g="research"]').click();
+  await page.locator("#aiService").selectOption("device");
+  await expect(page.locator("#aiDeviceBox")).toBeVisible();
+  await expect(page.locator("#aiKeyBox")).toBeHidden();
+  await expect(page.locator("#aiModel")).toBeHidden();
+  await expect(page.locator("#aiDevStatus")).toContainText(/isn't downloaded yet|built-in AI/);
+  await page.locator("#aiSave").click();
+  await expect(page.locator("#aiNote")).toContainText("written on this device");
+  await page.locator("#aiTest").click();
+  await expect(page.locator("#aiNote")).toContainText(/Download the model first|It works/, { timeout: 15_000 });
+});
