@@ -102,3 +102,39 @@ test("the free on-device AI downloads, answers, and works with the network off",
   await context.setOffline(false);
   expect(errs).toEqual([]);
 });
+
+test("keywords get real outside information from Wikipedia", async ({ page }) => {
+  await page.addInitScript(() => { const c = JSON.parse(localStorage.getItem("cak3d-cfg") || "{}"); localStorage.setItem("cak3d-cfg", JSON.stringify({ ...c, lookup: "open" })); });
+  const errs = watch(page);
+  if (process.env.WIKILOG) page.on("response", r => { if (/wikipedia|wiktionary/.test(r.url())) console.log("  ", r.status(), decodeURIComponent(r.url()).replace(/https:\/\/en\.\w+\.org/, "").slice(0, 120)); });
+  await openApp(page);
+  const text = ("Spider silk is a protein fibre spun by spiders. Orb weavers build wheel-shaped webs from silk. Tarantulas are large hairy spiders that hunt at night. " +
+    "Venom helps spiders subdue insects. Jumping spiders have excellent eyesight and stalk their prey. Spider silk is stronger than steel by weight. ").repeat(4);
+  await tool(page, "bSource"); await page.locator("#srcTextR").check(); await page.locator("#srcText").fill(text); await page.locator("#srcTitle").fill("Spider notes"); await page.locator("#srcGo").click();
+  await crawlDone(page);
+  await page.locator("#bWeb").click();
+  for (const label of ["tarantulas", "venom", "silk"]) {
+    const chip = page.locator("#wvSide [data-key]", { hasText: new RegExp(label, "i") }).first();
+    if (!(await chip.count())) continue;
+    if (process.env.WIKILOG) console.log("key:", await chip.getAttribute("data-key"));
+    await chip.click();
+    await expect(page.locator("#wvSide .webinfo p").first()).not.toContainText("Looking it up", { timeout: 20_000 });
+    console.log(label, "→", (await page.locator("#wvSide .webinfo p").first().textContent()).slice(0, 140));
+    await page.locator('#wvSide [data-act="back"]').click();
+  }
+  expect(errs).toEqual([]);
+});
+
+test("real related reading and pictures from Wikipedia", async ({ page }) => {
+  const errs = watch(page);
+  await openApp(page, { lookup: "catch" });
+  await crawlDone(page);
+  await page.locator("#bWeb").click();
+  await expect(page.locator("#wvSide .read-next a").first()).toBeVisible({ timeout: 60_000 });
+  for (const t of await page.locator("#wvSide .read-next").allTextContents()) console.log("read next:", t.replace(/\s+crawl it/g, "").slice(0, 160));
+  await page.locator('#wvTabs [data-tab="media"]').click();
+  await expect(page.locator("#pMedia .md-card").first()).toBeVisible({ timeout: 30_000 });
+  console.log("pictures:", await page.locator("#pMedia .md-card").count());
+  console.log("first credit:", (await page.locator("#pMedia .md-cite").first().textContent()).slice(0, 160));
+  expect(errs).toEqual([]);
+});

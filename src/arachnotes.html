@@ -489,6 +489,16 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .blank-start .tryit { justify-content: center; border: 0; }
 .webq { margin: 4px 0 10px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--grip) 35%, transparent); color: var(--ink); }
 .site-links { flex-wrap: wrap; }
+/* outside information about a keyword, and the paragraph around a sentence */
+.webinfo { display: flow-root; font-size: .92rem; line-height: 1.5; }
+.webinfo img { float: right; width: 72px; height: 72px; object-fit: cover; border-radius: 6px; margin: 2px 0 6px 10px; }
+.webinfo p { margin: 0 0 6px; }
+.webinfo-pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.webinfo-short { margin: 6px 0 0; font-size: .85rem; line-height: 1.45; color: var(--ink); }
+.g-web { display: block; margin-top: 4px; font-size: .9em; color: var(--muted); }
+.read-next { margin-top: 8px; line-height: 1.6; }
+.para-box { margin: 8px 0 6px; padding: 8px 10px; border-left: 3px solid var(--rule); background: var(--panel); font-size: .9rem; line-height: 1.55; }
+.para-box mark { background: color-mix(in srgb, var(--grip) 60%, transparent); color: inherit; }
 /* asking before an error report is sent */
 .err-ask { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; z-index: 70; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
 .err-ask p { margin: 0 0 10px; line-height: 1.45; }
@@ -1714,6 +1724,9 @@ body.bar-off .bar { display: none; }
           <div class="range"><input type="range" id="cfgStop" min="0" max="200" step="5"><output id="oStop"></output></div>
           <small>The crawl ends once it has this many keywords. Pair it with a focus topic to collect only what you need.</small></label>
         <label class="chk"><input type="checkbox" id="cfgPrey"> Show the best matches for your focus as prey, and hunt them first</label>
+        <label class="field"><span>Look up keywords online</span>
+          <select id="cfgLookup"><option value="open">When I open a keyword</option><option value="catch">As the spider catches each keyword</option><option value="off">Off</option></select>
+          <small>Shows a short summary from Wikipedia, or a dictionary definition, with each keyword when you're online. Only the keyword (and the text's title, to pick the right article) is sent.</small></label>
         <div class="row2">
           <label class="field"><span>Citation style</span>
             <select id="cfgCiteStyle"><option value="apa">APA (7th)</option><option value="mla">MLA (9th)</option><option value="chicago">Chicago (author-date)</option></select></label>
@@ -1962,7 +1975,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", lookup: "open", errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2385,6 +2398,14 @@ function stripBoilerplate(raw) {
   }
   return raw.replace(/^\s*(Produced by|This e-?book was produced by|Transcriber['’]s notes?:)[^\n]*\n/gim, "").trim();
 }
+// common verbs that don't make a keyword when they end or start a two-word phrase ("venom helps", "spiders use", "makes webs")
+const PHRASE_VERBS = new Set(("help helps helped make makes made use uses used give gives gave take takes took show shows showed mean means meant need needs " +
+  "allow allows let lets keep keeps kept become becomes became seem seems seemed include includes included contain contains provide provides cause causes " +
+  "create creates build builds built spin spins spun live lives lived eat eats ate hunt hunts catch catches caught run runs ran say says said get gets got " +
+  "go goes went come comes came see sees saw find finds found know knows knew think thinks thought tell tells told call calls called try tries tried leave leaves " +
+  "left feel feels felt put puts bring brings brought begin begins began turn turns turned start starts started move moves moved play plays played lead leads " +
+  "stand stands lose loses lost pay pays paid meet meets met hold holds held follow follows followed stop stops stopped want wants wanted look looks looked " +
+  "work works worked appear appears appeared produce produces produced remain remains require requires required consider considers considered").split(" "));
 function extract(raw, K, lang) {
   const STOPW = STOPS[lang] || STOP;
   const blocks = splitBlocks(raw), sents = [], toks = [], marks = [], sentPara = [], sentPage = [], sentSrc = [];
@@ -2430,7 +2451,8 @@ function extract(raw, K, lang) {
 
   // words seen only once are noise unless the text is too short to offer enough repeated ones
   const minC = [...U.values()].filter(c => c >= 2).length + [...B.values()].filter(c => c >= 2).length >= K * 0.6 ? 2 : 1;
-  const bis = [...B].filter(([, c]) => c >= 2).map(([key, c]) => ({ key, c, score: c * 2.5 }))
+  const verbish = k => (lang === "en" || !STOPS[lang]) && k.split(" ").some((w, i, a) => (i === a.length - 1 || i === 0) && PHRASE_VERBS.has(w));
+  const bis = [...B].filter(([key, c]) => c >= 2 && !verbish(key)).map(([key, c]) => ({ key, c, score: c * 2.5 }))
     .sort((a, b) => b.score - a.score).slice(0, Math.ceil(K / 3));
   const dom = new Set();
   for (const b of bis) for (const p of b.key.split(" ")) if ((U.get(p) || 0) <= b.c * 1.6) dom.add(p);
@@ -2913,6 +2935,7 @@ addEventListener("pointerdown", () => { if (AC) AUDIO.sync(); }, { capture: true
 function catchNode(n, silent, by) {
   n.caught = true; n.el.classList.add("caught"); n.el.classList.remove("seed");
   const k = kwOf(n); k.crawled = true; crawled++;
+  if (!silent) queueLookup(k.key);
   const now = performance.now() - (silent ? 3000 : 0);
   const b = bucketOf(k);
   if (!webs.has(b)) webs.set(b, []);
@@ -3827,9 +3850,11 @@ function sortMedia(d) {
   });
 }
 function loadDoc(d) {
+  WEBINFO.queue = []; WEBINFO.n = 0;
   ORB.path = []; ORB.hover = ORB.focus = -1;
   d.media = sortMedia(d);
   DOC = d; DOC.highlights = DOC.highlights || []; DOC.asks = DOC.asks || []; DOC.libId = DOC.libId || null;
+  for (const [key, w] of Object.entries(DOC.web || {})) addWebMedia(key, w); // pictures looked up before, saved with the crawl
   document.documentElement.lang = d.lang || "en";
   DOC.sources = DOC.sources && DOC.sources.length ? DOC.sources : [{ title: d.title, cite: d.cite || "", author: "", year: "" }];
   loadNotes();
@@ -5213,6 +5238,7 @@ function showPop(el, at = el) {
   const pop = $("pop"), picked = WV.picks.has(key);
   pop.innerHTML = `<div class="pop-h" style="--dot:${catColorVar(k.cat)}"><i></i><b>${esc(k.label)}</b></div>
     <p class="meta">${esc(DOC.cats[k.cat].name)} · in ${plural(k.count, "sentence")} · ${k.crawled ? "crawled" : n.seeded ? "marked by a spiderling" : "not crawled yet"}</p>
+    <div class="pop-web">${webInfoHTML(key, true)}</div>
     ${noteHTML("k", key)}
     <div class="pop-btns"><button class="btn primary" type="button" data-pop="crawl">${k.crawled ? "Send the spider here" : "Crawl it now"}</button>
     <button class="btn" type="button" data-pop="web">Open in web view</button>
@@ -5222,6 +5248,7 @@ function showPop(el, at = el) {
   pop.hidden = false; bump(k.label, 1);
   placePop(at);
   POP = { key, node: n, at };
+  if (cfg.lookup !== "off" && !(DOC.web && DOC.web[key]) && canLookUp()) lookupKeyword(key).then(() => { if (POP && POP.key === key) { const w = pop.querySelector(".pop-web"); if (w) { w.innerHTML = webInfoHTML(key, true); placePop(at); } } });
   pop.querySelector("button").focus({ preventScroll: true });
 }
 function placePop(el) {
@@ -5470,7 +5497,7 @@ function mediaRef(m, style) {
   const s = DOC.sources[m.from] || {}, dot = t => /[.!?]$/.test(t) ? t : t + ".";
   const who = m.credit || s.author || s.site || s.title || "Unknown", yy = m.year || s.year || "n.d.";
   const what = trunc(m.caption || m.alt || (m.kind === "video" ? "Video" : "Image"), 160), kind = m.kind === "video" ? "Video" : "Image";
-  const where = s.title || s.site || "", link = m.href || m.src, lic = m.license ? ` ${dot("License: " + m.license)}` : "";
+  const where = s.title || s.site || m.where || "", link = m.href || m.src, lic = m.license ? ` ${dot("License: " + m.license)}` : "";
   if (style === "mla") return `${dot(who)} “${dot(what).replace(/\.$/, "")}.” ${where ? where + ", " : ""}${yy !== "n.d." ? yy + ", " : ""}${link}.${lic}`;
   if (style === "chicago") return `${dot(who)} ${dot(yy)} “${what}.” ${kind}. ${where ? dot(where) + " " : ""}${link}.${lic}`;
   return `${who}. (${yy}). ${what} [${kind}]. ${where ? dot(where) + " " : ""}${link}${lic}`;
@@ -5787,7 +5814,7 @@ function renderMedia() {
   const el = $("pMedia"), M = DOC.media || [];
   if (!M.length) { el.innerHTML = `<div class="md-empty"><h3>No pictures or videos yet</h3><p class="meta">When you crawl a web page, its pictures and videos show up here with their captions and credits, sorted into the same topics as the keywords, with a citation for each. Open one with <b>Pages → Open text, a file or a link</b>.</p></div>`; return; }
   const groups = [...DOC.cats.map((c, i) => ({ c, i })), { c: { name: "Not sorted into a topic" }, i: -1 }].map(g => ({ ...g, list: M.filter(m => m.cat === g.i && (!WV.filter.size || WV.filter.has(m.cat))) })).filter(g => g.list.length);
-  el.innerHTML = `<p class="meta">${M.length} ${M.length === 1 ? "picture or video" : "pictures and videos"} from ${plural(new Set(M.map(m => m.from)).size, "page")}. Each is sorted by the keywords its caption and the text around it mention. Citations follow your style (${esc(STYLE_NAMES[cfg.citeStyle])}).</p>` +
+  el.innerHTML = `<p class="meta">${M.length} ${M.length === 1 ? "picture or video" : "pictures and videos"} ${(() => { const pages = new Set(M.filter(m => !m.web).map(m => m.from)).size, web = M.some(m => m.web); return pages && web ? `from ${plural(pages, "page")} and Wikipedia` : pages ? `from ${plural(pages, "page")}` : "from Wikipedia, about your keywords"; })()}. Each is sorted by the keywords its caption and the text around it mention. Citations follow your style (${esc(STYLE_NAMES[cfg.citeStyle])}).</p>` +
     groups.map(g => `<section class="md-group"><h3 style="--dot:${g.i >= 0 ? catColorVar(g.i) : "var(--muted)"}"><i></i>${esc(g.c.name)} <span class="meta">${g.list.length}</span></h3><div class="md-grid">${g.list.map(m => mediaCard(m)).join("")}</div></section>`).join("");
 }
 $("pMedia").addEventListener("click", e => { const k = e.target.closest("[data-key]"); if (k) { setTab("orb"); ORB.path = []; orbOpen(k.dataset.key); } const j = e.target.closest("[data-jump]"); if (j) jumpToSentence(+j.dataset.jump); });
@@ -5868,6 +5895,156 @@ function kwChip(kk) {
   const note = DOC.notes && DOC.notes.k[kk.key] ? " ✎" : "", srcs = multiSource() && kk.srcs && kk.srcs.size > 1 ? ` · ${kk.srcs.size} sources` : "";
   return `<button type="button" class="chip kwc${kk.crawled ? "" : " un"}${picked ? " picked" : ""}" data-key="${esc(kk.key)}" style="--dot:${catColorVar(kk.cat)}"><i></i>${esc(kk.label)}${note} <b>${kk.count}${srcs}</b></button>`;
 }
+// ---- outside information about a keyword: a short summary from Wikipedia, or a definition from Wiktionary.
+// Only when you're online and "Look up keywords online" is on (Settings → Research). Kept with the crawl.
+const WEBINFO = { busy: new Map(), queue: [], timer: 0, n: 0 };
+const wikiHost = () => `https://${/^(en|es|fr|de|it|pt|nl)$/.test(DOC.lang || "en") ? DOC.lang || "en" : "en"}.wikipedia.org`;
+const canLookUp = () => cfg.lookup !== "off" && navigator.onLine !== false && !IN_CLAUDE && DOC && DOC.mode !== "blank";
+async function wikiSummary(title) {
+  const r = await fetch(`${wikiHost()}/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}?redirect=true`);
+  if (!r.ok) return null;
+  const j = await r.json();
+  if (!j.extract || j.type === "disambiguation") return null;
+  return { kind: "wiki", title: j.title, text: j.extract, url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || `${wikiHost()}/wiki/${encodeURIComponent(j.title)}`, thumb: j.thumbnail ? j.thumbnail.source : "" };
+}
+// who made a Wikipedia picture, and under which license (from its file page)
+async function wikiPicture(info) {
+  if (!info || !info.thumb) return null;
+  const clean = info.thumb.split(/[?#]/)[0]; // the address can carry tracking bits after "?"
+  const m = /\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/]+?)(?:\/[^/]*)?$/.exec(clean); if (!m) return null;
+  const file = decodeURIComponent(m[1]), plain = h => String(h || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  let em = {}, href = `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`;
+  try {
+    const q = await (await fetch(`${wikiHost()}/w/api.php?action=query&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*&titles=${encodeURIComponent("File:" + file)}`)).json();
+    const ii = (Object.values((q.query || {}).pages || {})[0] || {}).imageinfo; if (ii && ii[0]) { em = ii[0].extmetadata || {}; href = ii[0].descriptionurl || href; }
+  } catch (e) { /* the credits are a bonus */ }
+  return { src: clean, href, alt: file.replace(/\.\w+$/, "").replace(/_/g, " "), credit: plain(em.Artist && em.Artist.value).slice(0, 120), license: plain(em.LicenseShortName && em.LicenseShortName.value) };
+}
+function addWebMedia(key, w) {
+  const k = DOC.kw.get(key); if (!k || !w || !w.pic || !DOC.media) return;
+  if (DOC.media.some(m => m.web && m.keys[0] === key)) return;
+  DOC.media.push({ ...w.pic, kind: "image", caption: `${w.title}, from Wikipedia`, near: "", year: "", from: -1, where: "Wikipedia", web: true, id: DOC.media.length, keys: [key], cat: k.cat, si: -1 });
+  if (WV.open && WV.tab === "media") refreshWeb(true);
+}
+async function wikiSearch(q, full) {
+  const r = await fetch(`${wikiHost()}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=8&srprop=snippet&format=json&origin=*`);
+  if (!r.ok) return [];
+  const j = await r.json(), hits = ((j.query && j.query.search) || []).map(x => ({ title: x.title, snippet: (x.snippet || "").replace(/<[^>]+>/g, "") }));
+  return full ? hits : hits.map(h => h.title);
+}
+// which article is about this text's meaning of the keyword: candidates must have the keyword in their title; each is
+// scored by how many of the text's keywords its summary shares (the keyword's close neighbours count more). Films,
+// songs, games and the like lose points unless the text is about them, and the exact article gets a head start.
+const MEDIA_WORDS = /\((?:\d{4} )?(?:[a-z ]*film|movie|song|album|band|tv series|television series|video game|game|novel|comics|character|single|ep|soundtrack|musician|rapper|wrestler|franchise)\)/i;
+function articleScore(title, text, k, exact) {
+  const lab = k.label.toLowerCase(), near = new Set([...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([key]) => key));
+  const low = (title + " " + text).toLowerCase();
+  let sc = exact ? 3 : 0;
+  for (const kk of DOC.kw.values()) { const w = kk.label.toLowerCase(); if (w !== lab && !lab.includes(w) && low.includes(w)) sc += near.has(kk.key) ? 2 : 1; }
+  if (MEDIA_WORDS.test(title) && !/\b(film|movie|song|album|band|game|comics?|novel)\b/i.test(DOC.title)) sc -= 8;
+  if (/\(disambiguation\)/i.test(title)) sc -= 20;
+  return sc;
+}
+const stemOf = w => w.toLowerCase().replace(/(ies)$/, "y").replace(/(es|s)$/, "");
+async function wiktionary(word) {
+  if ((DOC.lang || "en") !== "en") return null;
+  const r = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(word.toLowerCase())}`);
+  if (!r.ok) return null;
+  const j = await r.json(), strip = h => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.trim(); };
+  const defs = (j.en || []).flatMap(e => (e.definitions || []).map(x => ({ pos: e.partOfSpeech, def: strip(x.definition || "") }))).filter(x => x.def).slice(0, 2);
+  if (!defs.length) return null;
+  return { kind: "dict", title: word, text: defs.map(x => `${x.pos ? x.pos.toLowerCase() + ": " : ""}${x.def}`).join(" · "), url: `https://en.wiktionary.org/wiki/${encodeURIComponent(word.toLowerCase())}` };
+}
+async function lookupKeyword(key, pick) {
+  const k = DOC.kw.get(key); if (!k) return null;
+  DOC.web = DOC.web || {};
+  if (!pick && DOC.web[key]) return DOC.web[key];
+  if (!pick && WEBINFO.busy.has(key)) return WEBINFO.busy.get(key);
+  const doc = DOC, p = (async () => {
+    let info = null;
+    if (pick) info = await wikiSummary(pick);
+    else {
+      // the guide links each keyword to its exact article
+      const n = nodes.find(x => x.key === key && x.el.dataset && x.el.dataset.w);
+      if (n) info = await wikiSummary(decodeURIComponent(n.el.dataset.w).replace(/#.*$/, "").replace(/_/g, " "));
+      if (!info) {
+        const exact = await wikiSummary(k.label), stem = stemOf(k.label);
+        const near = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([key]) => (DOC.kw.get(key) || {}).label).filter(Boolean);
+        const hits = (await wikiSearch(`${k.label} ${near.join(" ")}`.slice(0, 200), true)).filter(h => h.title.toLowerCase().includes(stem) && (!exact || h.title !== exact.title));
+        let best = exact ? { score: articleScore(exact.title, exact.text, k, true), info: exact } : null;
+        for (const h of hits) { const sc = articleScore(h.title, h.snippet, k, false); if (!best || sc > best.score) best = { score: sc, title: h.title }; }
+        if (best && best.score > -5) info = best.info || await wikiSummary(best.title);
+      }
+      // a phrase that has no article of its own ("venom helps"): look up its main word instead, and say so
+      if (!info && /\s/.test(k.label)) {
+        const stop = STOPS[DOC.lang || "en"] || STOP;
+        const parts = k.label.split(/\s+/).filter(w => w.length > 2 && !stop.has(w.toLowerCase())).sort((a, b) => b.length - a.length);
+        for (const w of parts) {
+          const x = await wikiSummary(w);
+          if (x && articleScore(x.title, x.text, k, true) >= 3) { info = Object.assign(x, { about: w }); break; }
+        }
+      }
+      if (!info && !/\s/.test(k.label)) info = await wiktionary(k.label);
+    }
+    const out = info ? Object.assign(info, { at: Date.now(), picked: !!pick }) : { kind: "none", at: Date.now() };
+    if (out.kind === "wiki" && out.thumb) out.pic = await wikiPicture(out).catch(() => null);
+    if (doc === DOC) { if (pick) DOC.media = (DOC.media || []).filter(m => !(m.web && m.keys[0] === key)); DOC.web[key] = out; addWebMedia(key, out); }
+    return out;
+  })().catch(() => null); // offline or blocked: it tries again next time
+  WEBINFO.busy.set(key, p);
+  try { return await p; } finally { WEBINFO.busy.delete(key); }
+}
+// "as the spider catches each keyword": one look-up at a time, a little apart, for up to 80 keywords a text
+function queueLookup(key) {
+  if (cfg.lookup !== "catch" || !canLookUp() || (DOC.web && DOC.web[key]) || WEBINFO.n >= 80 || WEBINFO.queue.includes(key)) return;
+  WEBINFO.queue.push(key); WEBINFO.n++;
+  if (!WEBINFO.timer) WEBINFO.timer = setTimeout(nextLookup, 400);
+}
+async function nextLookup() {
+  WEBINFO.timer = 0; const key = WEBINFO.queue.shift(); if (!key) return;
+  if (canLookUp() && DOC.kw.has(key)) { await lookupKeyword(key); if (WV.open && WV.sel === key) renderSide(); }
+  if (WEBINFO.queue.length) WEBINFO.timer = setTimeout(nextLookup, 1100);
+}
+function webInfoHTML(key, short) {
+  if (cfg.lookup === "off") return "";
+  const w = DOC.web && DOC.web[key];
+  if (!w) return canLookUp() ? `<div class="webinfo"><p class="meta">Looking it up…</p></div>` : short ? "" : `<div class="webinfo"><p class="meta">Outside information shows up here when you're online.</p></div>`;
+  if (w.kind === "none") return short ? "" : `<div class="webinfo"><p class="meta">Nothing found online for this one. <button type="button" class="linkish" data-web-other="${esc(key)}">Search Wikipedia</button></p></div>`;
+  const src = w.kind === "dict" ? "Wiktionary" : "Wikipedia";
+  if (short) return `<p class="webinfo-short">${esc(trunc(w.text.split(/(?<=[.!?])\s/)[0], 180))} <span class="meta">(${src})</span></p>`;
+  return `<div class="webinfo">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" loading="lazy">` : ""}${w.about ? `<p class="meta">About “${esc(w.about)}”</p>` : ""}<p><b>${esc(w.title)}</b>: ${esc(trunc(w.text, 700))}</p>
+    <p class="meta">From <a href="${esc(w.url)}" target="_blank" rel="noopener">${src}</a> (CC BY-SA 4.0) · <button type="button" class="linkish" data-web-note="${esc(key)}">Add to my notes</button> · <button type="button" class="linkish" data-web-other="${esc(key)}">Not the right one?</button></p>
+    <div class="webinfo-pick" hidden></div></div>`;
+}
+// the paragraph a sentence sits in, with the sentence marked
+function paraHTML(i, k) {
+  const p = DOC.sentPara ? DOC.sentPara[i] : null, src = srcIdx(i);
+  let a = i, b = i;
+  if (p != null) { while (a > 0 && DOC.sentPara[a - 1] === p && srcIdx(a - 1) === src && i - a < 25) a--; while (b < DOC.sents.length - 1 && DOC.sentPara[b + 1] === p && srcIdx(b + 1) === src && b - i < 25) b++; }
+  const parts = [];
+  for (let j = a; j <= b; j++) parts.push(j === i ? `<mark>${hiKey(DOC.sents[j], k, null)}</mark>` : esc(DOC.sents[j]));
+  return parts.join(" ");
+}
+
+// related articles for a topic: Wikipedia's "more like this" for the topic's most-mentioned keyword
+async function readNext(cat) {
+  DOC.readNext = DOC.readNext || {};
+  if (DOC.readNext[cat]) return DOC.readNext[cat];
+  const top = [...DOC.kw.values()].filter(k => k.cat === cat).sort((a, b) => b.count - a.count)[0]; if (!top) return [];
+  const w = await lookupKeyword(top.key); if (!w || w.kind !== "wiki") { DOC.readNext[cat] = []; return []; }
+  let ts = []; try { ts = await wikiSearch(`morelike:${w.title}`); } catch (e) { return []; }
+  const known = new Set(Object.values(DOC.web || {}).map(x => x && x.title));
+  const list = ts.filter(t => t !== w.title && !known.has(t)).slice(0, 3).map(t => ({ title: t, url: `${wikiHost()}/wiki/${encodeURIComponent(t.replace(/ /g, "_"))}` }));
+  DOC.readNext[cat] = list; return list;
+}
+function readNextHTML(cat) {
+  if (cfg.lookup === "off") return "";
+  const list = DOC.readNext && DOC.readNext[cat];
+  if (!list) return canLookUp() ? `<p class="meta read-next">Finding related reading…</p>` : "";
+  if (!list.length) return "";
+  return `<p class="meta read-next">Read next: ${list.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a> <button type="button" class="linkish" data-crawl-url="${esc(x.url)}">crawl it</button>`).join(" · ")}</p>`;
+}
+
 function renderSide() {
   const side = $("wvSide"), k = WV.sel && DOC.kw.get(WV.sel);
   if (k) {
@@ -5876,7 +6053,8 @@ function renderSide() {
     let sis = k.si;
     if (re) { const hit = sis.filter(i => re.test(DOC.sents[i])); if (hit.length) sis = hit; }
     const quotes = sis.slice(0, 6).map(i => `<div class="quote"><span class="loc">${esc(sentLoc(i))}</span>${hiKey(DOC.sents[i], k, re)}${noteHTML("s", i)}
-      <span class="src-acts"><button type="button" class="linkish" data-jump="${i}">Show in text</button><button type="button" class="linkish" data-read-si="${i}">Listen</button><button type="button" class="linkish" data-cite="${i}">Copy citation</button>${noteBtn("s", i)}</span></div>`).join("");
+      <div class="para-box" data-para-of="${i}" hidden></div>
+      <span class="src-acts"><button type="button" class="linkish" data-para="${i}" aria-expanded="false">Show the paragraph</button><button type="button" class="linkish" data-jump="${i}">Show in text</button><button type="button" class="linkish" data-read-si="${i}">Listen</button><button type="button" class="linkish" data-cite="${i}">Copy citation</button>${noteBtn("s", i)}</span></div>`).join("");
     const inSrc = multiSource() ? [...k.srcs].map(x => DOC.sources[x] && DOC.sources[x].title).filter(Boolean) : [];
     if (WV.bumped !== k.key) { WV.bumped = k.key; bump(k.label, 1); }
     side.innerHTML = `
@@ -5889,9 +6067,11 @@ function renderSide() {
         <p style="margin:8px 0 0;display:flex;gap:14px;flex-wrap:wrap"><button type="button" class="linkish" data-act="jump">Show it on the page</button><button type="button" class="linkish" data-act="pick">${WV.picks.has(k.key) ? "Unpick" : "Pick for a sac"}</button>${noteBtn("k", k.key)}<button type="button" class="linkish" data-read-kw="${esc(k.key)}">Read aloud</button></p>
         ${noteHTML("k", k.key)}
       </div>
+      ${cfg.lookup !== "off" ? `<div class="web-sec"><h3>From the web</h3>${webInfoHTML(k.key)}</div>` : ""}
       ${nb.length ? `<div><h3>Connected keywords</h3><div class="list">${nb.map(kwChip).join("")}</div></div>` : ""}
       ${mediaFor([k.key]).length ? `<div><h3>Pictures and videos</h3><div class="md-grid small">${mediaFor([k.key]).slice(0, 6).map(m => mediaCard(m, { keys: false })).join("")}</div></div>` : ""}
-      <div style="--dot:${catColorVar(k.cat)}"><h3>${re ? "Where it meets your focus" : "Where it appears"}</h3>${quotes || '<p class="meta">No sentences recorded.</p>'}</div>`;
+      <div style="--dot:${catColorVar(k.cat)}"><h3>${re ? "Where it meets your focus" : "Where it appears"}</h3>${quotes || '<p class="meta">No sentences recorded.</p>'}${sis.length > 6 ? `<p class="meta">And ${plural(sis.length - 6, "more sentence")}. Use Find to see them all.</p>` : ""}</div>`;
+    if (cfg.lookup !== "off" && !(DOC.web && DOC.web[k.key]) && canLookUp()) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.sel === key) renderSide(); }); }
     return;
   }
   const re = focusRe(), parts = [];
@@ -5919,8 +6099,17 @@ function renderSide() {
   const ks = visibleKw();
   DOC.cats.forEach((c, i) => {
     const list = ks.filter(k => k.cat === i).sort((a, b) => b.count - a.count);
-    if (list.length) parts.push(`<div style="--dot:var(--c${c.color})"><h3><i></i>${esc(c.name)}</h3><div class="list">${list.map(kwChip).join("")}</div></div>`);
+    if (list.length) parts.push(`<div style="--dot:var(--c${c.color})"><h3><i></i>${esc(c.name)}</h3><div class="list">${list.map(kwChip).join("")}</div>${readNextHTML(i)}</div>`);
   });
+  // look up related reading for the topics, one after another, then show it
+  if (cfg.lookup !== "off" && canLookUp() && !renderSide.fetching) {
+    const todo = DOC.cats.map((c, i) => i).filter(i => !(DOC.readNext && DOC.readNext[i]) && ks.some(k => k.cat === i)).slice(0, 8);
+    if (todo.length) {
+      renderSide.fetching = true; const doc = DOC;
+      (async () => { for (const i of todo) { if (doc !== DOC) break; await readNext(i).catch(() => null); } })()
+        .finally(() => { renderSide.fetching = false; if (doc === DOC && WV.open && !WV.sel) renderSide(); });
+    }
+  }
   if (!ks.length) parts.push(`<p class="meta">Topics and their keywords show up here as the spider crawls. Click any keyword to see what it connects to and where it appears.</p>`);
   side.innerHTML = parts.join("");
 }
@@ -6332,7 +6521,39 @@ $("wvCats").addEventListener("click", e => {
   if (WV.filter.size === DOC.cats.length || !WV.filter.size) WV.filter.clear();
   refreshWeb(true);
 });
+async function webSideClick(e) {
+  const para = e.target.closest("[data-para]"), note = e.target.closest("[data-web-note]"), other = e.target.closest("[data-web-other]"), pick = e.target.closest("[data-web-pick]");
+  if (para) {
+    const i = +para.dataset.para, box = para.closest(".quote").querySelector(".para-box"), open = box.hidden;
+    if (open) box.innerHTML = paraHTML(i, DOC.kw.get(WV.sel));
+    box.hidden = !open; para.textContent = open ? "Hide the paragraph" : "Show the paragraph"; para.setAttribute("aria-expanded", String(open));
+    return true;
+  }
+  if (note) {
+    const key = note.dataset.webNote, w = DOC.web && DOC.web[key]; if (!w) return true;
+    const add = `From ${w.kind === "dict" ? "Wiktionary" : "Wikipedia"} (${w.title}): ${w.text}`, cur = DOC.notes.k[key] || "";
+    if (!cur.includes(add)) { DOC.notes.k[key] = (cur ? cur + "\n\n" : "") + add; collabNote("k", key, DOC.notes.k[key]); }
+    refreshNotesViews(); flash("Added to your notes on this keyword."); return true;
+  }
+  if (other) {
+    const key = other.dataset.webOther, k = DOC.kw.get(key), box = other.closest(".webinfo").querySelector(".webinfo-pick") || other.closest(".webinfo");
+    if (!k) return true;
+    let ts = [];
+    try { ts = await wikiSearch(k.label); } catch (err) { /* offline */ }
+    const pickBox = document.createElement("div"); pickBox.className = "webinfo-pick";
+    pickBox.innerHTML = ts.length ? `<p class="meta">Pick the right article:</p>${ts.map(t => `<button type="button" class="chip" data-web-pick="${esc(t)}" data-web-key="${esc(key)}">${esc(t)}</button>`).join("")}` : '<p class="meta">Nothing else found.</p>';
+    if (box.classList.contains("webinfo-pick")) { box.replaceWith(pickBox); } else box.appendChild(pickBox);
+    return true;
+  }
+  if (pick) {
+    const key = pick.dataset.webKey; pick.disabled = true;
+    await lookupKeyword(key, pick.dataset.webPick); renderSide(); return true;
+  }
+  return false;
+}
 function sideClick(e) {
+  if (e.target.closest("[data-para], [data-web-note], [data-web-other], [data-web-pick]")) { webSideClick(e); return; }
+  const cu = e.target.closest("[data-crawl-url]"); if (cu) { closeWeb(); crawlShared({ kind: "text", text: cu.dataset.crawlUrl }); return; }
   const k = e.target.closest("[data-key]"), act = e.target.closest("[data-act]"), sc = e.target.closest("[data-sac]"), jp = e.target.closest("[data-jump]");
   if (jp) { jumpToSentence(+jp.dataset.jump); return; }
   if (sc) { openSac(sacs[+sc.dataset.sac]); return; }
@@ -6496,10 +6717,17 @@ function nextStudyCard() {
   const reviews = keys.filter(k => DOC.srs[k] && DOC.srs[k].due <= now).sort((a, b) => DOC.srs[a].due - DOC.srs[b].due);
   return reviews[0] || keys.find(k => !DOC.srs[k]) || null;
 }
+// a cached outside fact about a keyword: its first sentence, and where it's from
+function webFact(key) {
+  const w = cfg.lookup !== "off" && DOC.web && DOC.web[key];
+  if (!w || w.kind === "none" || !w.text) return null;
+  return { text: w.text.split(/(?<=[.!?])\s/)[0], src: w.kind === "dict" ? "Wiktionary" : "Wikipedia", title: w.title, url: w.url };
+}
 function cardFace(k, flip) {
-  const back = cardBack(k), rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
+  if (flip && cfg.lookup !== "off" && !(DOC.web && DOC.web[k.key]) && canLookUp()) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.tab === "cards") renderCards(); }); }
+  const back = cardBack(k), fact = flip && webFact(k.key), rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
   return flip
-    ? `<span class="tag">${esc(k.label)}</span><p class="back">${back ? hiKey(back, k, null) : "No sentence recorded."}</p>${rel.length ? `<p class="meta">Related: ${esc(rel.join(", "))}</p>` : ""}${noteHTML("k", k.key)}`
+    ? `<span class="tag">${esc(k.label)}</span><p class="back">${back ? hiKey(back, k, null) : "No sentence recorded."}</p>${fact ? `<p class="webinfo-short">${esc(fact.text)} <span class="meta">(${fact.src})</span></p>` : ""}${rel.length ? `<p class="meta">Related: ${esc(rel.join(", "))}</p>` : ""}${noteHTML("k", k.key)}`
     : `<span class="tag">${esc(DOC.cats[k.cat].name)}</span><span class="big">${esc(k.label)}</span><span class="meta">What does the text say about this?</span>`;
 }
 function renderCards() {
@@ -6830,7 +7058,7 @@ function captureState(name) {
     cite: DOC.cite || "",
     asks: DOC.asks.slice(-30).map(a => ({ q: a.q, a: trunc(a.a || "", 4000), si: a.si || [] })),
     compareTitle: DOC.compare ? DOC.compare.title : "", words: DOC.words, kwCount: DOC.kw.size,
-    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || [], nestPins: DOC.nestPins || {}
+    sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || [], nestPins: DOC.nestPins || {}, web: DOC.web || {}, readNext: DOC.readNext || {}
   };
 }
 function restoreState(st, raw, craw, id) {
@@ -6844,6 +7072,8 @@ function restoreState(st, raw, craw, id) {
   if (st.srs) d.srs = st.srs;
   if (st.extNotes) d.extNotes = st.extNotes;
   if (st.nestPins) d.nestPins = st.nestPins;
+  if (st.web) d.web = st.web;
+  if (st.readNext) d.readNext = st.readNext;
   if (craw) d.compare = buildCompare(craw, st.compareTitle);
   loadDoc(d);
   for (const t of st.highlights || []) addHighlight(t, null, true);
@@ -7392,7 +7622,7 @@ function practiceQuestions(ks, max = 12) {
   return qs;
 }
 function buildGuide(only) {
-  const G = GUIDE; G.sel = only || null; G.ai = null; G.si = []; DOC._sk = null; // keywords may have been added since
+  const G = GUIDE; G.sel = only || null; G.ai = null; G.si = []; G.webAsked = false; DOC._sk = null; // keywords may have been added since
   G.secs = guideSections(only).map(x => ({ ...x, ...sectionInfo(x.list) }));
   const terms = [...new Set(G.secs.flatMap(x => x.terms))], pool = only ? terms : [...DOC.kw.values()].sort((a, b) => b.count - a.count);
   G.glossary = pool.filter(k => defSent(k) >= 0).sort((a, b) => a.label.localeCompare(b.label));
@@ -7401,6 +7631,12 @@ function buildGuide(only) {
 }
 function renderGuide() {
   const G = GUIDE, A = G.ai || {};
+  // look the key terms up online once, then show the guide again with what was found
+  if (cfg.lookup !== "off" && canLookUp() && !G.webAsked) {
+    const missing = [...new Set(G.secs.flatMap(x => x.terms))].filter(k => !(DOC.web && DOC.web[k.key])).slice(0, 30);
+    if (missing.length) { G.webAsked = true; Promise.all(missing.map(k => lookupKeyword(k.key))).then(() => { if ($("dGuide").open) renderGuide(); }); }
+  }
+  const webDD = k => { const w = webFact(k.key); return w ? `<span class="g-web">${esc(w.src)}: ${esc(trunc(w.text, 220))} <a href="${esc(w.url)}" target="_blank" rel="noopener">source</a></span>` : ""; };
   const cite = i => ` <button type="button" class="cite" data-si="${i}" title="${esc(sentLoc(i))}">${esc(inText(srcOf(i), cfg.citeStyle, pageOf(i)))}</button>`;
   const quote = i => `<li>${esc(trunc(DOC.sents[i] || "", 320))}${cite(i)}</li>`;
   $("guideH").textContent = G.sel ? "Study guide: your selection" : "Study guide";
@@ -7413,7 +7649,7 @@ function renderGuide() {
     h += `<section><h3>${esc(trunc(x.label, 100))}</h3>` +
       (S && S.summary ? `<p>${citedHTML(S.summary, G.si)}</p>` + ((S.points || []).length ? `<ul>${S.points.map(p => `<li>${citedHTML(p, G.si)}</li>`).join("")}</ul>` : "")
         : x.key.length ? `<h4>Key passages</h4><ul>${x.key.map(quote).join("")}</ul>` : "") +
-      (x.terms.length ? `<h4>Key terms</h4><dl class="g-terms">${x.terms.map(k => { const i = guideDef(k, x.list); return `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[i] || "", 240))}${cite(i)}</dd>`; }).join("")}</dl>` : "") +
+      (x.terms.length ? `<h4>Key terms</h4><dl class="g-terms">${x.terms.map(k => { const i = guideDef(k, x.list); return `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[i] || "", 240))}${cite(i)}${webDD(k)}</dd>`; }).join("")}</dl>` : "") +
       (x.facts.length ? `<h4>Facts and figures</h4><ul>${x.facts.map(quote).join("")}</ul>` : "") + "</section>";
   });
   if (G.glossary.length) h += `<section><h3>Glossary</h3><dl class="g-terms">${G.glossary.slice(0, 120).map(k => `<dt>${esc(k.label)}</dt><dd>${esc(trunc(DOC.sents[defSent(k)], 240))}${cite(defSent(k))}</dd>`).join("")}</dl></section>`;
@@ -7455,7 +7691,7 @@ function guideMarkdown() {
   G.secs.forEach((x, n) => {
     const S = (A.sections || [])[n];
     md += `## ${x.label}\n\n` + (S && S.summary ? ai(S.summary) + "\n\n" + (S.points || []).map(p => "- " + ai(p)).join("\n") : x.key.map(line).join("\n")) + "\n\n";
-    if (x.terms.length) md += "**Key terms**\n\n" + x.terms.map(k => { const i = guideDef(k, x.list); return `- **${k.label}**: ${DOC.sents[i]} ${c(i)}`; }).join("\n") + "\n\n";
+    if (x.terms.length) md += "**Key terms**\n\n" + x.terms.map(k => { const i = guideDef(k, x.list), w = webFact(k.key); return `- **${k.label}**: ${DOC.sents[i]} ${c(i)}${w ? `\n  - ${w.src} (${w.title}): ${w.text} <${w.url}>` : ""}`; }).join("\n") + "\n\n";
     if (x.facts.length) md += "**Facts and figures**\n\n" + x.facts.map(line).join("\n") + "\n\n";
   });
   if (G.glossary.length) md += "## Glossary\n\n" + G.glossary.map(k => `- **${k.label}**: ${DOC.sents[defSent(k)]} ${c(defSent(k))}`).join("\n") + "\n\n";
@@ -7686,6 +7922,7 @@ function renderLegend() {
     </dl></div>`;
 }
 const FAQ = [
+  ["Where does the “From the web” information come from?", "When you open a keyword and you're online, the app looks it up on Wikipedia (or, for single words, Wiktionary) and shows a short summary with a link to the source, its picture in the Media tab, and related reading for each topic. Only the keyword, and the text's title to help pick the right article, are sent. Pick another article with Not the right one?, add a summary to your notes, or turn it off in Settings → Research → Look up keywords online."],
   ["Does it work without the internet?", "Yes. Reading, finding keywords and topics, the web view, flashcards, study guides from the text, citations and Ask all work offline. You only need the internet to open a web page, search the web for more pages, or use an AI service."],
   ["Do I need an AI to use it?", "No. Without one, Ask shows the passages that answer your question, with their sources. An AI only adds a short written answer, summaries and a fuller study guide."],
   ["How do I connect my own AI?", "Settings → Research → Your AI. Pick a service, paste your API key and press Save. You can also use a free model on your own computer with Ollama or LM Studio. Your key stays on this device."],
@@ -9058,7 +9295,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
-  ["cfgCiteStyle", "citeStyle", String], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
+  ["cfgCiteStyle", "citeStyle", String], ["cfgLookup", "lookup", String], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
   ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgPurpose", "purpose", String], ["cfgBored", "bored", String], ["cfgDetach", "detach", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }

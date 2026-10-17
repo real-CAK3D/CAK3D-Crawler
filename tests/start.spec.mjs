@@ -370,3 +370,84 @@ test("when something breaks, it asks before sending an error report, and remembe
   await page.locator("#bSettings").click(); await page.locator("#setHelp").click();
   await expect(page.locator("#cfgErrReports")).not.toBeChecked();
 });
+
+test("a keyword ties to its topic, sentences and paragraphs, with outside information from the web", async ({ page }) => {
+  const errs = watch(page), asked = [];
+  await page.route("https://*.wikipedia.org/api/rest_v1/page/summary/**", r => { const t = decodeURIComponent(r.request().url().split("/summary/")[1].split("?")[0]).replace(/_/g, " "); asked.push(t);
+    r.fulfill({ json: { type: "standard", title: t, extract: `${t} is a test summary. It has a second sentence.`, content_urls: { desktop: { page: "https://en.wikipedia.org/wiki/" + encodeURIComponent(t) } } } }); });
+  await page.route("https://*.wikipedia.org/w/api.php?action=query&list=search**", r => r.fulfill({ json: { query: { search: [{ title: "First choice" }, { title: "Second choice" }] } } }));
+  await openApp(page, { lookup: "open" });
+  await crawlDone(page);
+  await page.locator("#bWeb").click();
+  await page.locator('#wvSide [data-key]').first().click();
+  const side = page.locator("#wvSide");
+  // its topic and where it appears
+  await expect(side.locator("h3").first()).not.toBeEmpty();
+  await expect(side).toContainText("Where it appears");
+  // the paragraph around a sentence
+  await side.locator("[data-para]").first().click();
+  await expect(side.locator(".para-box").first()).toBeVisible();
+  await expect(side.locator(".para-box mark").first()).toBeVisible();
+  await expect(side.locator("[data-para]").first()).toHaveText("Hide the paragraph");
+  // outside information (the guide's keywords use their exact Wikipedia article)
+  await expect(side.locator(".webinfo")).toContainText("is a test summary", { timeout: 10_000 });
+  await expect(side.locator(".webinfo a")).toHaveAttribute("href", /wikipedia\.org\/wiki\//);
+  await side.locator("[data-web-note]").click();
+  await expect(side).toContainText("From Wikipedia (");
+  // picking another article
+  await side.locator("[data-web-other]").click();
+  await side.locator('[data-web-pick="Second choice"]').click();
+  await expect(side.locator(".webinfo")).toContainText("Second choice is a test summary");
+  await page.locator("#wvClose").click();
+  // turned off: nothing is looked up
+  const before = asked.length;
+  await page.locator("#bSettings").click(); await page.locator('#setTabs [data-g="research"]').click();
+  await page.locator("#cfgLookup").selectOption("off"); await page.keyboard.press("Escape");
+  await page.locator("#bWeb").click(); await page.locator('#wvSide [data-key]').nth(3).click();
+  await expect(page.locator("#wvSide .web-sec")).toHaveCount(0);
+  expect(asked.length).toBe(before);
+  expect(errs).toEqual([]);
+});
+
+test("phrases don't end in a verb: 'venom helps' isn't a keyword", async ({ page }) => {
+  await openApp(page);
+  const text = ("Venom helps spiders subdue insects. Venom helps the spider eat. Spider silk is strong. Spider silk makes webs. " +
+    "Spiders use silk every day. Spiders use webs to catch insects. Orb weavers spin webs at night. ").repeat(4);
+  await loadText(page, text, "Verb test");
+  await expect(page.locator("#docTitle")).toHaveText("Verb test");
+  const keys = await page.locator("#page .kw").evaluateAll(els => els.map(e => e.dataset.k));
+  expect(keys).not.toContain("venom helps");
+  expect(keys).not.toContain("spiders use");
+  expect(keys).toContain("spider silk");
+});
+
+test("outside facts reach flashcards, the study guide, related reading and the Media tab", async ({ page }) => {
+  const errs = watch(page);
+  const thumb = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Test_picture.jpg/330px-Test_picture.jpg";
+  await page.route("https://upload.wikimedia.org/**", r => r.fulfill({ status: 200, contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64") }));
+  await page.route("https://*.wikipedia.org/api/rest_v1/page/summary/**", r => { const t = decodeURIComponent(r.request().url().split("/summary/")[1].split("?")[0]).replace(/_/g, " ");
+    r.fulfill({ json: { type: "standard", title: t, extract: `${t} is a fact from the web. More detail follows.`, thumbnail: { source: thumb }, content_urls: { desktop: { page: "https://en.wikipedia.org/wiki/" + encodeURIComponent(t) } } } }); });
+  const info = { descriptionurl: "https://commons.wikimedia.org/wiki/File:Test_picture.jpg", extmetadata: { Artist: { value: "Ana Ruiz" }, LicenseShortName: { value: "CC BY-SA 4.0" } } };
+  await page.route("https://*.wikipedia.org/w/api.php?action=query&prop=imageinfo**", r => r.fulfill({ json: { query: { pages: { "-1": { title: "File:Test_picture.jpg", imageinfo: [info] } } } } }));
+  await page.route("https://*.wikipedia.org/w/api.php?action=query&list=search**", r => r.fulfill({ json: { query: { search: [{ title: "Related One" }, { title: "Related Two" }, { title: "Related Three" }] } } }));
+  await openApp(page, { lookup: "catch" });
+  await crawlDone(page);
+  // related reading under each topic, with a way to crawl it
+  await page.locator("#bWeb").click();
+  await expect(page.locator("#wvSide .read-next").first()).toContainText("Related One", { timeout: 20_000 });
+  await expect(page.locator("#wvSide [data-crawl-url]").first()).toBeVisible();
+  // the keyword's picture, credited, in the Media tab
+  await page.locator('#wvTabs [data-tab="media"]').click();
+  await expect(page.locator("#pMedia .md-card").first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator("#pMedia .md-cite").first()).toContainText("Ana Ruiz");
+  await expect(page.locator("#pMedia .md-cite").first()).toContainText("CC BY-SA 4.0");
+  // flashcards
+  await page.locator('#wvTabs [data-tab="cards"]').click();
+  await page.locator('#pCards [data-fc="flip"]').click();
+  await expect(page.locator("#pCards .webinfo-short")).toContainText("is a fact from the web");
+  await page.locator("#wvClose").click();
+  // the study guide
+  await tool(page, "bGuide");
+  await expect(page.locator("#guideBody .g-web").first()).toContainText("Wikipedia: ", { timeout: 15_000 });
+  expect(errs).toEqual([]);
+});

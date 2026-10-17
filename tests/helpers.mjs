@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 
 // fast spider, no first-visit surprises
 export async function openApp(page, cfg = {}) {
-  await page.addInitScript(c => { try { localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 4, tourDone: true, ...c })); } catch (e) { /* storage blocked */ } }, cfg);
+  await page.addInitScript(c => { try { localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 4, tourDone: true, lookup: "off", ...c })); } catch (e) { /* storage blocked */ } }, cfg);
   await page.goto("/");
   await expect(page.locator("#page")).toBeVisible();
 }
