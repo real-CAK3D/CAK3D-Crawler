@@ -127,4 +127,6 @@ copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
 copyFileSync("web/privacy.html", `${OUT}/privacy.html`);
 writeFileSync(`${OUT}/sw.js`, readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`));
 for (const f of readdirSync("web/icons")) copyFileSync(`web/icons/${f}`, `${OUT}/icons/${f}`);
+mkdirSync(`${OUT}/sounds`, { recursive: true });
+for (const f of readdirSync("web/sounds")) copyFileSync(`web/sounds/${f}`, `${OUT}/sounds/${f}`); // background sounds and music
 console.log(`Built ${OUT}/ (version ${pkg.version})`);

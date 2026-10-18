@@ -58,8 +58,15 @@
     <li><b>Reporting an issue:</b> only if you press Send report in Settings → Help &amp; support. The report contains what you typed, your support ID, the app version and platform, and, if you leave the box ticked, your app settings, the store items you own, your screen size and your browser or device name. It also contains your email address if you choose to give one so we can reply. Reports never include your texts, notes, library or API keys.</li>
   </ul>
   <p>Reports are stored with our database provider, Supabase, on servers in the United States, and only we can read them. We use them only to fix problems and reply to you, and we delete them within 12 months, or sooner if you ask. To have your reports deleted, send a report asking for it, or contact us below with your support ID.</p>
+  <h2 id="phone-web">Phone &amp; web: link codes, moving data, and the web version's free uses</h2>
+  <ul>
+    <li><b>The web version's free uses:</b> without a link code, the web version at arachnotes.vercel.app can crawl 2 of your own uploads. To count them, your browser keeps the count, and our database keeps a one-way scrambled version (a hash) of your internet address with the number used. We never store the address itself. The count is deleted after a year without use.</li>
+    <li><b>Link codes:</b> when you press Make a link code in the Android app, the app asks Google Play to confirm that it's the real Arachnotes installed from Google Play (Google's Play Integrity service), and sends that confirmation, your support ID and the purchase tokens Google Play gave the app to our server. The server checks them with Google and stores, in scrambled form, the code (for 30 minutes, and it works once) and the list of items you own. A browser that enters the code gets a random pass, kept in that browser and stored scrambled on our server with your owned items and support ID, so the web version has no limit there and your purchases are unlocked. A pass is deleted after a year without use, when you press Unlink this browser (it's removed from that browser), or when you ask us to delete your data. We don't receive your name, email, Google account or payment details.</li>
+    <li><b>Moving data between devices:</b> when you make a transfer code in Settings → Phone &amp; web, the crawls, notes and settings you chose are locked (encrypted with AES-256) on your device with a key made from the code, before anything is uploaded. Our server only ever holds the locked data, which it can't read, filed under a fingerprint of the code, with a scrambled version of your internet address to limit how many codes one place makes. It's deleted as soon as the other device picks it up, or after 24 hours if it doesn't.</li>
+  </ul>
+
   <h2>Purchases</h2>
-  <p>Paid packs are bought through Google Play. Google handles the payment and tells the app which packs your Google account owns. We don't see or store your payment details.</p>
+  <p>Paid packs are bought through Google Play. Google handles the payment and tells the app which packs your Google account owns. We don't see or store your payment details. If you link a browser with a link code, our server checks your purchases with Google as described above.</p>
 
   <h2>What we don't do</h2>
   <ul>
@@ -76,7 +83,7 @@
   <p>If this policy changes, the new version will be posted on this page with a new date.</p>
 
   <h2>Contact</h2>
-  <p>Questions about privacy, or to have your data deleted: use <b>Settings → Help &amp; support → Report an issue</b> in the app, or reach CAK3D_Creations through <a href="https://github.com/real-CAK3D">github.com/real-CAK3D</a>.</p>
+  <p>Questions about privacy, or to have your data deleted: use <b>Settings → Help &amp; support → Report an issue</b> in the app, or reach CAK3D_Creations through <a href="https://github.com/real-CAK3D">github.com/real-CAK3D</a>. You can also email <a href="mailto:arachnotes-app@yahoo.com">arachnotes-app@yahoo.com</a>.</p>
   <p class="meta">© 2026 CAK3D_Creations. Arachnotes™ is a trademark of CAK3D_Creations.</p>
 </main>
 </body>

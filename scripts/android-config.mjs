@@ -29,6 +29,10 @@ android {
         }
     }
 }
+// Play Integrity: Google vouches that this is the real app from Google Play before a web link code is made
+dependencies {
+    implementation "com.google.android.play:integrity:1.4.0"
+}
 `;
 writeFileSync(file, g);
 
@@ -188,6 +192,32 @@ public class ShareInPlugin extends Plugin {
     }
 }
 `);
+// the Integrity plugin asks Google Play for a token that proves this is the real app; the "link" server function checks
+// it with Google before making a code for the web app (see LINK in src/arachnotes.html)
+writeFileSync(`${pkgDir}/IntegrityPlugin.java`, `package com.arachnotes.web;
+
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.android.play.core.integrity.IntegrityManager;
+import com.google.android.play.core.integrity.IntegrityManagerFactory;
+import com.google.android.play.core.integrity.IntegrityTokenRequest;
+
+@CapacitorPlugin(name = "Integrity")
+public class IntegrityPlugin extends Plugin {
+    @PluginMethod
+    public void token(PluginCall call) {
+        String nonce = call.getString("nonce");
+        if (nonce == null || nonce.isEmpty()) { call.reject("no nonce"); return; }
+        IntegrityManager manager = IntegrityManagerFactory.create(getContext().getApplicationContext());
+        manager.requestIntegrityToken(IntegrityTokenRequest.builder().setNonce(nonce).build())
+            .addOnSuccessListener(r -> { JSObject o = new JSObject(); o.put("token", r.token()); call.resolve(o); })
+            .addOnFailureListener(e -> call.reject(e.getMessage() != null ? e.getMessage() : "Google Play couldn't check the app"));
+    }
+}
+`);
 writeFileSync(`${pkgDir}/MainActivity.java`, `package com.arachnotes.web;
 
 import android.os.Bundle;
@@ -197,6 +227,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ShareInPlugin.class);
+        registerPlugin(IntegrityPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

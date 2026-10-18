@@ -65,6 +65,9 @@
   --c0: #0047b3; --c1: #b33000; --c2: #00702e; --c3: #6b1fa3; --c4: #7a5c00; --c5: #006b6b; --c6: #a3004f; --c7: #444444; color-scheme: light; }
 
 [hidden] { display: none !important; }
+.link-code { display: inline-block; font: 600 1.3rem var(--mono); letter-spacing: .08em; padding: 6px 12px; border: 1px dashed var(--silk); border-radius: 8px; user-select: all; overflow-wrap: anywhere; }
+.code-out { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.xfer-pick { max-height: 14rem; overflow: auto; border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; margin: 6px 0; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip { position: absolute; left: 8px; top: -80px; z-index: 100; background: var(--ink); color: var(--paper); padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: 13px; }
 .skip:focus { top: 8px; }
@@ -502,17 +505,68 @@ span.kw { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--cat, var(--muted))
 .err-ask { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 520px; margin: 0 auto; z-index: 70; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.28); }
 .err-ask p { margin: 0 0 10px; line-height: 1.45; }
 /* the walkthrough */
-#tour { position: fixed; inset: 0; z-index: 2147483000; }
-#tour .tour-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(10, 12, 11, .62); pointer-events: none; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; outline: 2px solid var(--grip, #f3d27a); outline-offset: 2px; }
-#tour .tour-card { position: fixed; box-sizing: border-box; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 16px 12px; box-shadow: 0 14px 40px rgba(0,0,0,.35); transition: top .3s ease, left .3s ease; }
-#tour .tour-card.tour-in { animation: tour-in .25s ease; }
-@keyframes tour-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* everything sits on a dark dimmed page, so the silk is drawn a lighter shade of the skin's own silk colour */
+#tour { position: fixed; inset: 0; z-index: 2147483000; --tour-silk: color-mix(in srgb, var(--silk) 55%, #fff); --tour-glow: color-mix(in srgb, var(--grip) 55%, #fff); }
+:root[data-skin="contrast"] #tour { --tour-silk: #fff; --tour-glow: #ffd400; }
+/* a cobweb in two corners of the dimmed page; hidden when the spotlight is in that corner */
+#tour::before, #tour::after { content: ""; position: fixed; z-index: 1; width: min(170px, 38vw); aspect-ratio: 1; pointer-events: none; background: color-mix(in srgb, var(--tour-silk) 30%, transparent);
+  -webkit-mask: var(--tour-web) center / contain no-repeat; mask: var(--tour-web) center / contain no-repeat; animation: tour-web-in .9s ease-out both; }
+#tour { --tour-web: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-1 -1 171 171'><path fill='none' stroke='black' stroke-width='1.1' d='M0 0L168 0M0 0L162.3 43.5M0 0L145.5 84M0 0L118.8 118.8M0 0L84 145.5M0 0L43.5 162.3M0 0L0 168M22 0Q18.4 2.4 19.3 5.2Q18.9 7.8 19.1 11Q14.8 11.3 14.1 14.1Q12.5 16.2 11 19.1Q7.1 17.2 5.2 19.3Q2.7 20.3 0 22M40 0Q38.7 5.1 40.6 10.9Q34.4 14.2 34.6 20Q31 23.8 29.7 29.7Q22.6 29.5 20 34.6Q14.9 36.1 10.9 40.6Q4.9 36.9 0 40M58 0Q51.6 6.8 54.1 14.5Q49.8 20.6 50.2 29Q41.3 31.7 39.6 39.6Q32.8 42.8 29 50.2Q19.9 48.1 14.5 54.1Q7 53.5 0 58M78 0Q73.8 9.7 77.3 20.7Q67 27.8 67.5 39Q59 45.3 56.6 56.6Q44.2 57.5 39 67.5Q28.5 68.7 20.7 77.3Q9.5 71.9 0 78M98 0Q88.5 11.7 92.7 24.8Q84.2 34.9 84.9 49Q70.8 54.4 67.9 67.9Q55.5 72.3 49 84.9Q34.2 82.5 24.8 92.7Q11.9 90.4 0 98M120 0Q112.5 14.8 117.8 31.6Q103.1 42.7 103.9 60Q90 69.1 86.3 86.3Q67.9 88.5 60 103.9Q43.4 104.8 31.6 117.8Q14.6 110.6 0 120M142 0Q129.1 17 135.2 36.2Q122 50.5 123 71Q103.3 79.3 99 99Q80.4 104.8 71 123Q49.8 120.3 36.2 135.2Q17.2 130.9 0 142'/></svg>"); }
+#tour::before { left: 0; top: 0; transform-origin: 0 0; }
+#tour::after { right: 0; bottom: 0; transform-origin: 100% 100%; rotate: 180deg; }
+#tour.web-tl-off::before, #tour.web-br-off::after { visibility: hidden; }
+@keyframes tour-web-in { from { scale: .5; } }
+#tour .tour-hole { position: fixed; z-index: 0; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(10, 12, 11, .62); pointer-events: none; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; }
+/* the spotlight's frame: a silk thread round the part, with a little orb web spun at each corner */
+#tour .tour-hole > svg { position: absolute; overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#tour .tour-frame { inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); stroke: var(--tour-glow); stroke-width: 2; }
+#tour .tour-cw { width: 28px; height: 28px; stroke: var(--tour-silk); stroke-width: 1; }
+#tour .tour-cw.tl { left: -26px; top: -26px; }
+#tour .tour-cw.tr { right: -26px; top: -26px; scale: -1 1; }
+#tour .tour-cw.bl { left: -26px; bottom: -26px; scale: 1 -1; }
+#tour .tour-cw.br { right: -26px; bottom: -26px; scale: -1 -1; }
+#tour.free .tour-hole > svg { display: none; }
+/* each step the threads are spun again: drawn from nothing along their length */
+#tour.spin .tour-hole path, #tour.spin .tour-hole rect { stroke-dasharray: 1; animation: tour-draw .55s ease-out both; }
+#tour.spin .tour-frame rect { animation-duration: .7s; }
+#tour.spin .tour-cw path + path { animation-delay: .3s; }
+@keyframes tour-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+/* the spider lets itself down on a silk line to the part (or to the card), then dangles there */
+#tour .tour-spider { position: fixed; z-index: 2; width: 0; height: 0; pointer-events: none; }
+#tour .tour-spider > span { position: absolute; left: 0; top: 0; }
+#tour .tour-spider i { position: absolute; left: -.5px; bottom: 0; width: 1px; height: 100vh; background: var(--tour-silk); }
+#tour .tour-spider svg { position: absolute; left: -13px; top: -13px; width: 26px; height: 26px; overflow: visible; fill: var(--spider); stroke: var(--spider); stroke-width: 1.1; stroke-linecap: round;
+  filter: drop-shadow(0 0 .8px var(--paper)) drop-shadow(0 0 .8px var(--paper)); transform-origin: 50% -40px; animation: tour-bob 3.2s ease-in-out .8s infinite; }
+#tour.spin .tour-spider > span { animation: tour-drop .8s cubic-bezier(.3, .7, .4, 1) both; }
+@keyframes tour-drop { from { transform: translateY(-140px); } 65% { transform: translateY(6px); } 82% { transform: translateY(-2px); } to { transform: none; } }
+@keyframes tour-bob { 50% { transform: translateY(3px) rotate(5deg); } }
+#tour .tour-card { position: fixed; z-index: 3; box-sizing: border-box; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 16px 12px; box-shadow: 0 14px 40px rgba(0,0,0,.35); transition: top .3s ease, left .3s ease; transform-origin: 50% -20px; }
+/* the card hangs from the spotlight's frame on two silk threads (or from above, on the welcome) */
+#tour .tour-card::before, #tour .tour-card::after { content: ""; position: absolute; bottom: 100%; width: 1px; height: 21px; background: var(--tour-silk); }
+#tour .tour-card::before { left: 30px; } #tour .tour-card::after { right: 30px; }
+#tour .tour-card.up { transform-origin: 50% calc(100% + 20px); }
+#tour .tour-card.up::before, #tour .tour-card.up::after { bottom: auto; top: 100%; }
+#tour .tour-card.slack::before, #tour .tour-card.slack::after { display: none; }
+#tour.free .tour-card::before, #tour.free .tour-card::after { height: 56px; background: linear-gradient(to top, var(--tour-silk), transparent); }
+/* a new step swings in on its threads (moved, never faded, so the text keeps its contrast) */
+#tour .tour-card.tour-in { animation: tour-in .4s ease-out; }
+@keyframes tour-in { from { transform: translateY(-8px) rotate(-1deg); } 55% { transform: translateY(1px) rotate(.5deg); } to { transform: none; } }
+#tour.opening .tour-hole, #tour.opening .tour-card { transition: none; }
+#tour .tour-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 4px; }
+#tour .tour-head .tour-step { margin: 0; }
+/* the steps as dew drops on a sagging thread: the ones you've passed catch the light */
+#tour .tour-dew { flex: none; height: 16px; overflow: visible; }
+#tour .tour-dew path { fill: none; stroke: var(--muted); stroke-width: 1; }
+#tour .tour-dew circle { fill: var(--paper); stroke: var(--muted); stroke-width: 1; transform-box: fill-box; transform-origin: center; }
+#tour .tour-dew circle.lit { fill: var(--link); stroke: var(--link); }
+#tour .tour-dew circle.now { animation: tour-dew .5s ease-out .15s both; }
+@keyframes tour-dew { from { scale: .3; } 60% { scale: 1.3; } }
 #tour .tour-step { margin: 0 0 4px; font: 600 11px var(--mono, monospace); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #tour h2 { margin: 0 0 6px; font-size: 1.15rem; }
 #tour p { margin: 0 0 12px; line-height: 1.5; }
 #tour .tour-btns { display: flex; gap: 8px; align-items: center; }
 #tour .tour-gap { flex: 1; }
-@media (prefers-reduced-motion: reduce) { #tour .tour-hole, #tour .tour-card { transition: none; } #tour .tour-card.tour-in { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #tour .tour-hole, #tour .tour-card { transition: none; } #tour .tour-card.tour-in, #tour *, #tour::before, #tour::after { animation: none !important; } #tour .tour-hole path, #tour .tour-hole rect { stroke-dashoffset: 0; } }
 .infobox td:first-child { color: var(--muted); width: 42%; }
 ul.cols { columns: 2; padding-left: 1.2em; margin: 0; }
 
@@ -1392,6 +1446,7 @@ body.bar-off .bar { display: none; }
       <textarea id="weaveOut" class="inp" rows="3" readonly hidden aria-label="Weave code for this crawl"></textarea>
       <div class="rowi"><input class="inp" id="weaveIn" type="text" placeholder="Paste a weave code here" autocomplete="off" spellcheck="false" aria-label="Weave code to open"><button class="btn" type="button" id="weaveOpen">Open a weave code</button></div>
       <p class="meta" id="weaveMsg" aria-live="polite"></p>
+      <p class="meta">To move crawls between your phone and the web app with a short one-time code, use Settings → Phone &amp; web.</p>
       <h3 class="sub">Move everything to a new device</h3>
       <p class="meta">A backup holds your whole library, settings, study progress and what it has learned about your interests (not your AI keys). Open it on the other device to pick up where you left off.</p>
       <div class="rowi"><button class="btn" type="button" id="backupMake">Back up everything</button><label class="btn" for="backupIn">Restore a backup</label><input type="file" id="backupIn" accept=".json,application/json" class="sr-only"></div>
@@ -1408,7 +1463,7 @@ body.bar-off .bar { display: none; }
   <form method="dialog">
     <h2 id="limH">Get the app to keep crawling</h2>
     <p id="limMsg"></p>
-    <div class="actions"><a class="btn primary" id="limGet" target="_blank" rel="noopener">Get Arachnotes for Android</a><button class="btn" value="close">Not now</button></div>
+    <div class="actions"><a class="btn primary" id="limGet" target="_blank" rel="noopener">Get Arachnotes for Android</a><button class="btn" type="button" id="limLink">I have the app</button><button class="btn" value="close">Not now</button></div>
   </form>
 </dialog>
 
@@ -1499,6 +1554,7 @@ body.bar-off .bar { display: none; }
         <button type="button" role="tab" data-p="webfx" data-g="web" aria-selected="false">Web &amp; effects</button>
         <button type="button" role="tab" data-p="theme" data-g="theme" aria-selected="false">Theme</button>
         <button type="button" role="tab" data-p="research" data-g="research" aria-selected="false">Research</button>
+        <button type="button" role="tab" data-p="devices" data-g="devices" aria-selected="false">Phone &amp; web</button>
       </div>
       <div class="tabs set-sub" role="tablist" aria-label="Spider settings" data-of="spider">
         <button type="button" role="tab" data-g="spider" aria-selected="true">Look</button>
@@ -1672,9 +1728,9 @@ body.bar-off .bar { display: none; }
           <label class="chk"><input type="checkbox" id="cfgSteps"> Crawling sounds (tiny footsteps)</label>
           <div class="row2">
             <label class="field"><span>Background sound</span>
-              <select id="cfgAmbience"><option value="none">None</option><option value="rain">Rain on the window</option><option value="night">Night crickets</option><option value="wind">Wind</option><option value="room">Quiet library</option><option value="fire">Crackling fire</option></select></label>
+              <select id="cfgAmbience"><option value="none">None</option><option value="rain">Rain on the window</option><option value="night">Night crickets</option><option value="fire">Crackling fire</option></select></label>
             <label class="field"><span>Music</span>
-              <select id="cfgMusic"><option value="off">Off</option><option value="musicbox">Music box</option><option value="lofi">Lo-fi study</option><option value="spooky">Spooky crawl</option><option value="sea">Sea shanty</option></select></label>
+              <select id="cfgMusic"><option value="off">Off</option><option value="mix">Calm mix (all four, in turn)</option><option value="contemplation">Contemplation: soft pads</option><option value="calm-piano">Calm piano</option><option value="another-august">Another August: piano and synth</option><option value="little-piano">Little piano loop</option></select></label>
           </div>
           <label class="field"><span>Volume</span><div class="range"><input type="range" id="cfgVolume" min="0" max="1" step="0.05"><output id="oVolume"></output></div></label>
           <small>Sounds start after you tap the screen once, and pause when the app is in the background.</small>
@@ -1800,6 +1856,43 @@ body.bar-off .bar { display: none; }
           <small id="aiNote" aria-live="polite">Saved only on this device. Requests go straight from this device to the AI you choose, and any usage is billed to your own account.</small>
         </fieldset>
       </section>
+      <section data-g="devices" hidden>
+        <fieldset id="linkBox">
+          <legend>Use Arachnotes on the web</legend>
+          <div id="linkApp" hidden>
+            <p class="meta">Make a code here, then open <b id="linkSite"></b> on a computer or in another browser and enter it in Settings → Phone &amp; web. That browser then has no use limit, and what you bought here is unlocked there too.</p>
+            <div class="rowi"><button class="btn primary" type="button" id="linkMake">Make a link code</button></div>
+            <div class="code-out" id="linkOut" hidden><code class="link-code" id="linkCode"></code><button class="btn" type="button" id="linkCopy">Copy</button></div>
+            <small>Each code works once, for 30 minutes. Before it's made, Google Play confirms this is the real app and what you've bought.</small>
+          </div>
+          <div id="linkWeb" hidden>
+            <p class="meta" id="linkState"></p>
+            <div class="rowi" id="linkEnterRow"><input class="inp" id="linkIn" type="text" placeholder="e.g. 7K4M-Q2XD-9HPA" autocomplete="off" spellcheck="false" aria-label="Link code from the Android app"><button class="btn primary" type="button" id="linkGo">Link</button></div>
+            <div class="rowi"><a class="btn" id="linkGet" target="_blank" rel="noopener">Get the Android app</a><button class="btn" type="button" id="linkOff" hidden>Unlink this browser</button></div>
+          </div>
+          <p class="meta" id="linkMsg" aria-live="polite"></p>
+        </fieldset>
+        <fieldset id="xferBox">
+          <legend>Move your data between devices</legend>
+          <p class="meta">Send crawls from your phone to the web app, or back, with a one-time code. Your data is locked on this device before it leaves, and the code is the only key, so our server can't read it. It's deleted as soon as it's picked up, or after 24 hours.</p>
+          <div class="field"><span>What to send</span>
+            <label class="chk"><input type="radio" name="xferWhat" value="all" checked> Everything: the whole library and the crawl that's open</label>
+            <label class="chk"><input type="radio" name="xferWhat" value="pick"> Only the crawls I choose</label></div>
+          <div id="xferPick" class="xfer-pick" hidden></div>
+          <div class="field"><span>Include</span>
+            <label class="chk"><input type="checkbox" id="xNotes" checked> Notes</label>
+            <label class="chk"><input type="checkbox" id="xCards" checked> Flashcard progress</label>
+            <label class="chk"><input type="checkbox" id="xSacs" checked> Highlights and egg sacs</label>
+            <label class="chk"><input type="checkbox" id="xAsks" checked> Questions you asked</label>
+            <label class="chk"><input type="checkbox" id="xCfg"> My settings</label>
+            <small>Each crawl's text and keywords always come along. If the other device already has a crawl, only the parts you tick are added to it.</small></div>
+          <div class="rowi"><button class="btn primary" type="button" id="xferMake">Make a code</button></div>
+          <div class="code-out" id="xferOut" hidden><code class="link-code" id="xferCode"></code><button class="btn" type="button" id="xferCopy">Copy</button></div>
+          <div class="field"><span>Got a code from your other device?</span>
+            <div class="rowi"><input class="inp" id="xferIn" type="text" placeholder="e.g. 4F7K-29QX-MB3D-8HNA" autocomplete="off" spellcheck="false" aria-label="Transfer code from your other device"><button class="btn" type="button" id="xferGo">Get my data</button></div></div>
+          <p class="meta" id="xferMsg" aria-live="polite"></p>
+        </fieldset>
+      </section>
       <section data-g="support" hidden>
         <div class="field"><span>Your support ID</span>
           <div class="rowi"><code class="supid" id="supId"></code><button class="btn" type="button" id="supCopy">Copy</button></div>
@@ -1834,9 +1927,16 @@ body.bar-off .bar { display: none; }
 
 <!-- the first-run walkthrough: a spotlight on one thing at a time, with Next, Back and Skip -->
 <div id="tour" hidden role="dialog" aria-modal="true" aria-labelledby="tourH">
-  <div class="tour-hole" id="tourHole" aria-hidden="true"></div>
+  <div class="tour-hole" id="tourHole" aria-hidden="true">
+    <svg class="tour-frame"><rect x="0" y="0" width="100%" height="100%" rx="12" pathLength="1"/></svg>
+    <svg class="tour-cw tl" viewBox="0 0 28 28"><path pathLength="1" d="M28 28L2 28M28 28L5.8 18.8M28 28L10.3 10.3M28 28L18.8 5.8M28 28L28 2"/><path pathLength="1" d="M20 28L20.6 24.9L22.3 22.3L24.9 20.6L28 20M14 28L15.1 22.6L18.1 18.1L22.6 15.1L28 14M8 28L9.5 20.3L13.9 13.9L20.3 9.5L28 8"/></svg>
+    <svg class="tour-cw tr" viewBox="0 0 28 28"><path pathLength="1" d="M28 28L2 28M28 28L5.8 18.8M28 28L10.3 10.3M28 28L18.8 5.8M28 28L28 2"/><path pathLength="1" d="M20 28L20.6 24.9L22.3 22.3L24.9 20.6L28 20M14 28L15.1 22.6L18.1 18.1L22.6 15.1L28 14M8 28L9.5 20.3L13.9 13.9L20.3 9.5L28 8"/></svg>
+    <svg class="tour-cw bl" viewBox="0 0 28 28"><path pathLength="1" d="M28 28L2 28M28 28L5.8 18.8M28 28L10.3 10.3M28 28L18.8 5.8M28 28L28 2"/><path pathLength="1" d="M20 28L20.6 24.9L22.3 22.3L24.9 20.6L28 20M14 28L15.1 22.6L18.1 18.1L22.6 15.1L28 14M8 28L9.5 20.3L13.9 13.9L20.3 9.5L28 8"/></svg>
+    <svg class="tour-cw br" viewBox="0 0 28 28"><path pathLength="1" d="M28 28L2 28M28 28L5.8 18.8M28 28L10.3 10.3M28 28L18.8 5.8M28 28L28 2"/><path pathLength="1" d="M20 28L20.6 24.9L22.3 22.3L24.9 20.6L28 20M14 28L15.1 22.6L18.1 18.1L22.6 15.1L28 14M8 28L9.5 20.3L13.9 13.9L20.3 9.5L28 8"/></svg>
+  </div>
+  <div class="tour-spider" id="tourSpider" aria-hidden="true"><span><i></i><svg viewBox="-12 -12 24 24"><g transform="rotate(90)"><ellipse cx="-3" cy="0" rx="5" ry="4"/><circle cx="4" cy="0" r="3"/><path d="M3-2l3-6M1-3l0-7M-1-3l-4-6M-3-2l-6-4M3 2l3 6M1 3l0 7M-1 3l-4 6M-3 2l-6 4"/></g></svg></span></div>
   <div class="tour-card" id="tourCard">
-    <p class="tour-step" id="tourStep"></p>
+    <div class="tour-head"><p class="tour-step" id="tourStep"></p><svg class="tour-dew" id="tourDew" aria-hidden="true"></svg></div>
     <h2 id="tourH"></h2>
     <p id="tourText"></p>
     <div class="tour-btns"><button class="btn" type="button" id="tourSkip">Skip</button><span class="tour-gap"></span><button class="btn" type="button" id="tourBack">Back</button><button class="btn primary" type="button" id="tourNext">Next</button></div>
@@ -2881,51 +2981,51 @@ const AUDIO = (() => {
   const env = (node, t, a, peak, dur) => { node.gain.setValueAtTime(0.0001, t); node.gain.exponentialRampToValueAtTime(peak, t + a); node.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
   function blip(f, t, dur, type, vol, dest) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); env(g, t, 0.01, vol, dur); o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05); }
   function burst(t, dur, freq, q, vol, dest) { const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(); n.buffer = noise(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q; env(g, t, 0.005, vol, dur); n.connect(bp); bp.connect(g); g.connect(dest); n.start(t, Math.random()); n.stop(t + dur + 0.05); }
-  function stopAmb() { if (amb) { clearInterval(amb.timer); try { amb.src.stop(); } catch (e) {} amb.gain.disconnect(); amb = null; } ambKindNow = "none"; }
-  function startAmb(kind) {
-    stopAmb(); if (kind === "none") return;
-    const gain = AC.createGain(), src = AC.createBufferSource(), filt = AC.createBiquadFilter();
-    src.buffer = noise(); src.loop = true; gain.connect(out());
-    const set = { rain: ["bandpass", 2600, 0.5, 0.05], wind: ["lowpass", 420, 0.8, 0.07], night: ["lowpass", 300, 0.7, 0.012], room: ["lowpass", 220, 0.7, 0.035], fire: ["lowpass", 900, 0.6, 0.025] }[kind];
-    filt.type = set[0]; filt.frequency.value = set[1]; filt.Q.value = set[2]; gain.gain.value = set[3];
-    src.connect(filt); filt.connect(gain); src.start();
-    let lfoT = 0;
-    const timer = setInterval(() => {
-      if (AC.state !== "running") return;
-      const t = AC.currentTime + 0.05;
-      if (kind === "rain" && Math.random() < 0.7) blip(2200 + Math.random() * 2400, t + Math.random() * 0.2, 0.05, "sine", 0.006, out());
-      if (kind === "wind") { lfoT += 0.25; filt.frequency.setTargetAtTime(300 + 260 * (0.5 + 0.5 * Math.sin(lfoT * 0.7)), t, 0.6); }
-      if (kind === "night" && Math.random() < 0.35) for (let i = 0; i < 3; i++) blip(4300, t + i * 0.06, 0.035, "square", 0.004, out());
-      if (kind === "room" && Math.random() < 0.02) burst(t, 0.35, 1500, 0.8, 0.03, out()); // a page turning
-      if (kind === "fire" && Math.random() < 0.8) burst(t + Math.random() * 0.2, 0.02, 3000, 2, 0.02 + Math.random() * 0.03, out());
-    }, 250);
-    amb = { src, gain, timer }; ambKindNow = kind;
+  // Background sounds and music are real recordings (all CC0, from OpenGameArt: see Help & support for the credits).
+  // Each is fetched the first time it's picked and then kept for offline use. Ambience loops without a gap; music plays
+  // a track on repeat, or the four in turn.
+  const AMB = { rain: ["sounds/rain.mp3", 0.55], night: ["sounds/night.mp3", 0.45], fire: ["sounds/fire.mp3", 0.6] };
+  const PIECES = ["sounds/contemplation.mp3", "sounds/calm-piano.mp3", "sounds/another-august.mp3", "sounds/little-piano.mp3"];
+  const MUSIC = { mix: PIECES, contemplation: [PIECES[0]], "calm-piano": [PIECES[1]], "another-august": [PIECES[2]], "little-piano": [PIECES[3]] };
+  const bufs = {};
+  const loadBuf = url => bufs[url] || (bufs[url] = fetch(url).then(r => { if (!r.ok) throw new Error("sound " + r.status); return r.arrayBuffer(); })
+    .then(a => AC.decodeAudioData(a)).catch(e => { delete bufs[url]; throw e; }));
+  // the encoder leaves a sliver of silence at each end: loop between the first and last real sound, so there's no gap
+  function edges(b) {
+    const d = b.getChannelData(0), lim = Math.min(d.length >> 1, Math.round(b.sampleRate * 0.3));
+    let a = 0, z = d.length - 1;
+    while (a < lim && Math.abs(d[a]) < 0.002) a++;
+    while (z > d.length - lim && Math.abs(d[z]) < 0.002) z--;
+    return [a / b.sampleRate, (z + 1) / b.sampleRate];
   }
-  // music: short loops of my own, scheduled a little ahead
-  const N = n => 440 * Math.pow(2, (n - 69) / 12);
-  const TRACKS = {
-    musicbox: { bpm: 100, len: 16, play(i, t, b, d) { const mel = [72, 76, 79, 84, 79, 76, 74, 77, 81, 77, 74, 71, 72, 79, 76, 72]; blip(N(mel[i]), t, b * 1.8, "triangle", 0.05, d); if (i % 4 === 0) blip(N([48, 53, 55, 48][i / 4]), t, b * 3.5, "sine", 0.04, d); } },
-    lofi: { bpm: 72, len: 16, play(i, t, b, d) {
-      const chords = [[60, 64, 67, 71], [57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65]], c = chords[Math.floor(i / 4)];
-      if (i % 4 === 0) for (const n of c) blip(N(n), t, b * 3.8, "sine", 0.018, d);
-      if (i % 4 === 0) { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.15); env(g, t, 0.005, 0.12, 0.25); o.connect(g); g.connect(d); o.start(t); o.stop(t + 0.3); }
-      if (i % 2 === 1) burst(t, 0.04, 8000, 1, 0.012, d);
-      if ([2, 7, 10, 14].includes(i)) blip(N(c[3] + 12), t, b * 1.5, "triangle", 0.025, d);
-    } },
-    spooky: { bpm: 84, len: 16, play(i, t, b, d) { const mel = [69, 72, 76, 75, 76, 72, 69, 68, 69, 72, 77, 76, 74, 71, 68, 64]; blip(N(mel[i]), t, b * 1.4, "sawtooth", 0.012, d); blip(N(mel[i]), t + b * 0.75, b, "sine", 0.01, d); if (i % 8 === 0) blip(N(45), t, b * 7, "sine", 0.05, d); } },
-    sea: { bpm: 110, len: 12, play(i, t, b, d) { const mel = [67, 67, 67, 72, 74, 76, 74, 72, 71, 72, 74, 67]; blip(N(mel[i]), t, b * 0.9, "square", 0.012, d); if (i % 3 === 0) blip(N([48, 48, 43, 48][i / 3]), t, b * 1.2, "triangle", 0.05, d); } }
-  };
-  function stopMus() { if (mus) { clearInterval(mus.timer); mus.gain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.2); const g = mus.gain; setTimeout(() => g.disconnect(), 800); mus = null; } musKindNow = "off"; }
+  const fadeOut = (g, then) => { g.gain.setTargetAtTime(0.0001, AC.currentTime, 0.3); setTimeout(() => { try { then(); } catch (e) {} g.disconnect(); }, 1200); };
+  function stopAmb() { if (amb) { const a = amb; fadeOut(a.gain, () => a.src && a.src.stop()); amb = null; } ambKindNow = "none"; }
+  function startAmb(kind) {
+    stopAmb(); const def = AMB[kind]; if (!def) return;
+    const gain = AC.createGain(); gain.gain.value = 0.0001; gain.connect(out());
+    const me = amb = { gain, src: null }; ambKindNow = kind;
+    loadBuf(def[0]).then(b => {
+      if (amb !== me) return;
+      const src = AC.createBufferSource(); src.buffer = b; src.loop = true;
+      [src.loopStart, src.loopEnd] = edges(b);
+      src.connect(gain); src.start(0, src.loopStart); me.src = src;
+      gain.gain.setTargetAtTime(def[1], AC.currentTime, 0.8);
+    }).catch(() => { if (amb === me) { amb = null; ambKindNow = "none"; gain.disconnect(); } }); // offline before it was ever played
+  }
+  function stopMus() { if (mus) { const m = mus; fadeOut(m.gain, () => { m.el.pause(); m.el.removeAttribute("src"); m.el.load(); }); mus = null; } musKindNow = "off"; }
   function startMus(kind) {
-    stopMus(); const tr = TRACKS[kind]; if (!tr) return;
-    const gain = AC.createGain(); gain.gain.value = 1; gain.connect(out());
-    const beat = 60 / tr.bpm / 2; let step = 0, next = AC.currentTime + 0.1;
-    const timer = setInterval(() => { if (AC.state !== "running") return; if (next < AC.currentTime) next = AC.currentTime + 0.05; while (next < AC.currentTime + 0.4) { tr.play(step % tr.len, next, beat, gain); step++; next += beat; } }, 100);
-    mus = { gain, timer }; musKindNow = kind;
+    stopMus(); const list = MUSIC[kind]; if (!list) return;
+    const el = new Audio(), gain = AC.createGain(); el.preload = "auto"; el.loop = list.length === 1;
+    gain.gain.value = 0.0001; gain.connect(out()); AC.createMediaElementSource(el).connect(gain);
+    const me = mus = { el, gain }; musKindNow = kind; let n = 0;
+    const play = () => { el.src = list[n % list.length]; if (!document.hidden) el.play().catch(() => {}); };
+    el.onended = () => { if (mus === me) { n++; play(); } };
+    play(); gain.gain.setTargetAtTime(0.5, AC.currentTime, 0.8);
   }
   let stepAcc = 0;
   return {
     out: () => out(),
+    hidden(h) { if (mus) { if (h) mus.el.pause(); else mus.el.play().catch(() => {}); } },
     sync() {
       if (!AC) return; out();
       const a = reduce ? "none" : cfg.ambience || "none", m = cfg.music || "off";
@@ -2940,7 +3040,7 @@ const AUDIO = (() => {
     }
   };
 })();
-document.addEventListener("visibilitychange", () => { if (!AC) return; if (document.hidden) AC.suspend(); else if (wantsAudio()) AC.resume(); });
+document.addEventListener("visibilitychange", () => { if (!AC) return; AUDIO.hidden(document.hidden); if (document.hidden) AC.suspend(); else if (wantsAudio()) AC.resume(); });
 addEventListener("pointerdown", () => { if (AC) AUDIO.sync(); }, { capture: true });
 
 // ---- "Crawl complete" notifications (Settings → Research): only when the crawl ends while the app is in the background.
@@ -7557,7 +7657,7 @@ $("weaveIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preve
 // a backup: everything this device keeps for the app except AI keys and purchases (those come back from Google Play)
 $("backupMake").onclick = () => {
   const data = {};
-  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix", "cak3d-resume"].includes(k)) data[k] = localStorage.getItem(k);
+  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix", "cak3d-resume", "cak3d-pass", "cak3d-pass-owned"].includes(k)) data[k] = localStorage.getItem(k);
   saveFile(`arachnotes-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "arachnotes", backup: 1, at: Date.now(), data }));
   $("backupMsg").textContent = `Backed up ${plural(Object.keys(data).filter(k => /^cak3d-lib-/.test(k)).length, "saved crawl")} and your settings.`;
 };
@@ -7902,7 +8002,7 @@ async function checkUpdate(manual) {
   } catch (e) { say("Couldn't check for updates right now."); }
 }
 $("updCheck").onclick = () => checkUpdate(true);
-function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; }
+function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal} · Sounds and music (CC0, from OpenGameArt): rain by Ylmir, crickets by Wolfgang_, fire by PagDev, Contemplation and Little piano loop by Joth, Calm piano and Another August by cynicmusic.`; }
 setTimeout(() => { checkFixes(); if (NATIVE) checkUpdate(false); }, 2500);
 // ---- help: one list of what everything is, used by the "What's what" tab and by "point at anything"
 const HELP = [
@@ -8006,9 +8106,10 @@ function startTour() {
   if (TR.open) return;
   for (const d of document.querySelectorAll("dialog[open]")) d.close();
   if ($("bar").hidden && $("bShowBar")) $("bShowBar").click();
-  TR.open = true; TR.i = 0; $("tour").hidden = false; document.body.classList.add("touring");
+  // "opening": the card and spotlight start where they belong, not gliding over from where the last tour left them
+  TR.open = true; TR.i = 0; $("tour").hidden = false; $("tour").classList.add("opening"); document.body.classList.add("touring");
   showTourStep(); $("tourNext").focus();
-  const loop = () => { if (!TR.open) return; placeTour(); TR.raf = requestAnimationFrame(loop); }; TR.raf = requestAnimationFrame(loop);
+  const loop = () => { if (!TR.open) return; placeTour(); $("tour").classList.remove("opening"); TR.raf = requestAnimationFrame(loop); }; TR.raf = requestAnimationFrame(loop);
 }
 function endTour() {
   TR.open = false; cancelAnimationFrame(TR.raf); $("tour").hidden = true; document.body.classList.remove("touring");
@@ -8022,24 +8123,49 @@ function showTourStep() {
   const st = TOUR[TR.i];
   $("tourStep").textContent = `${TR.i + 1} of ${TOUR.length}`; $("tourH").textContent = st.t; $("tourText").textContent = st.d;
   $("tourBack").hidden = TR.i === 0; $("tourNext").textContent = TR.i === TOUR.length - 1 ? "Done" : TR.i === 0 ? "Start" : "Next";
-  const card = $("tourCard"); card.classList.remove("tour-in"); void card.offsetWidth; card.classList.add("tour-in");
+  // on a phone the toolbar slides away as you scroll down: bring it back when a step points at it
+  if (st.el && document.querySelector(st.el)?.closest("#bar")) document.body.classList.remove("bar-away");
+  tourDew();
+  // start the step's motion again: the card swings in, the threads are spun and the spider drops (all CSS, and only while the tour is open)
+  const card = $("tourCard"), tour = $("tour"); card.classList.remove("tour-in"); tour.classList.remove("spin"); void card.offsetWidth; card.classList.add("tour-in"); tour.classList.add("spin");
   placeTour();
 }
+// the step dots: a drop of dew for each step, hung on a thread that sags in the middle
+function tourDew() {
+  const n = TOUR.length, gap = 13, w = gap * (n - 1) + 10, svg = $("tourDew");
+  const at = i => { const x = 5 + (w - 10) * i / (n - 1), t = x / w; return [x, 4 + 16 * t * (1 - t)]; }; // the i-th drop, sitting on the thread
+  svg.setAttribute("viewBox", `0 0 ${w} 16`); svg.setAttribute("width", w);
+  svg.innerHTML = `<path d="M0 4Q${w / 2} 12 ${w} 4"/>` + TOUR.map((_, i) => { const [x, y] = at(i), c = i < TR.i ? "lit" : i === TR.i ? "lit now" : "";
+    return `<circle class="${c}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i === TR.i ? 4 : 3}"/>`; }).join("");
+}
 function placeTour() {
-  const st = TOUR[TR.i], el = st && tourTarget(st), hole = $("tourHole"), card = $("tourCard");
+  const st = TOUR[TR.i], el = st && tourTarget(st), hole = $("tourHole"), card = $("tourCard"), tour = $("tour"), spider = $("tourSpider");
   const vw = innerWidth, vh = innerHeight, cw = Math.min(380, vw - 24);
+  const hang = (x, y) => { spider.style.left = x + "px"; spider.style.top = y + "px"; };
   card.style.width = cw + "px";
-  if (!el) { // a welcome card in the middle, with the page dimmed
+  tour.classList.toggle("free", !el);
+  if (!el) { // a welcome card in the middle, with the page dimmed, hanging from above; the spider comes down onto it
     hole.style.cssText = `left:${vw / 2}px;top:${vh / 2}px;width:1px;height:1px;outline:none`; // a zero-size box draws no shadow
-    card.style.left = (vw - cw) / 2 + "px"; card.style.top = Math.max(16, (vh - card.offsetHeight) / 2) + "px"; return;
+    const cl = (vw - cw) / 2, ct = Math.max(64, (vh - card.offsetHeight) / 2);
+    card.style.left = cl + "px"; card.style.top = ct + "px"; card.classList.remove("up", "slack");
+    tour.classList.remove("web-tl-off", "web-br-off"); hang(cl + cw * 0.7, ct - 9); return;
   }
-  const r = el.getBoundingClientRect(), pad = 6, big = el.id === "page";
+  const r = el.getBoundingClientRect(), pad = 6, big = el.id === "page", gap = 22; // the gap is the length of the card's two threads
   // the page is taller than the screen: spotlight the part that's showing
-  const top = Math.max(r.top, big ? 90 : r.top) - pad, bottom = Math.min(r.bottom, big ? vh * 0.55 : r.bottom) + pad;
-  hole.style.cssText = `left:${r.left - pad}px;top:${top}px;width:${r.width + pad * 2}px;height:${Math.max(0, bottom - top)}px`;
-  const ch = card.offsetHeight, below = bottom + 12, above = top - 12 - ch;
-  card.style.top = (below + ch < vh - 8 ? below : above > 8 ? above : Math.max(8, vh - ch - 8)) + "px";
+  const top = Math.max(r.top, big ? 90 : r.top) - pad, bottom = Math.min(r.bottom, big ? vh * 0.55 : r.bottom) + pad, left = r.left - pad, right = r.right + pad;
+  hole.style.cssText = `left:${left}px;top:${top}px;width:${r.width + pad * 2}px;height:${Math.max(0, bottom - top)}px`;
+  const ch = card.offsetHeight, below = bottom + gap, above = top - gap - ch, down = below + ch < vh - 8, up = !down && above > 8;
+  card.style.top = (down ? below : up ? above : Math.max(8, vh - ch - 8)) + "px";
   card.style.left = clamp(r.left + r.width / 2 - cw / 2, 12, vw - cw - 12) + "px";
+  card.classList.toggle("up", up); card.classList.toggle("slack", !down && !up); // no room either side: the card lies over the part, untied
+  // the corner cobwebs step aside when the spotlight is in their corner
+  const web = Math.min(170, vw * 0.38);
+  tour.classList.toggle("web-tl-off", left < web + 20 && top < web + 20);
+  tour.classList.toggle("web-br-off", right > vw - web - 20 && bottom > vh - web - 20);
+  // the spider sits on top of the frame when there's room and the card isn't up there; otherwise beside it, or just inside its top corner
+  if (!up && top > 56) hang(right - Math.min(30, (right - left) / 2), top - 14);
+  else if (right + 34 < vw || left > 34) hang(right + 34 < vw ? right + 20 : left - 20, (top + bottom) / 2);
+  else hang(right - 24, top + 18);
 }
 $("tourNext").onclick = () => { if (TR.i >= TOUR.length - 1) { endTour(); return; } TR.i++; showTourStep(); };
 $("tourBack").onclick = () => { TR.i = Math.max(0, TR.i - 1); while (TR.i > 0 && TOUR[TR.i].el && !tourTarget(TOUR[TR.i])) TR.i--; showTourStep(); };
@@ -8224,6 +8350,206 @@ function grant(id, quiet) {
   if (!quiet) { const p = PRODUCTS.find(x => x.id === id); flash(`Unlocked ${p ? p.name : "your purchase"}. Thank you!`); }
   if (storeOpen()) { renderStore(); if (sheetId) openSheet(sheetId); }
 }
+// ---- Phone & web (Settings): link codes, and moving data between devices with a one-time code
+// LINK: in the Android app, "Make a link code" asks Google Play to vouch for the app (the Integrity plugin), then the "link"
+// server function checks that and the app's purchases with Google and makes a one-use code. In the web app, entering
+// the code (link_redeem) gives this browser a pass: no use limit, and the purchases Google confirmed. The pass is checked
+// again each time the web app opens (web_quota), so it can be withdrawn.
+const LINK = { pass: store.get("cak3d-pass") || null, on: !!store.get("cak3d-pass") };
+const WEB_APP = ((window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.siteUrl) || "https://arachnotes.vercel.app/").replace(/\/?$/, "/");
+const b64u = u8 => { let t = ""; for (let i = 0; i < u8.length; i += 0x8000) t += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const fromB64u = t => { t = t.replace(/-/g, "+").replace(/_/g, "/"); return Uint8Array.from(atob(t + "===".slice((t.length + 3) % 4)), c => c.charCodeAt(0)); };
+const CODE_ABC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"; // no 0/O or 1/I, so codes are easy to read out
+const normCode = c => String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+const newCode = groups => [...crypto.getRandomValues(new Uint8Array(groups * 4))].map(b => CODE_ABC[b % 32]).join("").match(/.{4}/g).join("-");
+function linkGrant(owned) {
+  const had = new Set(store.get("cak3d-pass-owned") || []);
+  for (const id of owned || []) { had.add(id); grant(id, true); }
+  store.set("cak3d-pass-owned", [...had]);
+}
+function linkDrop() {
+  for (const id of store.get("cak3d-pass-owned") || []) OWNED.delete(id);
+  store.set("cak3d-owned", [...OWNED]); store.set("cak3d-pass", null); store.set("cak3d-pass-owned", null);
+  LINK.pass = null; LINK.on = false; markPaid(); syncWebQuota(); linkUI();
+}
+// the Google Play purchases this phone holds, with the tokens Google checks
+function playPurchases() {
+  const out = [];
+  try {
+    for (const r of (BILLING.store && BILLING.store.localReceipts) || []) for (const t of r.transactions || []) {
+      const token = r.purchaseToken || (t.nativePurchase && t.nativePurchase.purchaseToken);
+      if (token) for (const p of t.products || []) out.push({ id: p.id, token });
+    }
+  } catch (e) { /* no billing */ }
+  return out;
+}
+function linkUI() {
+  const box = $("linkBox"); if (!box) return;
+  box.hidden = !SUPPORT || IN_CLAUDE; $("xferBox").hidden = !SUPPORT || IN_CLAUDE;
+  $("linkApp").hidden = !NATIVE; $("linkWeb").hidden = NATIVE;
+  $("linkSite").textContent = WEB_APP.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (NATIVE) return;
+  const cap = Math.floor(+(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.webUploads) || 0);
+  $("linkState").textContent = LINK.on ? "This browser is linked to your Android app: no use limit, and your purchases are unlocked here."
+    : (cap ? `Without the app, the web version can crawl ${cap} of your own uploads. ` : "") + "Have the Android app? Make a link code in its Settings → Phone & web and enter it here.";
+  $("linkEnterRow").hidden = LINK.on; $("linkOff").hidden = !LINK.on; $("linkGet").hidden = LINK.on;
+  $("linkGet").href = WEBSITE + "#download";
+}
+function openSettingsAt(g) { syncSettings(); if (!$("dSettings").open) $("dSettings").showModal(); showSetPane(g); }
+function devicesShown() { linkUI(); xferPickList(); }
+// in the web app: is the pass still good, and how many free uses has this network had?
+async function linkRefresh() {
+  if (NATIVE || IN_CLAUDE || !SUPPORT) return;
+  const cap = Math.floor(+(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.webUploads) || 0);
+  if (!LINK.pass && !cap) return;
+  try {
+    const r = await rpc("web_quota", { p_pass: LINK.pass });
+    if (r && r.linked) { LINK.on = true; linkGrant(r.owned); }
+    else {
+      if (LINK.pass) { linkDrop(); flash("This browser isn't linked to the Android app anymore. Make a new link code in the app to link it again."); }
+      WEBQ.server = +(r && r.used) || 0;
+    }
+    syncWebQuota(); linkUI();
+  } catch (e) { /* offline: the browser's own count still applies */ }
+}
+$("linkGo").onclick = async () => {
+  const code = $("linkIn").value, msg = $("linkMsg");
+  if (normCode(code).length !== 12) { msg.textContent = "Link codes have 12 letters and numbers, like 7K4M-Q2XD-9HPA."; return; }
+  $("linkGo").disabled = true; msg.textContent = "Checking the code…";
+  try {
+    const r = await rpc("link_redeem", { p_code: code });
+    LINK.pass = r.pass; LINK.on = true; store.set("cak3d-pass", r.pass); linkGrant(r.owned);
+    $("linkIn").value = "";
+    msg.textContent = `Linked. This browser has no use limit now${r.owned && r.owned.length ? `, and ${plural(r.owned.length, "purchase")} ${r.owned.length === 1 ? "is" : "are"} unlocked` : ""}.`;
+    syncWebQuota(); linkUI();
+  } catch (e) { msg.textContent = (e.message || "That didn't work.") + (/fetch|network/i.test(e.message || "") ? " Check your connection and try again." : ""); }
+  finally { $("linkGo").disabled = false; }
+};
+$("linkIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("linkGo").click(); } });
+$("linkOff").onclick = () => { linkDrop(); $("linkMsg").textContent = "Unlinked. Purchases from the app are locked in this browser again."; };
+$("linkMake").onclick = async () => {
+  const msg = $("linkMsg"), P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Integrity;
+  if (!P || !SUPPORT) { msg.textContent = "Update Arachnotes from Google Play to make link codes."; return; }
+  $("linkMake").disabled = true; msg.textContent = "Asking Google Play…";
+  try {
+    const nonce = b64u(crypto.getRandomValues(new Uint8Array(24)));
+    const { token } = await P.token({ nonce });
+    msg.textContent = "Checking with Google…";
+    const r = await fetch(SUPPORT.url + "/functions/v1/link", { method: "POST", headers: { apikey: SUPPORT.key, "content-type": "application/json" },
+      body: JSON.stringify({ nonce, integrity: token, purchases: playPurchases(), install: supportId() }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.code) throw new Error(j.error || "Couldn't make a code right now. Try again in a minute.");
+    $("linkCode").textContent = j.code; $("linkOut").hidden = false;
+    msg.textContent = `Enter it at ${$("linkSite").textContent} within ${j.minutes} minutes. It works once.${j.owned && j.owned.length ? ` ${plural(j.owned.length, "purchase")} will be unlocked there.` : ""}`;
+  } catch (e) { msg.textContent = e.message || "Couldn't make a code. Check your connection and try again."; }
+  finally { $("linkMake").disabled = false; }
+};
+$("linkCopy").onclick = () => copyText($("linkCode").textContent, "Copied the link code.");
+
+// MOVING DATA: the sender packs what you chose, locks it with a key made from a fresh 16-character code (AES-GCM, the key
+// stretched with PBKDF2), and uploads only the locked bytes, filed under a fingerprint of the code. The other device
+// enters the code, fetches the bytes once (the server deletes them as it hands them over) and unlocks them.
+const XPARTS = { xNotes: ["notes", "extNotes"], xCards: ["srs"], xSacs: ["highlights", "sacs"], xAsks: ["asks"] };
+async function xferKeys(code) {
+  const n = normCode(code), enc = new TextEncoder();
+  const id = [...new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode("arachnotes-transfer:" + n)))].map(b => b.toString(16).padStart(2, "0")).join("");
+  const base = await crypto.subtle.importKey("raw", enc.encode(n), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: enc.encode("arachnotes-transfer-key"), iterations: 200000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  return { id, key };
+}
+async function xferPickList() {
+  const box = $("xferPick"), pick = document.querySelector('input[name="xferWhat"]:checked').value === "pick";
+  box.hidden = !pick; if (!pick) return;
+  const list = await LIB.list().catch(() => []);
+  const open = DOC && !DOC.libId && DOC.mode === "text" && DOC.raw;
+  box.innerHTML = (open ? `<label class="chk"><input type="checkbox" value="__open" checked> ${esc(DOC.title)} <span class="meta">(open now, not saved)</span></label>` : "")
+    + list.map(m => `<label class="chk"><input type="checkbox" value="${esc(m.id)}"> ${esc(m.title || m.docTitle || "Untitled")}</label>`).join("")
+    || `<p class="meta">Your library is empty. Save a crawl first, or send everything.</p>`;
+}
+for (const r of document.querySelectorAll('input[name="xferWhat"]')) r.addEventListener("change", xferPickList);
+async function xferGather() {
+  const all = document.querySelector('input[name="xferWhat"]:checked').value === "all";
+  const picked = new Set([...document.querySelectorAll("#xferPick input:checked")].map(i => i.value));
+  const drop = Object.entries(XPARTS).filter(([id]) => !$(id).checked).flatMap(([, keys]) => keys);
+  const trim = st => { const o = Object.assign({}, st); for (const k of drop) delete o[k]; return o; };
+  const crawls = [];
+  for (const m of await LIB.list()) {
+    if (!all && !picked.has(m.id)) continue;
+    const e = await LIB.load(m.id);
+    crawls.push({ id: m.id, state: trim(e.state), raw: e.raw || "", craw: e.craw || "" });
+  }
+  if (DOC && !DOC.libId && DOC.mode === "text" && DOC.raw && (all || picked.has("__open"))) {
+    const j = JSON.parse(crawlFile());
+    crawls.push({ id: "x" + Date.now().toString(36), state: trim(j.state), raw: j.raw || "", craw: j.craw || "" });
+  }
+  return { app: "arachnotes", transfer: 1, at: Date.now(), from: platformName(), crawls, cfg: $("xCfg").checked ? Object.assign({}, cfg) : null };
+}
+$("xferMake").onclick = async () => {
+  const msg = $("xferMsg");
+  if (!SUPPORT || typeof CompressionStream !== "function") { msg.textContent = "This browser can't make transfer codes. Use a backup file instead."; return; }
+  $("xferMake").disabled = true; msg.textContent = "Packing and locking your data…";
+  try {
+    const data = await xferGather();
+    if (!data.crawls.length && !data.cfg) { msg.textContent = "Choose at least one crawl, or include your settings."; return; }
+    const code = newCode(4), { id, key } = await xferKeys(code), iv = crypto.getRandomValues(new Uint8Array(12));
+    const packed = new Uint8Array(await new Response(new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());
+    const locked = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, packed));
+    const blob = "v1." + b64u(iv) + "." + b64u(locked);
+    if (blob.length > 15000000) { msg.textContent = "That's too much for one code. Choose fewer crawls and send them in parts."; return; }
+    msg.textContent = "Uploading…";
+    await rpc("transfer_put", { p_id: id, p_data: blob });
+    $("xferCode").textContent = code; $("xferOut").hidden = false;
+    msg.textContent = `Enter this code on your other device in Settings → Phone & web within 24 hours. It works once. (${plural(data.crawls.length, "crawl")}${data.cfg ? " and your settings" : ""}, ${Math.max(1, Math.round(blob.length / 1024)).toLocaleString()} KB)`;
+  } catch (e) { msg.textContent = (e.message || "Couldn't make a code.") + " Check your connection and try again."; }
+  finally { $("xferMake").disabled = false; }
+};
+$("xferCopy").onclick = () => copyText($("xferCode").textContent, "Copied the transfer code.");
+// what arrives joins this device's library; a crawl it already has gets the new notes, cards, sacs and questions added
+const sameItem = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const addNew = (mine, theirs, max) => { const out = (mine || []).slice(); for (const t of theirs || []) if (!out.some(m => sameItem(m, t))) out.push(t); return max ? out.slice(-max) : out; };
+async function xferApply(d) {
+  const have = await LIB.list();
+  let added = 0, merged = 0;
+  for (const c of d.crawls || []) {
+    if (!c || !c.state) continue;
+    const mine = have.find(m => m.id === c.id) || have.find(m => m.docTitle === c.state.docTitle && m.words === c.state.words);
+    if (!mine) { await LIB.save(c.id || "x" + Date.now().toString(36), c.state, c.raw || "", c.craw || ""); added++; continue; }
+    const e = await LIB.load(mine.id), st = e.state, inc = c.state;
+    if (inc.notes) { st.notes = st.notes || { k: {}, s: {} }; for (const kind of Object.keys(inc.notes)) st.notes[kind] = Object.assign({}, st.notes[kind] || {}, inc.notes[kind]); }
+    if (inc.extNotes) st.extNotes = addNew(st.extNotes, inc.extNotes);
+    if (inc.srs) st.srs = Object.assign({}, st.srs || {}, inc.srs);
+    if (inc.highlights) st.highlights = addNew(st.highlights, inc.highlights, 200);
+    if (inc.sacs) st.sacs = addNew(st.sacs, inc.sacs);
+    if (inc.asks) st.asks = addNew(st.asks, inc.asks, 30);
+    await LIB.save(mine.id, st, e.raw || "", e.craw || ""); merged++;
+  }
+  if (d.cfg) { Object.assign(cfg, freeOnly(d.cfg)); saveCfg(); applyAll(); syncSettings(); }
+  return { added, merged };
+}
+$("xferGo").onclick = async () => {
+  const code = $("xferIn").value, msg = $("xferMsg");
+  if (normCode(code).length !== 16) { msg.textContent = "Transfer codes have 16 letters and numbers, like 4F7K-29QX-MB3D-8HNA."; return; }
+  if (!SUPPORT || typeof DecompressionStream !== "function") { msg.textContent = "This browser can't open transfer codes. Use a backup file instead."; return; }
+  if (!webGate()) return; // the free web version counts it as one upload; the app and linked browsers have no limit
+  $("xferGo").disabled = true; msg.textContent = "Fetching…";
+  try {
+    const { id, key } = await xferKeys(code);
+    const blob = await rpc("transfer_take", { p_id: id });
+    if (!blob) { msg.textContent = "That code didn't work. Each code works once and for 24 hours, so make a new one on the other device."; return; }
+    const [, iv, body] = String(blob).split(".");
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64u(iv) }, key, fromB64u(body));
+    const d = JSON.parse(await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text());
+    if (d.app !== "arachnotes" || !d.transfer) throw new Error("That isn't Arachnotes data.");
+    webSpend();
+    const r = await xferApply(d);
+    $("xferIn").value = "";
+    const parts = [r.added && `added ${plural(r.added, "crawl")} to your library`, r.merged && `added to ${plural(r.merged, "crawl")} you already had`, d.cfg && "updated your settings"].filter(Boolean);
+    msg.textContent = parts.length ? `Done: ${parts.join(", ")}. Open the library to see them.` : "Done, but there was nothing new to add.";
+  } catch (e) { msg.textContent = (e.message || "Couldn't get your data.") + " Check your connection and try again."; }
+  finally { $("xferGo").disabled = false; }
+};
+$("xferIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("xferGo").click(); } });
+
 // ---- the code reader's engine: reads source files, finds every function, class, variable and import,
 // where each is defined and used (read, changed or called), what calls what, and explains it in plain words.
 // No AI and no internet needed. Works on JavaScript/TypeScript, Python, Java, C/C++, C#, Go, Rust, Kotlin,
@@ -9396,7 +9722,7 @@ for (const [id, key, parse, out] of BIND) {
 }
 const PRESETS = {
   lobster: { look: "lobster", type: "wolf", tint: "auto", skin: "lobster", ambient: "fog", layout: "chain", threadColor: "topic", catchFx: "pull", babyLook: "spiderlings",
-    babyColor: "parent", hatchFx: "gentle", entrance: "bottom", exit: "wander", dew: false, breeze: true, season: "pirate", bored: "dance", hunt: "ambush", music: "sea" },
+    babyColor: "parent", hatchFx: "gentle", entrance: "bottom", exit: "wander", dew: false, breeze: true, season: "pirate", bored: "dance", hunt: "ambush", music: "little-piano" },
   ocean: { look: "classic", type: "orb", tint: "pearl", skin: "ocean", ambient: "fog", layout: "orb", threadColor: "silk", catchFx: "ripple", babyLook: "fireflies",
     babyColor: "parent", hatchFx: "gentle", entrance: "drop", exit: "up", dew: true, breeze: true, season: "off", bored: "yoyo" },
   terminal: { look: "pixel", type: "cobweb", tint: "auto", skin: "terminal", ambient: "rain", layout: "meaning", threadColor: "topic", catchFx: "label", babyLook: "clones",
@@ -9442,19 +9768,22 @@ $("surprise").onclick = () => {
   applyAll(); flash("Shuffled the style. Press Surprise me again for another.");
 };
 // Settings sections: a main row of tabs, a second row for the parts of the one you're on, and ? for help
-const SET_GROUP = { spider: "spider", moves: "spider", babies: "spider", web: "webfx", fx: "webfx", theme: "theme", research: "research", support: "support" };
+const SET_GROUP = { spider: "spider", moves: "spider", babies: "spider", web: "webfx", fx: "webfx", theme: "theme", research: "research", devices: "devices", support: "support" };
 function showSetPane(g) {
   const grp = SET_GROUP[g] || "spider";
   for (const t of document.querySelectorAll("#setTabs .set-main [data-p]")) t.setAttribute("aria-selected", String(t.dataset.p === grp));
   for (const row of document.querySelectorAll("#setTabs .set-sub")) { row.hidden = row.dataset.of !== grp; for (const t of row.children) t.setAttribute("aria-selected", String(t.dataset.g === g)); }
   $("setHelp").setAttribute("aria-pressed", String(g === "support"));
   for (const s of document.querySelectorAll("#dSettings section[data-g]")) s.hidden = s.dataset.g !== g;
+  if (g === "devices") devicesShown();
   $("dSettings").querySelector(".set-body").scrollTop = 0;
 }
 $("setTabs").addEventListener("click", e => { const b = e.target.closest("[data-g]"); if (b) showSetPane(b.dataset.g); });
 $("setHelp").onclick = () => showSetPane($("setHelp").getAttribute("aria-pressed") === "true" ? "spider" : "support");
 $("replay").onclick = () => { $("dSettings").close(); enter(); };
 // anything saved before a pack was locked goes back to the free choice
+if (!["none", "rain", "night", "fire"].includes(cfg.ambience)) cfg.ambience = "none";
+if (!["off", "mix", "contemplation", "calm-piano", "another-august", "little-piano"].includes(cfg.music)) cfg.music = "off";
 { let changed = false; for (const k of Object.keys(FREE_FALLBACK)) if (locked(k, cfg[k])) { cfg[k] = FREE_FALLBACK[k]; changed = true; } if (changed) saveCfg(); }
 markPaid();
 { // in the Android app the billing plugin is ready after Cordova's deviceready event
@@ -9970,11 +10299,13 @@ const IN_CLAUDE = !!window.claude;
 // The free browser version lets each browser crawl a set number of its own uploads (texts, files, links, searches, crawl files,
 // weave codes, backups and code projects). The guide, its fixed examples, the built-in code example and the library don't count.
 // The count is kept three ways (local storage, IndexedDB and a cookie) and the highest wins, so clearing one doesn't reset it.
+// The server also counts per network (web_uses, keyed by a scrambled address), so a private window or another browser
+// on the same connection doesn't start over. A browser linked to the Android app with a link code has no limit.
 // The Android app and claude.ai have no limit.
-const WEBQ = { used: 0 };
+const WEBQ = { used: 0, server: 0 };
 function webCap() {
   const n = Math.floor(+(window.CRAWLER_CONFIG && window.CRAWLER_CONFIG.webUploads) || 0);
-  if (n <= 0 || IN_CLAUDE || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return 0;
+  if (n <= 0 || IN_CLAUDE || LINK.on || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) return 0;
   return n;
 }
 function wqCookie() { const m = /(?:^|;\s*)an_wu=(\d+)/.exec(document.cookie || ""); return m ? +m[1] : 0; }
@@ -9994,7 +10325,7 @@ function wqIdb(set) {
     } catch (e) { res(0); }
   });
 }
-const webUsed = () => Math.max(WEBQ.used, wqCookie(), wqLocal());
+const webUsed = () => Math.max(WEBQ.used, WEBQ.server, wqCookie(), wqLocal());
 function webLeft() { const cap = webCap(); return cap ? Math.max(0, cap - webUsed()) : Infinity; }
 function webSpend(n = 1) {
   if (!webCap() || n <= 0) return;
@@ -10002,6 +10333,7 @@ function webSpend(n = 1) {
   try { localStorage.setItem("an-wu", String(v)); } catch (e) { /* blocked */ }
   try { document.cookie = `an_wu=${v}; max-age=315360000; path=/; SameSite=Lax`; } catch (e) { /* blocked */ }
   wqIdb(v); syncWebQuota();
+  if (SUPPORT) rpc("web_spend", { p_n: n, p_pass: null }).then(r => { if (r && !r.linked) { WEBQ.server = +r.used || 0; syncWebQuota(); } }).catch(() => { /* offline: the browser's count stands */ });
 }
 function syncWebQuota() {
   const cap = webCap(), left = webLeft();
@@ -10016,13 +10348,15 @@ function webGate(n = 1) {
   const cap = webCap(), left = webLeft();
   $("limMsg").textContent = left > 0
     ? `The browser version can crawl ${cap} of your own uploads, and you have ${left} left. That's fewer than the ${n} you're adding. Remove some, or get the Android app, which has no limit.`
-    : `The browser version can crawl ${cap} of your own uploads (texts, files, links, searches, crawl files and code), and you've used them on this browser. The Android app is free and has no limit. The guide, its examples and the built-in code example still work here.`;
+    : `The browser version can crawl ${cap} of your own uploads (texts, files, links, searches, crawl files and code), and they've been used here. The Android app is free and has no limit. Already have it? Make a link code in the app's Settings → Phone & web and enter it here to use the web app as much as you like. The guide, its examples and the built-in code example still work here.`;
   if (!$("dLimit").open) $("dLimit").showModal();
   return false;
 }
 wqIdb().then(n => { WEBQ.used = Math.max(WEBQ.used, n); syncWebQuota(); });
+linkRefresh();
 syncWebQuota();
 $("limGet").href = WEBSITE + "#download";
+$("limLink").onclick = () => { $("dLimit").close(); openSettingsAt("devices"); };
 $("srcFile").addEventListener("click", e => { if (!webGate()) e.preventDefault(); });
 document.querySelector('label[for="cdFiles"]').addEventListener("click", e => { if (!webGate()) e.preventDefault(); });
 

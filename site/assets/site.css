@@ -75,7 +75,8 @@ main { flex: 1; }
 .hero-art { position: relative; aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; }
 .hero-art .webart { position: absolute; inset: -8%; width: 116%; height: 116%; }
 .phone { position: relative; width: min(62%, 260px); border-radius: 30px; padding: 9px; background: var(--spider); box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); transform: rotate(-3deg); }
-.phone img { display: block; border-radius: 22px; width: 100%; }
+.phone img, .phone video { display: block; border-radius: 22px; width: 100%; height: auto; }
+.phone video { pointer-events: none; } /* it only plays: no controls, nothing to tap */
 @media (max-width: 820px) { .hero .wrap { grid-template-columns: 1fr; } .hero-art { max-width: 420px; margin: 0 auto; width: 100%; } }
 
 /* the web drawing */

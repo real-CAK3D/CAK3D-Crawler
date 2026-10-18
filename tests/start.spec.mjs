@@ -2,7 +2,7 @@
 // and the browser version's upload limit
 import { test, expect } from "@playwright/test";
 import JSZip from "jszip";
-import { openApp, crawlDone, tool } from "./helpers.mjs";
+import { openApp, crawlDone, tool, fakeServer } from "./helpers.mjs";
 
 const watch = page => { const errs = []; page.on("pageerror", e => errs.push(e.message)); return errs; };
 const TEXT = "Bees collect nectar from flowers and turn it into honey inside the hive. ".repeat(3) +
@@ -125,6 +125,7 @@ test.describe("the browser version's 2 free uploads", () => {
   test.beforeEach(async ({ page }) => {
     // the hosted browser version is built with CRAWLER_WEB_UPLOADS=2
     await page.route("**/config.js", async r => { const res = await r.fetch(); r.fulfill({ response: res, body: (await res.text()).replace(/"webUploads": \d+/, '"webUploads": 2') }); });
+    await fakeServer(page);
   });
   test("two uploads work, the third is stopped, and clearing storage or reloading doesn't reset it", async ({ page }) => {
     const errs = watch(page);
@@ -218,6 +219,7 @@ test("a repeated keyword in the guide opens the keyword, not Wikipedia", async (
 test.describe("upload counting is exact", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("**/config.js", async r => { const res = await r.fetch(); r.fulfill({ response: res, body: (await res.text()).replace(/"webUploads": \d+/, '"webUploads": 2') }); });
+    await fakeServer(page);
   });
   test("a guide example doesn't let queued sources crawl for free", async ({ page }) => {
     await page.route("https://en.wikipedia.org/**", r => r.fulfill({ json: { parse: { title: "Orb-weaver spider", text: { "*": `<p>${TEXT}</p>` } } } }));

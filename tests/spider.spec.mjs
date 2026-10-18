@@ -22,16 +22,24 @@ for (const c of CASES) {
 
 test("sound settings switch on without errors", async ({ page }) => {
   const errors = []; page.on("pageerror", e => errors.push(e.message));
-  await openApp(page, { sound: true, steps: true, ambience: "rain", music: "lofi", volume: 0.3 });
+  await openApp(page, { sound: true, steps: true, ambience: "rain", music: "mix", volume: 0.3 });
   await page.locator("#page").click({ position: { x: 10, y: 10 } }); // sound needs a tap first
   await page.waitForTimeout(1500);
   await page.locator("#bSettings").click();
   await page.locator('#setTabs [data-p="webfx"]').click();
   await page.locator('#setTabs [data-g="fx"]').click();
-  for (const [id, v] of [["#cfgAmbience", "night"], ["#cfgMusic", "spooky"], ["#cfgAmbience", "fire"], ["#cfgMusic", "sea"], ["#cfgMusic", "off"], ["#cfgAmbience", "none"]]) {
+  for (const [id, v] of [["#cfgAmbience", "night"], ["#cfgMusic", "calm-piano"], ["#cfgAmbience", "fire"], ["#cfgMusic", "little-piano"], ["#cfgMusic", "off"], ["#cfgAmbience", "none"]]) {
     await page.locator(id).selectOption(v); await page.waitForTimeout(400);
   }
   await expect(page.locator("#oVolume")).toHaveText("30%");
+  // every recording is there and decodes
+  const lengths = await page.evaluate(async () => {
+    const ac = new AudioContext(), out = {};
+    for (const f of ["rain", "night", "fire", "contemplation", "calm-piano", "another-august", "little-piano"])
+      out[f] = Math.round((await ac.decodeAudioData(await (await fetch(`sounds/${f}.mp3`)).arrayBuffer())).duration);
+    return out;
+  });
+  for (const [f, sec] of Object.entries(lengths)) expect(sec, f).toBeGreaterThan(5);
   expect(errors).toEqual([]);
 });
 

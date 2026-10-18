@@ -46,3 +46,27 @@ export async function tool(page, id) {
   if (where.settings && !(await page.locator("#dSettings").isVisible())) await page.locator("#bSettings").click();
   await page.locator("#" + id).click();
 }
+
+// a stand-in for the server functions behind the web app's use limit, link codes and transfers, so tests never touch the
+// real database. Pass the same state to several pages to move data between them.
+export async function fakeServer(page, S = { used: 0, links: new Map(), passes: new Map(), transfers: new Map(), calls: [] }) {
+  const norm = c => String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+  await page.route("**/rest/v1/rpc/*", async r => {
+    const fn = r.request().url().split("/rpc/")[1].split("?")[0], b = r.request().postDataJSON() || {};
+    S.calls.push(fn);
+    const ok = j => r.fulfill({ contentType: "application/json", body: JSON.stringify(j) });
+    if (fn === "web_quota") return ok(S.passes.has(b.p_pass) ? { linked: true, owned: S.passes.get(b.p_pass) } : { linked: false, used: S.used });
+    if (fn === "web_spend") { S.used += b.p_n || 1; return ok({ linked: false, used: S.used }); }
+    if (fn === "link_redeem") {
+      const k = norm(b.p_code);
+      if (!S.links.has(k)) return r.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ message: "That code didn't work. Codes work once and for 30 minutes, so make a new one in the app." }) });
+      const owned = S.links.get(k); S.links.delete(k);
+      const pass = "a".repeat(40) + S.passes.size; S.passes.set(pass, owned);
+      return ok({ pass, owned });
+    }
+    if (fn === "transfer_put") { S.transfers.set(b.p_id, b.p_data); return ok(null); }
+    if (fn === "transfer_take") { const d = S.transfers.has(b.p_id) ? S.transfers.get(b.p_id) : null; S.transfers.delete(b.p_id); return ok(d); }
+    return ok(null);
+  });
+  return S;
+}

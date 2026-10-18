@@ -46,20 +46,23 @@ ASK THE TEXT
 
 READ CODE
 • Open code files, a .zip of a project or a GitHub link
-• Every function, class and variable mapped as a web, with where each is defined, used and called, and the whole codebase explained in plain words
+• Every function, class and variable mapped as a web, showing where each is defined, used and called, explained in plain words
 
 MAKE IT YOURS
 • Choose the spider, its look, how it hunts and the webs it spins, plus themes, weather and sounds
 • Start on the guide, where you left off, or a blank page
 • A short walkthrough the first time, and the guide shows every feature with moving examples
 • Leave mid-crawl and the spider keeps going; a notification tells you when it's done
-• Sounds made on your device: tiny crawling footsteps, rain, crickets, wind or a crackling fire, and music
-• A battery saver that rests the spider while you're away
+• Sounds: tiny footsteps, real recordings of rain, crickets or a crackling fire, and calm piano music
 
 PRIVATE BY DESIGN
 • No accounts, no ads and no tracking. Error reports are only sent if you say yes
 • Your texts, notes and library stay on your device and work offline once opened
-• Save crawls to your library, move them between devices with a weave code or crawl file, and back everything up
+• Save crawls to your library, send them as a weave code or crawl file, and back everything up
+
+ON A COMPUTER TOO
+• Make a link code in the app and enter it at arachnotes.vercel.app to use the full web version, with your purchases
+• Send your library, chosen crawls, or just notes or flashcards between phone and web with a one-time code only you can open
 
 Every reading and study feature is free. Extra spider kinds, looks, hats, themes, weather and presets are optional in-app purchases, singly or in bundles, and a bundle includes anything added to it later.
 

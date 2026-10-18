@@ -243,3 +243,10 @@
   if (toggle) toggle.onclick = () => setOn(!on);
   setOn(on);
 })();
+
+// the phone's clip: still for people who turn motion off, and it only plays while it's on screen
+(() => {
+  const v = document.querySelector(".phone video"); if (!v) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { v.removeAttribute("autoplay"); v.pause(); return; }
+  if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }).observe(v);
+})();
