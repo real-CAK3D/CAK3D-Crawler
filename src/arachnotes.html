@@ -836,6 +836,12 @@ body.bar-off .bar { display: none; }
 .wv-more:not([open]) { gap: 0; }
 /* ---- phones: give the text, the graph and the cards the screen */
 @media (max-width: 640px) {
+  .wv-body { grid-template-rows: 62vh minmax(0, 1fr); }
+  /* the graph above, every button below it (wrapping onto a second row), nothing on top of the graph */
+  #pGraph:not([hidden]) { display: flex; flex-direction: column; }
+  #pGraph canvas { position: relative; inset: auto; flex: 1 1 auto; height: 0; min-height: 0; }
+  .gctl { position: static; justify-content: center; padding: 6px 8px; background: var(--paper); border-top: 1px solid var(--rule); }
+  .gctl .btn { padding: 5px 10px; font-size: 12px; }
   .bar { gap: 6px 10px; padding: 8px 12px; transition: transform .22s ease; }
   body.bar-away .bar { transform: translateY(calc(-100% - 2px)); }
   .brand small { display: none; }
@@ -6392,7 +6398,8 @@ function silkLayout(groups, w, h, g) {
   // leave room around the rim for the group names, which sit outside the web
   let side = 34;
   if (g) { g.font = `600 12px ${MONO}`; side = Math.min(w * 0.24, 30 + Math.max(0, ...groups.map(x => g.measureText(trunc(x.name || "", w < 520 ? 14 : 22)).width))); }
-  const cx = w / 2, cy = h / 2, R = Math.max(60, Math.min(w / 2 - side, h / 2 - 34)), hub = Math.max(30, R * 0.2);
+  if (w < 520) side = 18; // narrow: the names go on tags over the rim instead of beside it
+  const cx = w / 2, cy = h / 2, R = Math.max(60, Math.min(w / 2 - side, h / 2 - (w < 520 ? 26 : 34))), hub = Math.max(30, R * 0.2);
   // enough spokes to look like a web however few items there are; enough rings to hold them all
   const T = clamp(Math.round(Math.sqrt(total) * 2.2), 10, 28), minShare = groups.length ? 0.35 / groups.length : 0;
   const shares = groups.map(x => minShare + (1 - minShare * groups.length) * (x.list.length / Math.max(1, total)));
@@ -6468,15 +6475,33 @@ function silkPaint(cv, st, model, now) {
     const arc = rm * (c.b1 - c.b0), room = Math.min(arc, c.r1 - c.r0 + 40), on = c.item.id === sel || i === st.hover || i === st.focus;
     const size = clamp(room / 7, 9, 13);
     g.font = `${on ? 700 : c.item.strong ? 600 : 400} ${size}px ${MONO}`; g.fillStyle = C.ink; g.globalAlpha = (on || c.item.strong ? 1 : 0.65) * labelA;
-    const maxChars = Math.max(3, Math.floor(room / (size * 0.62)));
-    g.fillText(on ? c.item.label : trunc(c.item.label, maxChars), x, y);
+    const maxChars = Math.floor(room / (size * 0.62));
+    // a cell too small for a readable word gets a dot (tap it to see the keyword)
+    if (!on && maxChars < 4 && c.item.label.length > maxChars) { g.beginPath(); g.arc(x, y, c.item.strong ? 2.4 : 1.8, 0, 7); g.fill(); return; }
+    if (on) { // the one you're on is spelled out in full, on a tag so it reads over its neighbours
+      const tw = g.measureText(c.item.label).width, bx = clamp(x, tw / 2 + 6, w - tw / 2 - 6);
+      g.globalAlpha = 0.94; g.fillStyle = C.panel; g.beginPath(); g.roundRect(bx - tw / 2 - 5, y - size * 0.75, tw + 10, size * 1.5, 5); g.fill();
+      g.globalAlpha = labelA; g.fillStyle = C.ink; g.fillText(c.item.label, bx, y); return;
+    }
+    g.fillText(trunc(c.item.label, Math.max(3, maxChars)), x, y);
     if (c.item.note) g.fillText("✎", x + Math.min(room / 2, 40), y - size);
   });
   g.globalAlpha = 1;
+  const narrow = w < 520, tags = [];
   for (const sct of L.sectors) {
-    const am = (sct.a0 + sct.a1) / 2, [x, y] = pt(R + 24, am);
-    g.font = `600 12px ${MONO}`; g.fillStyle = sct.group.color;
-    const text = trunc(sct.group.name || "", w < 520 ? 14 : 22), tw = g.measureText(text).width;
+    const am = (sct.a0 + sct.a1) / 2, [x, y] = pt(narrow ? R + 6 : R + 24, am);
+    g.font = `600 ${narrow ? 11 : 12}px ${MONO}`; g.fillStyle = sct.group.color;
+    const text = trunc(sct.group.name || "", narrow ? 18 : 22), tw = g.measureText(text).width;
+    if (narrow) {
+      // a tag on the rim, kept on screen and nudged so tags don't cover each other
+      let tx = clamp(x, tw / 2 + 8, w - tw / 2 - 8), ty = clamp(y, 12, h - 12);
+      for (let k = 0; k < 6 && tags.some(t => Math.abs(t.x - tx) < (t.w + tw) / 2 + 6 && Math.abs(t.y - ty) < 18); k++) ty += Math.sin(am) >= 0 ? 16 : -16;
+      ty = clamp(ty, 12, h - 12); tags.push({ x: tx, y: ty, w: tw });
+      g.globalAlpha = 0.93; g.fillStyle = C.panel; g.beginPath(); g.roundRect(tx - tw / 2 - 6, ty - 9, tw + 12, 18, 9); g.fill();
+      g.globalAlpha = 1; g.strokeStyle = sct.group.color; g.lineWidth = 1; g.stroke();
+      g.fillStyle = sct.group.color; g.textAlign = "center"; g.fillText(text, tx, ty);
+      continue;
+    }
     const align = Math.cos(am) > 0.3 ? "left" : Math.cos(am) < -0.3 ? "right" : "center";
     // keep every group name fully on screen
     const lx = align === "left" ? Math.min(x, w - 4 - tw) : align === "right" ? Math.max(x, tw + 4) : clamp(x, tw / 2 + 4, w - tw / 2 - 4);
@@ -6559,7 +6584,7 @@ function drawGraph() {
   if (N.length) {
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const n of N) { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y); }
-    const s = clamp(Math.min(w / (x1 - x0 + 320), h / (y1 - y0 + 200)), 0.15, 1.6) * 0.85;
+    const s = clamp(Math.min(w / (x1 - x0 + (w < 520 ? 150 : 320)), h / (y1 - y0 + (w < 520 ? 130 : 200))), 0.15, 1.6) * 0.85;
     WV.cam.x += ((x0 + x1) / 2 - WV.cam.x) * 0.08; WV.cam.y += ((y0 + y1) / 2 - WV.cam.y) * 0.08; WV.cam.s += (s - WV.cam.s) * 0.08;
   }
   // tapping a keyword zooms in on it; tapping the background zooms back out
@@ -6595,25 +6620,43 @@ function drawGraph() {
     if (WV.picks.has(n.k.key)) { g.strokeStyle = C.cats[6]; g.lineWidth = 2; g.setLineDash([3, 2]); g.beginPath(); g.arc(n.sx, n.sy, r + 4, 0, 7); g.stroke(); g.setLineDash([]); }
     if (n === sel) { g.strokeStyle = C.ink; g.lineWidth = 2; g.beginPath(); g.arc(n.sx, n.sy, r + 4, 0, 7); g.stroke(); }
   }
-  // labels get a halo in the page color so they stay readable over threads
+  // labels get a halo in the page color so they stay readable over threads. Topic names first, then the keyword you're
+  // on and its neighbours, then the most-mentioned: a label that would cover one already placed is left out (tap the dot,
+  // or press All labels), and one that would run off the right edge goes on the left of its dot.
   g.textBaseline = "middle"; g.lineJoin = "round";
-  for (const n of N) {
-    if (!(labelSet.has(n) || n === fn || nbSet.has(n.k.key))) continue;
-    g.globalAlpha = dimmed(n) ? 0.35 : 1;
-    g.font = (n === fn ? "600 " : "") + `${n === fn ? 17 : 15}px ` + SERIF;
-    g.strokeStyle = C.paper; g.lineWidth = 4; g.strokeText(n.k.label, n.sx + n.r + 6, n.sy);
-    g.fillStyle = C.ink; g.fillText(n.k.label, n.sx + n.r + 6, n.sy);
-  }
-  g.font = "600 12px " + MONO; g.globalAlpha = 0.95;
+  const narrow = w < 520, fs = narrow ? 13 : 15, placed = [];
+  const hits = b => placed.some(q => b.x < q.x + q.w && b.x + b.w > q.x && b.y < q.y + q.h && b.y + b.h > q.y);
+  g.font = `600 ${narrow ? 11 : 12}px ` + MONO; g.globalAlpha = 0.95;
   const byCat = new Map();
   for (const n of N) { const b = byCat.get(n.k.cat) || { x: 0, c: 0, y: Infinity }; b.x += n.sx; b.c++; b.y = Math.min(b.y, n.sy); byCat.set(n.k.cat, b); }
   g.textAlign = "center";
   for (const [c, b] of byCat) {
-    const t = DOC.cats[c].name.toUpperCase();
-    g.strokeStyle = C.paper; g.lineWidth = 4; g.strokeText(t, b.x / b.c, b.y - 26);
-    g.fillStyle = catColor(c); g.fillText(t, b.x / b.c, b.y - 26);
+    const t = trunc(DOC.cats[c].name.toUpperCase(), narrow ? 20 : 40), tw = g.measureText(t).width;
+    const tx = clamp(b.x / b.c, tw / 2 + 6, w - tw / 2 - 6);
+    // topic names that would sit on each other move up a line, or wait for more room
+    let ty = clamp(b.y - 26, 10, h - 10), box = { x: tx - tw / 2 - 2, y: ty - 8, w: tw + 4, h: 16 };
+    for (let k = 0; k < 4 && hits(box); k++) { ty = clamp(ty - 16, 10, h - 10); box = { ...box, y: ty - 8 }; }
+    if (hits(box)) continue;
+    placed.push(box);
+    g.strokeStyle = C.paper; g.lineWidth = 4; g.strokeText(t, tx, ty);
+    g.fillStyle = catColor(c); g.fillText(t, tx, ty);
   }
-  g.textAlign = "start"; g.globalAlpha = 1;
+  g.textAlign = "start";
+  const wanted = N.filter(n => labelSet.has(n) || n === fn || nbSet.has(n.k.key))
+    .sort((a, b) => (b === fn) - (a === fn) || nbSet.has(b.k.key) - nbSet.has(a.k.key) || b.k.count - a.k.count);
+  for (const n of wanted) {
+    const size = n === fn ? fs + 2 : fs;
+    g.font = (n === fn ? "600 " : "") + `${size}px ` + SERIF;
+    const tw = g.measureText(n.k.label).width, hh = size * 1.15;
+    const right = { x: n.sx + n.r + 6, y: n.sy - hh / 2, w: tw, h: hh }, left = { x: n.sx - n.r - 6 - tw, y: n.sy - hh / 2, w: tw, h: hh };
+    let box = right.x + tw > w - 4 ? left : right;
+    if (!WV.allLabels && n !== fn && hits(box)) { const other = box === right ? left : right; if (other.x >= 4 && other.x + tw <= w - 4 && !hits(other)) box = other; else continue; }
+    placed.push(box);
+    g.globalAlpha = dimmed(n) ? 0.35 : 1;
+    g.strokeStyle = C.paper; g.lineWidth = 4; g.strokeText(n.k.label, box.x, n.sy);
+    g.fillStyle = C.ink; g.fillText(n.k.label, box.x, n.sy);
+  }
+  g.globalAlpha = 1;
 }
 function hitNode(e) {
   const r = $("wvCanvas").getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
