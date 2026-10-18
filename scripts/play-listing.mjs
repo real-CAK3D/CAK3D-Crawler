@@ -56,6 +56,16 @@ async function call(method, url, body, type = "application/json") {
 // everything goes into one edit, which Google applies all at once when it's committed
 const edit = await call("POST", API);
 const E = `${API}/${edit.id}`;
+// --name-release v1.2.3: gives the internal testing draft that name (it otherwise keeps the first name it was given)
+const nameAt = process.argv.indexOf("--name-release");
+if (nameAt > 0) {
+  const name = process.argv[nameAt + 1], t = await call("GET", `${E}/tracks/internal`);
+  for (const r of t.releases || []) if (r.status === "draft") r.name = name;
+  await call("PUT", `${E}/tracks/internal`, t);
+  await call("POST", `${E}:commit`);
+  console.log(`Internal testing draft is now named ${name}.`);
+  process.exit(0);
+}
 if (check) { // only looks: reads the live listing and the testing tracks, then throws the edit away
   const tr = await call("GET", `${E}/tracks`);
   for (const t of tr.tracks || []) for (const r of t.releases || []) console.log(`Track ${t.track}: ${r.name || "(no name)"} · versions ${(r.versionCodes || []).join(", ")} · ${r.status}`);

@@ -3,6 +3,10 @@ name: Play listing
 on:
   workflow_dispatch:
     inputs:
+      release_name:
+        description: "Rename the internal testing draft (for example v1.19.1); nothing else is sent"
+        type: string
+        default: ""
       check:
         description: "Only check the connection (changes nothing)"
         type: boolean
@@ -29,4 +33,4 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_VIDEO: ${{ inputs.video }}
-        run: node scripts/play-listing.mjs ${{ inputs.check && '--check' || '' }} ${{ inputs.images && '--images' || '' }}
+        run: node scripts/play-listing.mjs ${{ inputs.release_name && format('--name-release {0}', inputs.release_name) || '' }} ${{ inputs.check && '--check' || '' }} ${{ inputs.images && '--images' || '' }}
