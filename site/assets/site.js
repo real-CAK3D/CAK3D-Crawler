@@ -248,5 +248,7 @@
 (() => {
   const v = document.querySelector(".phone video"); if (!v) return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { v.removeAttribute("autoplay"); v.pause(); return; }
+  // if one format won't decode, try the other (the browser only falls back by itself when a file is missing)
+  v.addEventListener("error", () => { if (!/.mp4$/.test(v.currentSrc)) { v.src = "assets/phone-demo.mp4"; v.play().catch(() => {}); } });
   if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }).observe(v);
 })();

@@ -47,6 +47,7 @@ for (let i = 0; i < frames.length; i++) {
 await writeFile(join(TMP, "list.txt"), list);
 const common = ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", join(TMP, "list.txt"), "-vf", "fps=30,scale=540:960:flags=lanczos", "-an"];
 execFileSync("ffmpeg", [...common, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "26", "-movflags", "+faststart", join(OUT, "phone-demo.mp4")]);
-execFileSync("ffmpeg", [...common, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "38", join(OUT, "phone-demo.webm")]);
+// the WebM is made from the finished MP4, at a steady 30 frames a second: made straight from the uneven frames, it wouldn't play
+execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", join(OUT, "phone-demo.mp4"), "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "36", "-row-mt", "1", "-pix_fmt", "yuv420p", "-r", "30", "-an", join(OUT, "phone-demo.webm")]);
 await rm(TMP, { recursive: true, force: true });
 console.log(`${frames.length} frames → ${OUT}/phone-demo.mp4 and .webm`);
