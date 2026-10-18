@@ -6,7 +6,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createSign } from "node:crypto";
 
 const PKG = "com.arachnotes.web", LANG = process.env.PLAY_LANG || "en-US", DIR = "store-listing";
-const images = process.argv.includes("--images"), dry = process.argv.includes("--dry-run");
+const images = process.argv.includes("--images"), dry = process.argv.includes("--dry-run"), check = process.argv.includes("--check");
 
 // listing.md: "## App name", "## Short description" and "## Full description" sections, up to the next heading
 const md = readFileSync(`${DIR}/listing.md`, "utf8").replace(/\r\n/g, "\n");
@@ -56,6 +56,12 @@ async function call(method, url, body, type = "application/json") {
 // everything goes into one edit, which Google applies all at once when it's committed
 const edit = await call("POST", API);
 const E = `${API}/${edit.id}`;
+if (check) { // only looks: reads the live listing, then throws the edit away
+  const now = await call("GET", `${E}/listings/${LANG}`);
+  await call("DELETE", E);
+  console.log(`Connected to Google Play. The live listing is "${now.title}" (${(now.fullDescription || "").length} characters). Nothing was changed.`);
+  process.exit(0);
+}
 await call("PUT", `${E}/listings/${LANG}`, listing);
 console.log("Text updated");
 if (images) for (const [type, list] of Object.entries(IMAGES)) {

@@ -3,6 +3,10 @@ name: Play listing
 on:
   workflow_dispatch:
     inputs:
+      check:
+        description: "Only check the connection (changes nothing)"
+        type: boolean
+        default: false
       images:
         description: "Also replace the icon, feature graphic and screenshots"
         type: boolean
@@ -25,4 +29,4 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_VIDEO: ${{ inputs.video }}
-        run: node scripts/play-listing.mjs ${{ inputs.images && '--images' || '' }}
+        run: node scripts/play-listing.mjs ${{ inputs.check && '--check' || '' }} ${{ inputs.images && '--images' || '' }}
