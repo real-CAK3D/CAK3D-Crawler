@@ -1,4 +1,4 @@
-// Records the short looping clip that plays inside the phone on the website (site/assets/phone-demo.mp4 and .webm).
+// Records the short looping clip that plays inside the phone on the website (site/assets/phone-demo.mp4).
 // The built app (www/) runs at phone size; Chrome's screencast captures sharp 2× frames, and ffmpeg turns them into a
 // small silent video with each frame shown for as long as it was on screen.
 // Run: npm run build && node scripts/site-phone-video.mjs   (needs ffmpeg on the PATH)
@@ -47,7 +47,6 @@ for (let i = 0; i < frames.length; i++) {
 await writeFile(join(TMP, "list.txt"), list);
 const common = ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", join(TMP, "list.txt"), "-vf", "fps=30,scale=540:960:flags=lanczos", "-an"];
 execFileSync("ffmpeg", [...common, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "26", "-movflags", "+faststart", join(OUT, "phone-demo.mp4")]);
-// the WebM is made from the finished MP4, at a steady 30 frames a second: made straight from the uneven frames, it wouldn't play
-execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", join(OUT, "phone-demo.mp4"), "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "36", "-row-mt", "1", "-pix_fmt", "yuv420p", "-r", "30", "-an", join(OUT, "phone-demo.webm")]);
+// only an MP4: Chrome on Windows wouldn't decode the VP9 WebM version, and every browser plays H.264
 await rm(TMP, { recursive: true, force: true });
-console.log(`${frames.length} frames → ${OUT}/phone-demo.mp4 and .webm`);
+console.log(`${frames.length} frames → ${OUT}/phone-demo.mp4`);
