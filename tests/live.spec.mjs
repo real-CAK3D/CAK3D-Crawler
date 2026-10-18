@@ -107,7 +107,7 @@ test("keywords get real outside information from Wikipedia", async ({ page }) =>
   await page.addInitScript(() => { const c = JSON.parse(localStorage.getItem("cak3d-cfg") || "{}"); localStorage.setItem("cak3d-cfg", JSON.stringify({ ...c, lookup: "open" })); });
   const errs = watch(page);
   if (process.env.WIKILOG) page.on("response", r => { if (/wikipedia|wiktionary/.test(r.url())) console.log("  ", r.status(), decodeURIComponent(r.url()).replace(/https:\/\/en\.\w+\.org/, "").slice(0, 120)); });
-  await openApp(page);
+  await openApp(page, { lookup: "open" });
   const text = ("Spider silk is a protein fibre spun by spiders. Orb weavers build wheel-shaped webs from silk. Tarantulas are large hairy spiders that hunt at night. " +
     "Venom helps spiders subdue insects. Jumping spiders have excellent eyesight and stalk their prey. Spider silk is stronger than steel by weight. ").repeat(4);
   await tool(page, "bSource"); await page.locator("#srcTextR").check(); await page.locator("#srcText").fill(text); await page.locator("#srcTitle").fill("Spider notes"); await page.locator("#srcGo").click();

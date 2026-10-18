@@ -42,21 +42,16 @@ Deno.serve(async req => {
   if (!sa || !sa.client_email || !sa.private_key) return fail("Linking isn't switched on yet. Try again after the next update.", 503);
   let body: { nonce?: string; integrity?: string; purchases?: { id: string; token: string }[]; install?: string };
   try { body = await req.json(); } catch { return fail("Bad request"); }
-  if ((body as { check?: boolean }).check) {
-    try {
-      const pi = await googleToken(sa, "https://www.googleapis.com/auth/playintegrity");
-      const r = await fetch(`https://playintegrity.googleapis.com/v1/${PKG}:decodeIntegrityToken`, { method: "POST", headers: { authorization: `Bearer ${pi}`, "content-type": "application/json" }, body: JSON.stringify({ integrity_token: "check" }) });
-      // 400 means Google took the key and looked at the (fake) token; 403 means the API or the project link isn't set up
-      return json({ key: "ok", integrity: r.status === 400 ? "ok" : `not ready (${r.status})` });
-    } catch (e) { return json({ key: "rejected: " + String((e as Error).message || e).slice(0, 200) }); }
-  }
   const { nonce = "", integrity = "", purchases = [], install = "" } = body;
   if (!/^[A-Za-z0-9_-]{22,200}$/.test(nonce) || !integrity) return fail("Bad request");
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
-  // a vouch is good for one code
-  const { error: dup } = await db.from("link_nonces").insert({ nonce });
-  if (dup) return fail("That request was already used. Try again.");
+  const inst = /^AN-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(install) ? install : null;
+  // ten codes a day per phone is plenty
+  if (inst) {
+    const { count } = await db.from("app_links").select("*", { count: "exact", head: true }).eq("install", inst).gt("created_at", new Date(Date.now() - 86400e3).toISOString());
+    if ((count || 0) >= 10) return fail("That's a lot of codes today. Try again tomorrow.", 429);
+  }
 
   try {
     // 1. is this the real app, installed from Google Play?
@@ -70,6 +65,9 @@ Deno.serve(async req => {
       return fail("Google couldn't confirm this request. Try again.");
     if (p.appIntegrity?.appRecognitionVerdict !== "PLAY_RECOGNIZED")
       return fail("Link codes only work in Arachnotes installed from Google Play.", 403);
+    // a vouch is good for one code (recorded only once Google has confirmed it, so junk can't fill the table)
+    const { error: dup } = await db.from("link_nonces").insert({ nonce });
+    if (dup) return fail(dup.code === "23505" ? "That request was already used. Try again." : "Couldn't make a code right now. Try again in a minute.", dup.code === "23505" ? 400 : 500);
 
     // 2. which purchases does Google confirm?
     const owned: string[] = [];
@@ -86,7 +84,7 @@ Deno.serve(async req => {
 
     // 3. the code: one use, 30 minutes
     const code = newCode();
-    const { error } = await db.from("app_links").insert({ code_hash: await codeHash(code), owned, install: /^AN-[0-9A-Z-]{14}$/.test(install) ? install : null, expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() });
+    const { error } = await db.from("app_links").insert({ code_hash: await codeHash(code), owned, install: inst, expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() });
     if (error) throw error;
     return json({ code, owned, minutes: 30 });
   } catch (e) {

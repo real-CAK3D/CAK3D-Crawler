@@ -123,3 +123,49 @@ test("Phone & web fits a phone", async ({ page }) => {
   const wide = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1 || [...document.querySelectorAll("#dSettings section[data-g=devices] *")].some(e => e.getBoundingClientRect().right > innerWidth + 1));
   expect(wide).toBe(false);
 });
+
+test("the owner's dashboard: hidden behind 7 taps, needs the passphrase, shows every service and messages", async ({ page }) => {
+  const errs = watch(page);
+  const msgs = [];
+  await page.route("**/functions/v1/dev", async r => {
+    const b = r.request().postDataJSON(), ok = j => r.fulfill({ contentType: "application/json", body: JSON.stringify(j) });
+    if (b.action === "signin") return b.passphrase === "spider silk" ? ok({ token: "t".repeat(64) }) : r.fulfill({ status: 401, contentType: "application/json", body: '{"error":"That didn\'t work."}' });
+    if (b.token !== "t".repeat(64)) return r.fulfill({ status: 401, contentType: "application/json", body: '{"error":"Signed out. Sign in again."}' });
+    if (b.action === "stats") return ok({ at: new Date().toISOString(),
+      supabase: { ok: true, db_bytes: 420 * 1048576, db_limit: 500 * 1048576, errors_day: 2, errors_week: 5, reports_week: 1, deletions_open: 0, top_errors: [{ message: "Boom", place: "animation", version: "1.18.0", count: 3 }], linked_browsers: 4, web_networks_week: 9, forum_posts: 3, link_codes_week: 2, transfers_waiting: 0 },
+      github: { ok: true, private: false, workflows: [{ name: "Android release", status: "completed", conclusion: "success", url: "https://github.com/x", at: new Date().toISOString() }], releases: [{ tag: "v1.18.0", apk: 12 }], apk_total: 40 },
+      vercel: { ok: false, error: "vercel answered 403" },
+      play: { ok: true, installs: { active_devices: 120, total_users: 300, installs_month: 50, uninstalls_month: 5 }, rating: { average: 4.6 }, reviews_week: 2, reviews: [{ stars: 5, text: "Love the spider", at: new Date().toISOString() }], sales: { report: "salesreport_202610", orders: 7, by_currency: { USD: 6.93 }, top: [["bundle_everything", 3]] } } });
+    if (b.action === "messages") return ok({ messages: msgs });
+    if (b.action === "send") { msgs.push({ id: msgs.length + 1, at: new Date().toISOString(), sender: "owner", body: b.text }); return ok({ ok: true }); }
+    if (b.action === "signout") return ok({ ok: true });
+  });
+  await openApp(page);
+  await page.locator("#bSettings").click(); await page.locator("#setHelp").click();
+  for (let i = 0; i < 6; i++) await page.locator("#supLegal").click();
+  await expect(page.locator("#dOwner")).toBeHidden(); // 6 taps aren't enough
+  await page.locator("#supLegal").click();
+  await expect(page.locator("#dOwner")).toBeVisible();
+  await expect(page.locator("#ownIn")).toBeVisible();
+  await page.locator("#ownPass").fill("wrong"); await page.locator("#ownGo").click();
+  await expect(page.locator("#ownMsg")).toHaveText("That didn't work.");
+  await page.locator("#ownPass").fill("spider silk"); await page.locator("#ownGo").click();
+  await expect(page.locator("#ownBody")).toBeVisible();
+  const grid = page.locator("#ownGrid");
+  await expect(grid).toContainText("120"); // Android devices
+  await expect(grid).toContainText("4.60★");
+  await expect(grid).toContainText("6.93 USD");
+  await expect(grid).toContainText("Boom");
+  await expect(grid.locator(".own-bar.bad, .own-bar.warn").first()).toContainText("Database"); // 84%: getting close
+  await expect(grid).toContainText("vercel answered 403"); // a part that fails says why, the rest still shows
+  await expect(grid.locator('a[href="https://play.google.com/console"]').first()).toBeVisible();
+  await page.locator("#ownText").fill("The crawl froze on my phone");
+  await page.locator("#ownSend").click();
+  await expect(page.locator("#ownThread")).toContainText("The crawl froze on my phone");
+  // it stays signed in, and backups never carry the sign-in
+  expect(await page.evaluate(() => localStorage.getItem("cak3d-owner"))).toBeTruthy();
+  await page.locator("#ownOut").click();
+  await expect(page.locator("#ownIn")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("cak3d-owner"))).toBeNull();
+  expect(errs).toEqual([]);
+});

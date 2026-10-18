@@ -67,6 +67,29 @@
 [hidden] { display: none !important; }
 .link-code { display: inline-block; font: 600 1.3rem var(--mono); letter-spacing: .08em; padding: 6px 12px; border: 1px dashed var(--silk); border-radius: 8px; user-select: all; overflow-wrap: anywhere; }
 .code-out { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+#dOwner .own-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 12px; margin: 12px 0; }
+#dOwner .own-card { border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#dOwner .own-card h3 { margin: 0; font: 600 13px var(--mono); letter-spacing: .06em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+#dOwner .own-card h3 a { font-size: 12px; letter-spacing: 0; text-transform: none; }
+#dOwner .own-big { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: 8px; }
+#dOwner .own-big div { display: flex; flex-direction: column; }
+#dOwner .own-big b { font: 600 1.35rem var(--mono); font-variant-numeric: tabular-nums; }
+#dOwner .own-big span, #dOwner .own-note { font-size: 12px; color: var(--muted); }
+#dOwner .own-bar { display: grid; gap: 3px; font-size: 12px; }
+#dOwner .own-bar i { display: block; height: 7px; border-radius: 4px; background: var(--rule); overflow: hidden; }
+#dOwner .own-bar i b { display: block; height: 100%; background: var(--link); }
+#dOwner .own-bar.warn i b { background: #c98a12; } #dOwner .own-bar.bad i b { background: #c0392b; }
+#dOwner .own-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+#dOwner .own-list li { display: flex; justify-content: space-between; gap: 8px; min-width: 0; }
+#dOwner .own-list li > :first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#dOwner .ok { color: #2e8b57; } #dOwner .no { color: #c0392b; } #dOwner .run { color: #c98a12; }
+#dOwner .own-links { display: flex; flex-wrap: wrap; gap: 6px; }
+#dOwner .own-links a { font-size: 12px; padding: 4px 9px; }
+#dOwner .own-thread { max-height: 22rem; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+#dOwner .own-msg { padding: 7px 10px; border-radius: 10px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 88%; }
+#dOwner .own-msg.owner { align-self: flex-end; background: var(--ink); color: var(--paper); }
+#dOwner .own-msg.claude { align-self: flex-start; border: 1px solid var(--rule); }
+#dOwner .own-msg small { display: block; opacity: .7; font-size: 11px; margin-top: 3px; }
 .xfer-pick { max-height: 14rem; overflow: auto; border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; margin: 6px 0; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip { position: absolute; left: 8px; top: -80px; z-index: 100; background: var(--ink); color: var(--paper); padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: 13px; }
@@ -1422,6 +1445,30 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- Library dialog -->
+<dialog class="page" id="dOwner" aria-labelledby="ownH">
+  <form method="dialog">
+    <h2 id="ownH">Owner dashboard</h2>
+    <div id="ownIn" hidden>
+      <p class="lede">Only for the app's owner. Enter your passphrase. It only works on your own phone.</p>
+      <div class="rowi"><input class="inp" id="ownPass" type="password" autocomplete="off" aria-label="Owner passphrase" placeholder="Passphrase"><button class="btn primary" type="button" id="ownGo">Sign in</button></div>
+      <p class="meta">This device's support ID: <code id="ownDev"></code></p>
+    </div>
+    <div id="ownBody" hidden>
+      <div class="rowi"><button class="btn primary" type="button" id="ownRefresh">Refresh</button><span class="meta" id="ownAt" aria-live="polite"></span><button class="btn" type="button" id="ownOut">Sign out</button></div>
+      <div class="own-grid" id="ownGrid"></div>
+      <section class="own-card" aria-labelledby="ownChatH">
+        <h3 id="ownChatH">Messages with Claude</h3>
+        <p class="own-note">While Claude's session is open on your computer, it sees your message within about a minute and answers here. Otherwise it reads them next time.</p>
+        <div class="own-thread" id="ownThread" aria-live="polite"></div>
+        <textarea class="inp" id="ownText" rows="3" maxlength="4000" placeholder="Something's wrong, or something to change…" aria-label="Message to Claude"></textarea>
+        <div class="rowi"><button class="btn primary" type="button" id="ownSend">Send</button></div>
+      </section>
+    </div>
+    <p class="meta" id="ownMsg" aria-live="polite"></p>
+    <div class="actions"><button class="btn" value="close">Close</button></div>
+  </form>
+</dialog>
+
 <dialog class="page" id="dLib" aria-labelledby="libH">
   <form method="dialog">
     <h2 id="libH">Research library</h2>
@@ -1793,7 +1840,7 @@ body.bar-off .bar { display: none; }
         <label class="chk"><input type="checkbox" id="cfgPrey"> Show the best matches for your focus as prey, and hunt them first</label>
         <label class="field"><span>Look up keywords online</span>
           <select id="cfgLookup"><option value="open">When I open a keyword</option><option value="catch">As the spider catches each keyword</option><option value="off">Off</option></select>
-          <small>Shows a short summary from Wikipedia, or a dictionary definition, with each keyword when you're online. Only the keyword (and the text's title, to pick the right article) is sent.</small></label>
+          <small>Shows a short summary from Wikipedia, or a dictionary definition, with each keyword when you're online, and related reading for each topic. Only keywords are sent to Wikipedia (each with a couple of keywords near it, to pick the right article), never your text.</small></label>
         <label class="chk"><input type="checkbox" id="cfgNotify"> Notify me when a crawl finishes while the app is in the background</label>
         <div class="row2">
           <label class="field"><span>Citation style</span>
@@ -1862,7 +1909,7 @@ body.bar-off .bar { display: none; }
           <div id="linkApp" hidden>
             <p class="meta">Make a code here, then open <b id="linkSite"></b> on a computer or in another browser and enter it in Settings → Phone &amp; web. That browser then has no use limit, and what you bought here is unlocked there too.</p>
             <div class="rowi"><button class="btn primary" type="button" id="linkMake">Make a link code</button></div>
-            <div class="code-out" id="linkOut" hidden><code class="link-code" id="linkCode"></code><button class="btn" type="button" id="linkCopy">Copy</button></div>
+            <div class="code-out" id="linkOut" role="status" hidden><code class="link-code" id="linkCode"></code><button class="btn" type="button" id="linkCopy">Copy</button></div>
             <small>Each code works once, for 30 minutes. Before it's made, Google Play confirms this is the real app and what you've bought.</small>
           </div>
           <div id="linkWeb" hidden>
@@ -1875,19 +1922,19 @@ body.bar-off .bar { display: none; }
         <fieldset id="xferBox">
           <legend>Move your data between devices</legend>
           <p class="meta">Send crawls from your phone to the web app, or back, with a one-time code. Your data is locked on this device before it leaves, and the code is the only key, so our server can't read it. It's deleted as soon as it's picked up, or after 24 hours.</p>
-          <div class="field"><span>What to send</span>
+          <fieldset class="field"><legend>What to send</legend>
             <label class="chk"><input type="radio" name="xferWhat" value="all" checked> Everything: the whole library and the crawl that's open</label>
-            <label class="chk"><input type="radio" name="xferWhat" value="pick"> Only the crawls I choose</label></div>
+            <label class="chk"><input type="radio" name="xferWhat" value="pick"> Only the crawls I choose</label></fieldset>
           <div id="xferPick" class="xfer-pick" hidden></div>
-          <div class="field"><span>Include</span>
+          <fieldset class="field"><legend>Include</legend>
             <label class="chk"><input type="checkbox" id="xNotes" checked> Notes</label>
             <label class="chk"><input type="checkbox" id="xCards" checked> Flashcard progress</label>
             <label class="chk"><input type="checkbox" id="xSacs" checked> Highlights and egg sacs</label>
             <label class="chk"><input type="checkbox" id="xAsks" checked> Questions you asked</label>
             <label class="chk"><input type="checkbox" id="xCfg"> My settings</label>
-            <small>Each crawl's text and keywords always come along. If the other device already has a crawl, only the parts you tick are added to it.</small></div>
+            <small>Each crawl's text and keywords always come along. If the other device already has a crawl, only the parts you tick are added to it.</small></fieldset>
           <div class="rowi"><button class="btn primary" type="button" id="xferMake">Make a code</button></div>
-          <div class="code-out" id="xferOut" hidden><code class="link-code" id="xferCode"></code><button class="btn" type="button" id="xferCopy">Copy</button></div>
+          <div class="code-out" id="xferOut" role="status" hidden><code class="link-code" id="xferCode"></code><button class="btn" type="button" id="xferCopy">Copy</button></div>
           <div class="field"><span>Got a code from your other device?</span>
             <div class="rowi"><input class="inp" id="xferIn" type="text" placeholder="e.g. 4F7K-29QX-MB3D-8HNA" autocomplete="off" spellcheck="false" aria-label="Transfer code from your other device"><button class="btn" type="button" id="xferGo">Get my data</button></div></div>
           <p class="meta" id="xferMsg" aria-live="polite"></p>
@@ -2883,7 +2930,7 @@ function updateStatus() {
   const ft = focusTerms().join(" "), rel = relevantCount();
   let s;
   if (ft && !rel) s = `No keywords near “${ft}”. Try a broader topic, or clear the focus.`;
-  else if (S.mode === "done" || (crawled && S.doneAt === crawled && RESTING.includes(S.mode))) s = `Crawl complete: ${plural(crawled, "keyword")} across ${plural(new Set(nodes.filter(n => n.caught).map(n => kwOf(n).cat)).size, "topic")}. Open the web view to explore them.`;
+  else if (S.mode === "done" || (crawled && S.doneAt === crawled && S.mode !== "gone")) s = `Crawl complete: ${plural(crawled, "keyword")} across ${plural(new Set(nodes.filter(n => n.caught).map(n => kwOf(n).cat)).size, "topic")}. Open the web view to explore them.`;
   else if (S.mode === "gone") s = S.away ? `${spiderName()} went off while you were away. Tap the page and it comes back.` : `${spiderName()} left. It comes back when there's more to crawl.`;
   else s = `${spiderName()} crawling “${DOC.title}”${ft ? ` for “${ft}”` : ""} · ${plural(rel, "keyword")} to find${cfg.stop ? ` · stops at ${cfg.stop}` : ""}`;
   if (WV.picks.size) s += ` · ${WV.picks.size} picked for a sac`;
@@ -2967,7 +3014,7 @@ function sfx(kind) {
     o.connect(g); g.connect(AUDIO.out()); o.start(t); o.stop(t + P[1] + 0.03);
   } catch (e) { /* audio is optional */ }
 }
-// ---- background sounds and music, all made on the device (no sound files). Volume, footsteps, ambience and
+// ---- background sounds and music (footsteps are made on the device; ambience and music are recordings). Volume, footsteps, ambience and
 // music are separate switches in Settings → Web & effects → Effects & sound.
 const AUDIO = (() => {
   let master = null, amb = null, mus = null, noiseBuf = null, ambKindNow = "none", musKindNow = "off";
@@ -2979,7 +3026,6 @@ const AUDIO = (() => {
     return noiseBuf;
   };
   const env = (node, t, a, peak, dur) => { node.gain.setValueAtTime(0.0001, t); node.gain.exponentialRampToValueAtTime(peak, t + a); node.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
-  function blip(f, t, dur, type, vol, dest) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); env(g, t, 0.01, vol, dur); o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05); }
   function burst(t, dur, freq, q, vol, dest) { const n = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(); n.buffer = noise(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q; env(g, t, 0.005, vol, dur); n.connect(bp); bp.connect(g); g.connect(dest); n.start(t, Math.random()); n.stop(t + dur + 0.05); }
   // Background sounds and music are real recordings (all CC0, from OpenGameArt: see Help & support for the credits).
   // Each is fetched the first time it's picked and then kept for offline use. Ambience loops without a gap; music plays
@@ -5393,7 +5439,7 @@ function showPop(el, at = el) {
   pop.hidden = false; bump(k.label, 1);
   placePop(at);
   POP = { key, node: n, at };
-  if (cfg.lookup !== "off" && !(DOC.web && DOC.web[key]) && canLookUp()) lookupKeyword(key).then(() => { if (POP && POP.key === key) { const w = pop.querySelector(".pop-web"); if (w) { w.innerHTML = webInfoHTML(key, true); placePop(at); } } });
+  if (wantsLookup(key)) lookupKeyword(key).then(() => { if (POP && POP.key === key) { const w = pop.querySelector(".pop-web"); if (w) { w.innerHTML = webInfoHTML(key, true); placePop(at); } } });
   pop.querySelector("button").focus({ preventScroll: true });
 }
 function placePop(el) {
@@ -6042,12 +6088,17 @@ function kwChip(kk) {
 }
 // ---- outside information about a keyword: a short summary from Wikipedia, or a definition from Wiktionary.
 // Only when you're online and "Look up keywords online" is on (Settings → Research). Kept with the crawl.
-const WEBINFO = { busy: new Map(), queue: [], timer: 0, n: 0 };
+const WEBINFO = { busy: new Map(), queue: [], timer: 0, n: 0, failed: new Map(), rnFailed: new Map() };
+const lookFailed = key => { const t = WEBINFO.failed.get(key); return !!t && Date.now() - t < 120000; };
+// should this keyword be looked up now? (not when it's known, or failed a moment ago)
+const wantsLookup = key => cfg.lookup !== "off" && canLookUp() && !(DOC.web && DOC.web[key]) && !lookFailed(key);
+// a page that isn't there is an answer; anything else (rate limits, server trouble) is a failure to try again later
+const wikiFail = r => { if (r.status === 404 || r.status === 400) return null; throw new Error("lookup " + r.status); };
 const wikiHost = () => `https://${/^(en|es|fr|de|it|pt|nl)$/.test(DOC.lang || "en") ? DOC.lang || "en" : "en"}.wikipedia.org`;
 const canLookUp = () => cfg.lookup !== "off" && navigator.onLine !== false && !IN_CLAUDE && DOC && DOC.mode !== "blank";
 async function wikiSummary(title) {
   const r = await fetch(`${wikiHost()}/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}?redirect=true`);
-  if (!r.ok) return null;
+  if (!r.ok) return wikiFail(r);
   const j = await r.json();
   if (!j.extract || j.type === "disambiguation") return null;
   return { kind: "wiki", title: j.title, text: j.extract, url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || `${wikiHost()}/wiki/${encodeURIComponent(j.title)}`, thumb: j.thumbnail ? j.thumbnail.source : "" };
@@ -6073,7 +6124,7 @@ function addWebMedia(key, w) {
 }
 async function wikiSearch(q, full) {
   const r = await fetch(`${wikiHost()}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=8&srprop=snippet&format=json&origin=*`);
-  if (!r.ok) return [];
+  if (!r.ok) { wikiFail(r); return []; }
   const j = await r.json(), hits = ((j.query && j.query.search) || []).map(x => ({ title: x.title, snippet: (x.snippet || "").replace(/<[^>]+>/g, "") }));
   return full ? hits : hits.map(h => h.title);
 }
@@ -6094,8 +6145,9 @@ const stemOf = w => w.toLowerCase().replace(/(ies)$/, "y").replace(/(es|s)$/, ""
 async function wiktionary(word) {
   if ((DOC.lang || "en") !== "en") return null;
   const r = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(word.toLowerCase())}`);
-  if (!r.ok) return null;
-  const j = await r.json(), strip = h => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.trim(); };
+  if (!r.ok) return wikiFail(r);
+  // read as an inert document, so nothing in the definition loads or runs
+  const j = await r.json(), strip = h => new DOMParser().parseFromString(String(h), "text/html").body.textContent.trim();
   const defs = (j.en || []).flatMap(e => (e.definitions || []).map(x => ({ pos: e.partOfSpeech, def: strip(x.definition || "") }))).filter(x => x.def).slice(0, 2);
   if (!defs.length) return null;
   return { kind: "dict", title: word, text: defs.map(x => `${x.pos ? x.pos.toLowerCase() + ": " : ""}${x.def}`).join(" · "), url: `https://en.wiktionary.org/wiki/${encodeURIComponent(word.toLowerCase())}` };
@@ -6133,9 +6185,12 @@ async function lookupKeyword(key, pick) {
     }
     const out = info ? Object.assign(info, { at: Date.now(), picked: !!pick }) : { kind: "none", at: Date.now() };
     if (out.kind === "wiki" && out.thumb) out.pic = await wikiPicture(out).catch(() => null);
-    if (doc === DOC) { if (pick) DOC.media = (DOC.media || []).filter(m => !(m.web && m.keys[0] === key)); DOC.web[key] = out; addWebMedia(key, out); }
+    if (doc === DOC) {
+      if (pick) { DOC.media = (DOC.media || []).filter(m => !(m.web && m.keys[0] === key)); DOC.media.forEach((m, i) => { m.id = i; }); }
+      DOC.web[key] = out; WEBINFO.failed.delete(key); addWebMedia(key, out);
+    }
     return out;
-  })().catch(() => null); // offline or blocked: it tries again next time
+  })().catch(() => { WEBINFO.failed.set(key, Date.now()); return null; }); // offline or blocked: it waits a little, then tries again
   WEBINFO.busy.set(key, p);
   try { return await p; } finally { WEBINFO.busy.delete(key); }
 }
@@ -6153,6 +6208,7 @@ async function nextLookup() {
 function webInfoHTML(key, short) {
   if (cfg.lookup === "off") return "";
   const w = DOC.web && DOC.web[key];
+  if (!w && lookFailed(key)) return short ? "" : `<div class="webinfo"><p class="meta">Couldn't reach Wikipedia just now. <button type="button" class="linkish" data-web-retry="${esc(key)}">Try again</button></p></div>`;
   if (!w) return canLookUp() ? `<div class="webinfo"><p class="meta">Looking it up…</p></div>` : short ? "" : `<div class="webinfo"><p class="meta">Outside information shows up here when you're online.</p></div>`;
   if (w.kind === "none") return short ? "" : `<div class="webinfo"><p class="meta">Nothing found online for this one. <button type="button" class="linkish" data-web-other="${esc(key)}">Search Wikipedia</button></p></div>`;
   const src = w.kind === "dict" ? "Wiktionary" : "Wikipedia";
@@ -6176,8 +6232,10 @@ async function readNext(cat) {
   DOC.readNext = DOC.readNext || {};
   if (DOC.readNext[cat]) return DOC.readNext[cat];
   const top = [...DOC.kw.values()].filter(k => k.cat === cat).sort((a, b) => b.count - a.count)[0]; if (!top) return [];
-  const w = await lookupKeyword(top.key); if (!w || w.kind !== "wiki") { DOC.readNext[cat] = []; return []; }
-  let ts = []; try { ts = await wikiSearch(`morelike:${w.title}`); } catch (e) { return []; }
+  const w = await lookupKeyword(top.key);
+  if (!w) { WEBINFO.rnFailed.set(cat, Date.now()); return []; } // couldn't reach it: try another time
+  if (w.kind !== "wiki") { DOC.readNext[cat] = []; return []; }
+  let ts = []; try { ts = await wikiSearch(`morelike:${w.title}`); } catch (e) { WEBINFO.rnFailed.set(cat, Date.now()); return []; }
   const known = new Set(Object.values(DOC.web || {}).map(x => x && x.title));
   const list = ts.filter(t => t !== w.title && !known.has(t)).slice(0, 3).map(t => ({ title: t, url: `${wikiHost()}/wiki/${encodeURIComponent(t.replace(/ /g, "_"))}` }));
   DOC.readNext[cat] = list; return list;
@@ -6185,7 +6243,7 @@ async function readNext(cat) {
 function readNextHTML(cat) {
   if (cfg.lookup === "off") return "";
   const list = DOC.readNext && DOC.readNext[cat];
-  if (!list) return canLookUp() ? `<p class="meta read-next">Finding related reading…</p>` : "";
+  if (!list) return canLookUp() && !(Date.now() - (WEBINFO.rnFailed.get(cat) || 0) < 120000) ? `<p class="meta read-next">Finding related reading…</p>` : "";
   if (!list.length) return "";
   return `<p class="meta read-next">Read next: ${list.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a> <button type="button" class="linkish" data-crawl-url="${esc(x.url)}">crawl it</button>`).join(" · ")}</p>`;
 }
@@ -6216,7 +6274,7 @@ function renderSide() {
       ${nb.length ? `<div><h3>Connected keywords</h3><div class="list">${nb.map(kwChip).join("")}</div></div>` : ""}
       ${mediaFor([k.key]).length ? `<div><h3>Pictures and videos</h3><div class="md-grid small">${mediaFor([k.key]).slice(0, 6).map(m => mediaCard(m, { keys: false })).join("")}</div></div>` : ""}
       <div style="--dot:${catColorVar(k.cat)}"><h3>${re ? "Where it meets your focus" : "Where it appears"}</h3>${quotes || '<p class="meta">No sentences recorded.</p>'}${sis.length > 6 ? `<p class="meta">And ${plural(sis.length - 6, "more sentence")}. Use Find to see them all.</p>` : ""}</div>`;
-    if (cfg.lookup !== "off" && !(DOC.web && DOC.web[k.key]) && canLookUp()) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.sel === key) renderSide(); }); }
+    if (wantsLookup(k.key)) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.sel === key) renderSide(); }); }
     return;
   }
   const re = focusRe(), parts = [];
@@ -6248,7 +6306,7 @@ function renderSide() {
   });
   // look up related reading for the topics, one after another, then show it
   if (cfg.lookup !== "off" && canLookUp() && !renderSide.fetching) {
-    const todo = DOC.cats.map((c, i) => i).filter(i => !(DOC.readNext && DOC.readNext[i]) && ks.some(k => k.cat === i)).slice(0, 8);
+    const todo = DOC.cats.map((c, i) => i).filter(i => !(DOC.readNext && DOC.readNext[i]) && !(Date.now() - (WEBINFO.rnFailed.get(i) || 0) < 120000) && ks.some(k => k.cat === i)).slice(0, 8);
     if (todo.length) {
       renderSide.fetching = true; const doc = DOC;
       (async () => { for (const i of todo) { if (doc !== DOC) break; await readNext(i).catch(() => null); } })()
@@ -6667,6 +6725,8 @@ $("wvCats").addEventListener("click", e => {
   refreshWeb(true);
 });
 async function webSideClick(e) {
+  const retry = e.target.closest("[data-web-retry]");
+  if (retry) { const key = retry.dataset.webRetry; WEBINFO.failed.delete(key); retry.disabled = true; await lookupKeyword(key); renderSide(); return true; }
   const para = e.target.closest("[data-para]"), note = e.target.closest("[data-web-note]"), other = e.target.closest("[data-web-other]"), pick = e.target.closest("[data-web-pick]");
   if (para) {
     const i = +para.dataset.para, box = para.closest(".quote").querySelector(".para-box"), open = box.hidden;
@@ -6697,7 +6757,7 @@ async function webSideClick(e) {
   return false;
 }
 function sideClick(e) {
-  if (e.target.closest("[data-para], [data-web-note], [data-web-other], [data-web-pick]")) { webSideClick(e); return; }
+  if (e.target.closest("[data-para], [data-web-note], [data-web-other], [data-web-pick], [data-web-retry]")) { webSideClick(e); return; }
   const cu = e.target.closest("[data-crawl-url]"); if (cu) { closeWeb(); crawlShared({ kind: "text", text: cu.dataset.crawlUrl }); return; }
   const k = e.target.closest("[data-key]"), act = e.target.closest("[data-act]"), sc = e.target.closest("[data-sac]"), jp = e.target.closest("[data-jump]");
   if (jp) { jumpToSentence(+jp.dataset.jump); return; }
@@ -6869,7 +6929,7 @@ function webFact(key) {
   return { text: w.text.split(/(?<=[.!?])\s/)[0], src: w.kind === "dict" ? "Wiktionary" : "Wikipedia", title: w.title, url: w.url };
 }
 function cardFace(k, flip) {
-  if (flip && cfg.lookup !== "off" && !(DOC.web && DOC.web[k.key]) && canLookUp()) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.tab === "cards") renderCards(); }); }
+  if (flip && wantsLookup(k.key)) { const key = k.key; lookupKeyword(key).then(() => { if (WV.open && WV.tab === "cards") renderCards(); }); }
   const back = cardBack(k), fact = flip && webFact(k.key), rel = [...k.nb].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([key]) => DOC.kw.get(key)).filter(Boolean).map(x => x.label);
   return flip
     ? `<span class="tag">${esc(k.label)}</span><p class="back">${back ? hiKey(back, k, null) : "No sentence recorded."}</p>${fact ? `<p class="webinfo-short">${esc(fact.text)} <span class="meta">(${fact.src})</span></p>` : ""}${rel.length ? `<p class="meta">Related: ${esc(rel.join(", "))}</p>` : ""}${noteHTML("k", k.key)}`
@@ -7167,9 +7227,10 @@ const LIB = {
       return;
     }
     const idx = (store.get("cak3d-lib") || []).filter(m => m.id !== id);
-    const small = Object.assign({ id }, meta); delete small.sacs; delete small.asks;
+    const small = Object.assign({ id }, meta); for (const k of ["sacs", "asks", "web", "readNext", "notes", "extNotes", "srs", "highlights", "nestPins", "crawled", "seeded", "sources"]) delete small[k];
     if (!store.set("cak3d-lib-" + id, { state: meta, raw, craw })) throw { code: "quota_exceeded" };
-    idx.push(small); store.set("cak3d-lib", idx);
+    idx.push(small);
+    if (!store.set("cak3d-lib", idx)) { store.set("cak3d-lib-" + id, null); throw { code: "quota_exceeded" }; }
   },
   async load(id) {
     if (DBX) {
@@ -7206,6 +7267,21 @@ function captureState(name) {
     sources: DOC.sources || [], lang: DOC.lang || "en", notes: DOC.notes || { k: {}, s: {} }, srs: DOC.srs || {}, extNotes: DOC.extNotes || [], nestPins: DOC.nestPins || {}, web: DOC.web || {}, readNext: DOC.readNext || {}
   };
 }
+// links in looked-up information must be Wikipedia, Wiktionary or Wikimedia over https (a shared crawl could carry anything)
+const wikiLink = u => { try { const x = new URL(String(u)); return x.protocol === "https:" && /(^|\.)(wikipedia|wiktionary|wikimedia)\.org$/.test(x.hostname) ? x.href : ""; } catch (e) { return ""; } };
+function cleanWeb(web) {
+  const out = {};
+  for (const [key, w] of Object.entries(web || {})) {
+    if (!w || typeof w !== "object") continue;
+    const c = { kind: ["wiki", "dict", "none"].includes(w.kind) ? w.kind : "none", title: String(w.title || ""), text: String(w.text || ""), url: wikiLink(w.url), thumb: wikiLink(w.thumb), at: +w.at || 0, picked: !!w.picked };
+    if (w.about) c.about = String(w.about);
+    if (w.pic && wikiLink(w.pic.src)) c.pic = { src: wikiLink(w.pic.src), href: wikiLink(w.pic.href), alt: String(w.pic.alt || ""), credit: String(w.pic.credit || ""), license: String(w.pic.license || "") };
+    if (c.kind !== "none" && !c.url) continue;
+    out[key] = c;
+  }
+  return out;
+}
+const cleanReadNext = rn => Object.fromEntries(Object.entries(rn || {}).map(([cat, list]) => [cat, (Array.isArray(list) ? list : []).filter(x => x && wikiLink(x.url)).map(x => ({ title: String(x.title || ""), url: wikiLink(x.url) }))]));
 function restoreState(st, raw, craw, id) {
   cfg.sort = st.sort || cfg.sort; cfg.topics = st.topics || ""; cfg.k = st.k || cfg.k; saveCfg(); syncSettings();
   $("focus").value = st.focus || "";
@@ -7217,8 +7293,8 @@ function restoreState(st, raw, craw, id) {
   if (st.srs) d.srs = st.srs;
   if (st.extNotes) d.extNotes = st.extNotes;
   if (st.nestPins) d.nestPins = st.nestPins;
-  if (st.web) d.web = st.web;
-  if (st.readNext) d.readNext = st.readNext;
+  if (st.web) d.web = cleanWeb(st.web);
+  if (st.readNext) d.readNext = cleanReadNext(st.readNext);
   if (craw) d.compare = buildCompare(craw, st.compareTitle);
   loadDoc(d);
   for (const t of st.highlights || []) addHighlight(t, null, true);
@@ -7657,7 +7733,7 @@ $("weaveIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preve
 // a backup: everything this device keeps for the app except AI keys and purchases (those come back from Google Play)
 $("backupMake").onclick = () => {
   const data = {};
-  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix", "cak3d-resume", "cak3d-pass", "cak3d-pass-owned"].includes(k)) data[k] = localStorage.getItem(k);
+  for (const k of Object.keys(localStorage)) if (k.startsWith("cak3d-") && !["cak3d-ai", "cak3d-key", "cak3d-owned", "cak3d-id", "cak3d-fix", "cak3d-resume", "cak3d-pass", "cak3d-pass-owned", "cak3d-owner"].includes(k)) data[k] = localStorage.getItem(k);
   saveFile(`arachnotes-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: "arachnotes", backup: 1, at: Date.now(), data }));
   $("backupMsg").textContent = `Backed up ${plural(Object.keys(data).filter(k => /^cak3d-lib-/.test(k)).length, "saved crawl")} and your settings.`;
 };
@@ -7665,6 +7741,7 @@ $("backupIn").addEventListener("change", async e => {
   const file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
   try {
     const j = JSON.parse(await file.text());
+    if (j.app === "arachnotes" && j.transfer) { if (!webGate()) return; const r = await xferApply(j); webSpend(); $("backupMsg").textContent = `Added ${plural(r.added, "crawl")}, and added to ${plural(r.merged, "crawl")} you already had.`; return; }
     if (!["arachnotes", "cak3d-crawler"].includes(j.app) || !j.backup || !j.data) throw new Error("bad");
     // crawls merge into this device's library; settings come from the backup
     if (!webGate()) return;
@@ -7674,7 +7751,7 @@ $("backupIn").addEventListener("change", async e => {
     const ids = new Set(lib.map(m => m.id)); store.set("cak3d-lib", lib.concat(theirs.filter(m => !ids.has(m.id))));
     $("backupMsg").textContent = "Restored. Reloading…";
     setTimeout(() => location.reload(), 600);
-  } catch (err) { $("backupMsg").textContent = "That file isn't a Arachnotes backup."; }
+  } catch (err) { $("backupMsg").textContent = "That file isn't an Arachnotes backup."; }
 });
 
 $("crawlExport").onclick = () => saveFile(`${slug(DOC.title)}.crawl.json`, crawlFile());
@@ -7684,7 +7761,7 @@ $("crawlImport").addEventListener("change", async e => {
   try {
     const j = JSON.parse(await file.text());
     msg.textContent = importCrawl(j, j.by || file.name.replace(/\.crawl\.json$|\.json$/i, ""));
-  } catch (ex) { msg.textContent = "That file isn't a Arachnotes crawl file."; }
+  } catch (ex) { msg.textContent = "That file isn't an Arachnotes crawl file."; }
 });
 // open a crawl someone sent (or you sent yourself from another device); if it's the crawl already open, merge their notes and sacs
 function importCrawl(j, who) {
@@ -7704,7 +7781,7 @@ function importCrawl(j, who) {
     for (const x of j.state.sacs || []) if (!have.has(sig(x))) { if (addSharedSac(x, who)) nSacs++; }
     refreshNotesViews(); updateStats();
     if (j.state.srs) DOC.srs = Object.assign({}, j.state.srs, DOC.srs || {});
-    return `Merged ${plural(nNotes, "note")} and ${plural(nSacs, "sac")} from ${who}.`;
+    return nNotes || nSacs ? `Merged ${plural(nNotes, "note")} and ${plural(nSacs, "sac")} from ${who}.` : "Nothing new: this crawl already has all of it.";
 }
 
 // arrow keys, Home and End move between tabs in every tab strip
@@ -7778,7 +7855,7 @@ function renderGuide() {
   const G = GUIDE, A = G.ai || {};
   // look the key terms up online once, then show the guide again with what was found
   if (cfg.lookup !== "off" && canLookUp() && !G.webAsked) {
-    const missing = [...new Set(G.secs.flatMap(x => x.terms))].filter(k => !(DOC.web && DOC.web[k.key])).slice(0, 30);
+    const missing = [...new Set(G.secs.flatMap(x => x.terms))].filter(k => wantsLookup(k.key)).slice(0, 30);
     if (missing.length) { G.webAsked = true; Promise.all(missing.map(k => lookupKeyword(k.key))).then(() => { if ($("dGuide").open) renderGuide(); }); }
   }
   const webDD = k => { const w = webFact(k.key); return w ? `<span class="g-web">${esc(w.src)}: ${esc(trunc(w.text, 220))} <a href="${esc(w.url)}" target="_blank" rel="noopener">source</a></span>` : ""; };
@@ -7976,7 +8053,7 @@ async function checkFixes() {
     const a = fx.actions;
     if (a.resetSettings) { for (const k of Object.keys(cfg)) delete cfg[k]; store.set("cak3d-cfg", null); }
     if (a.cfg && typeof a.cfg === "object") Object.assign(cfg, a.cfg);
-    if (Array.isArray(a.grant)) for (const id of a.grant) OWNED.add(String(id));
+    if (Array.isArray(a.grant)) { for (const id of a.grant) OWNED.add(String(id)); store.set("cak3d-fix-owned", [...new Set([...(store.get("cak3d-fix-owned") || []), ...a.grant.map(String)])]); }
     if (Array.isArray(a.revoke)) for (const id of a.revoke) OWNED.delete(String(id));
     store.set("cak3d-owned", [...OWNED]);
     done[who] = fx.at; store.set("cak3d-fix", done);
@@ -8170,6 +8247,12 @@ function placeTour() {
 $("tourNext").onclick = () => { if (TR.i >= TOUR.length - 1) { endTour(); return; } TR.i++; showTourStep(); };
 $("tourBack").onclick = () => { TR.i = Math.max(0, TR.i - 1); while (TR.i > 0 && TOUR[TR.i].el && !tourTarget(TOUR[TR.i])) TR.i--; showTourStep(); };
 $("tourSkip").onclick = endTour;
+for (const id of ["tourNext", "tourBack", "tourSkip"]) {
+  const b = $(id);
+  b.addEventListener("pointerdown", e => { if (e.button !== 0 || b.hidden) return; e.preventDefault(); TR.down = performance.now(); b.click(); });
+  // the real click that follows the press was already handled
+  b.addEventListener("click", e => { if (e.isTrusted && e.detail && performance.now() - (TR.down || 0) < 800) e.stopImmediatePropagation(); }, true);
+}
 $("tour").addEventListener("keydown", e => {
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); endTour(); }
   else if (e.key === "ArrowRight") $("tourNext").click(); else if (e.key === "ArrowLeft" && !$("tourBack").hidden) $("tourBack").click();
@@ -8363,12 +8446,14 @@ const CODE_ABC = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"; // no 0/O or 1/I, so codes 
 const normCode = c => String(c || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
 const newCode = groups => [...crypto.getRandomValues(new Uint8Array(groups * 4))].map(b => CODE_ABC[b % 32]).join("").match(/.{4}/g).join("-");
 function linkGrant(owned) {
-  const had = new Set(store.get("cak3d-pass-owned") || []);
-  for (const id of owned || []) { had.add(id); grant(id, true); }
-  store.set("cak3d-pass-owned", [...had]);
+  const now = new Set(owned || []), fixed = new Set(store.get("cak3d-fix-owned") || []);
+  for (const id of store.get("cak3d-pass-owned") || []) if (!now.has(id) && !fixed.has(id)) OWNED.delete(id); // refunded, say
+  for (const id of now) grant(id, true);
+  store.set("cak3d-owned", [...OWNED]); store.set("cak3d-pass-owned", [...now]); markPaid();
 }
 function linkDrop() {
-  for (const id of store.get("cak3d-pass-owned") || []) OWNED.delete(id);
+  const fixed = new Set(store.get("cak3d-fix-owned") || []);
+  for (const id of store.get("cak3d-pass-owned") || []) if (!fixed.has(id)) OWNED.delete(id);
   store.set("cak3d-owned", [...OWNED]); store.set("cak3d-pass", null); store.set("cak3d-pass-owned", null);
   LINK.pass = null; LINK.on = false; markPaid(); syncWebQuota(); linkUI();
 }
@@ -8383,6 +8468,7 @@ function playPurchases() {
   } catch (e) { /* no billing */ }
   return out;
 }
+function notifyUI() { const l = $("cfgNotify").closest("label"); if (l) l.hidden = !NATIVE && !("Notification" in window); }
 function linkUI() {
   const box = $("linkBox"); if (!box) return;
   box.hidden = !SUPPORT || IN_CLAUDE; $("xferBox").hidden = !SUPPORT || IN_CLAUDE;
@@ -8452,9 +8538,11 @@ $("linkCopy").onclick = () => copyText($("linkCode").textContent, "Copied the li
 const XPARTS = { xNotes: ["notes", "extNotes"], xCards: ["srs"], xSacs: ["highlights", "sacs"], xAsks: ["asks"] };
 async function xferKeys(code) {
   const n = normCode(code), enc = new TextEncoder();
-  const id = [...new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode("arachnotes-transfer:" + n)))].map(b => b.toString(16).padStart(2, "0")).join("");
-  const base = await crypto.subtle.importKey("raw", enc.encode(n), "PBKDF2", false, ["deriveKey"]);
-  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: enc.encode("arachnotes-transfer-key"), iterations: 200000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  const base = await crypto.subtle.importKey("raw", enc.encode(n), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode("arachnotes-transfer-key"), iterations: 200000, hash: "SHA-256" }, base, 512));
+  // the first half is the lock's key; the second half, hashed, is the name the server files it under
+  const key = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-GCM", false, ["encrypt", "decrypt"]);
+  const id = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bits.slice(32)))].map(b => b.toString(16).padStart(2, "0")).join("");
   return { id, key };
 }
 async function xferPickList() {
@@ -8475,14 +8563,17 @@ async function xferGather() {
   const crawls = [];
   for (const m of await LIB.list()) {
     if (!all && !picked.has(m.id)) continue;
-    const e = await LIB.load(m.id);
+    const e = await LIB.load(m.id).catch(() => null); if (!e) continue; // a crawl that's gone missing is skipped
     crawls.push({ id: m.id, state: trim(e.state), raw: e.raw || "", craw: e.craw || "" });
   }
   if (DOC && !DOC.libId && DOC.mode === "text" && DOC.raw && (all || picked.has("__open"))) {
     const j = JSON.parse(crawlFile());
     crawls.push({ id: "x" + Date.now().toString(36), state: trim(j.state), raw: j.raw || "", craw: j.craw || "" });
   }
-  return { app: "arachnotes", transfer: 1, at: Date.now(), from: platformName(), crawls, cfg: $("xCfg").checked ? Object.assign({}, cfg) : null };
+  // settings travel, but not choices that are this device's to make: consent, permissions, the first-run tour
+  const c = $("xCfg").checked ? Object.assign({}, cfg) : null;
+  if (c) for (const k of ["errReports", "notifyDone", "tourDone", "startWith"]) delete c[k];
+  return { app: "arachnotes", transfer: 1, at: Date.now(), from: platformName(), crawls, cfg: c };
 }
 $("xferMake").onclick = async () => {
   const msg = $("xferMsg");
@@ -8517,11 +8608,12 @@ async function xferApply(d) {
     const e = await LIB.load(mine.id), st = e.state, inc = c.state;
     if (inc.notes) { st.notes = st.notes || { k: {}, s: {} }; for (const kind of Object.keys(inc.notes)) st.notes[kind] = Object.assign({}, st.notes[kind] || {}, inc.notes[kind]); }
     if (inc.extNotes) st.extNotes = addNew(st.extNotes, inc.extNotes);
-    if (inc.srs) st.srs = Object.assign({}, st.srs || {}, inc.srs);
+    if (inc.srs) { st.srs = Object.assign({}, st.srs || {}); for (const [k, v] of Object.entries(inc.srs)) if (!st.srs[k] || (v && v.due > st.srs[k].due)) st.srs[k] = v; } // the further-along card wins
     if (inc.highlights) st.highlights = addNew(st.highlights, inc.highlights, 200);
     if (inc.sacs) st.sacs = addNew(st.sacs, inc.sacs);
     if (inc.asks) st.asks = addNew(st.asks, inc.asks, 30);
     await LIB.save(mine.id, st, e.raw || "", e.craw || ""); merged++;
+    if (DOC && DOC.libId === mine.id) restoreState(st, e.raw || "", e.craw || "", mine.id); // it's open: show what arrived
   }
   if (d.cfg) { Object.assign(cfg, freeOnly(d.cfg)); saveCfg(); applyAll(); syncSettings(); }
   return { added, merged };
@@ -8541,14 +8633,118 @@ $("xferGo").onclick = async () => {
     const d = JSON.parse(await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text());
     if (d.app !== "arachnotes" || !d.transfer) throw new Error("That isn't Arachnotes data.");
     webSpend();
-    const r = await xferApply(d);
+    let r;
+    try { r = await xferApply(d); }
+    catch (err) {
+      // the code is used up now, so nothing may be lost: keep it all as a file that Restore a backup can open
+      saveFile(`arachnotes-transfer-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(d));
+      msg.textContent = (err && err.code === "quota_exceeded" ? "This device is out of storage space." : "Some of it couldn't be saved.") + " Everything was saved as a file instead: free up some space, then open it with Pages → Library → Restore a backup.";
+      return;
+    }
     $("xferIn").value = "";
     const parts = [r.added && `added ${plural(r.added, "crawl")} to your library`, r.merged && `added to ${plural(r.merged, "crawl")} you already had`, d.cfg && "updated your settings"].filter(Boolean);
     msg.textContent = parts.length ? `Done: ${parts.join(", ")}. Open the library to see them.` : "Done, but there was nothing new to add.";
-  } catch (e) { msg.textContent = (e.message || "Couldn't get your data.") + " Check your connection and try again."; }
+  } catch (e) {
+    msg.textContent = e && e.name === "OperationError" ? "That code doesn't open this data. Check the code for typos." : (e.message || "Couldn't get your data.") + (/fetch|network|load failed/i.test(e.message || "") ? " Check your connection and try again." : "");
+  }
   finally { $("xferGo").disabled = false; }
 };
 $("xferIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("xferGo").click(); } });
+
+// ---- the owner's dashboard: tap the version line in Help & support 7 times. The "dev" server function only answers
+// the owner's passphrase on the owner's phone (its support ID), and everything it shows needs that sign-in.
+const OWNER = { token: store.get("cak3d-owner") || null, taps: 0, tapAt: 0, timer: 0, chat: 0, last: null };
+const ownerCall = async (action, extra = {}) => {
+  if (!SUPPORT) throw new Error("This version of the app has no server.");
+  const r = await fetch(SUPPORT.url + "/functions/v1/dev", { method: "POST", headers: { apikey: SUPPORT.key, "content-type": "application/json" }, body: JSON.stringify({ action, device: supportId(), token: OWNER.token, ...extra }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && action !== "signin") { OWNER.token = null; store.set("cak3d-owner", null); ownerShow(); }
+  if (!r.ok) throw new Error(j.error || `The server answered ${r.status}.`);
+  return j;
+};
+$("supLegal").addEventListener("click", () => {
+  const now = performance.now(); OWNER.taps = now - OWNER.tapAt < 1500 ? OWNER.taps + 1 : 1; OWNER.tapAt = now;
+  if (OWNER.taps >= 7) { OWNER.taps = 0; $("dSettings").close(); $("dOwner").showModal(); ownerShow(); }
+});
+function ownerShow() {
+  const signed = !!OWNER.token;
+  $("ownIn").hidden = signed; $("ownBody").hidden = !signed; $("ownDev").textContent = supportId(); $("ownMsg").textContent = "";
+  clearInterval(OWNER.timer); clearInterval(OWNER.chat);
+  if (!signed || !$("dOwner").open) return;
+  ownerStats(); ownerChat();
+  OWNER.timer = setInterval(() => { if (!document.hidden) ownerStats(); }, 60000);
+  OWNER.chat = setInterval(() => { if (!document.hidden) ownerChat(); }, 15000);
+}
+$("dOwner").addEventListener("close", () => { clearInterval(OWNER.timer); clearInterval(OWNER.chat); $("ownPass").value = ""; });
+$("ownGo").onclick = async () => {
+  $("ownGo").disabled = true; $("ownMsg").textContent = "Checking…";
+  try { const j = await ownerCall("signin", { passphrase: $("ownPass").value }); OWNER.token = j.token; store.set("cak3d-owner", j.token); $("ownPass").value = ""; ownerShow(); }
+  catch (e) { $("ownMsg").textContent = e.message; }
+  finally { $("ownGo").disabled = false; }
+};
+$("ownPass").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("ownGo").click(); } });
+$("ownOut").onclick = async () => { try { await ownerCall("signout"); } catch (e) { /* signed out here anyway */ } OWNER.token = null; store.set("cak3d-owner", null); ownerShow(); };
+$("ownRefresh").onclick = () => ownerStats();
+$("ownSend").onclick = async () => {
+  const t = $("ownText").value.trim(); if (!t) return;
+  $("ownSend").disabled = true;
+  try { await ownerCall("send", { text: t }); $("ownText").value = ""; await ownerChat(); }
+  catch (e) { $("ownMsg").textContent = e.message; }
+  finally { $("ownSend").disabled = false; }
+};
+async function ownerChat() {
+  try {
+    const { messages } = await ownerCall("messages"), box = $("ownThread"), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
+    box.innerHTML = messages.length ? messages.map(m => `<div class="own-msg ${m.sender}">${esc(m.body)}<small>${m.sender === "claude" ? "Claude" : "You"} · ${new Date(m.at).toLocaleString()}</small></div>`).join("")
+      : `<p class="own-note">No messages yet.</p>`;
+    if (atEnd) box.scrollTop = box.scrollHeight;
+  } catch (e) { /* shown by the stats refresh */ }
+}
+const fmtN = n => n == null ? "–" : Number(n).toLocaleString();
+const fmtB = b => b >= 1073741824 ? (b / 1073741824).toFixed(2) + " GB" : (b / 1048576).toFixed(1) + " MB";
+const ago = t => { if (!t) return ""; const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; };
+const big = items => `<div class="own-big">${items.map(([v, l]) => `<div><b>${v}</b><span>${esc(l)}</span></div>`).join("")}</div>`;
+function bar(label, used, limit, fmt = fmtN) {
+  if (limit == null) return `<div class="own-bar"><span>${esc(label)}: ${fmt(used)}</span></div>`;
+  const pc = Math.min(100, Math.round(used / limit * 100));
+  return `<div class="own-bar ${pc >= 90 ? "bad" : pc >= 75 ? "warn" : ""}"><span>${esc(label)}: ${fmt(used)} of ${fmt(limit)} (${pc}%)${pc >= 90 ? " · nearly full" : pc >= 75 ? " · getting close" : ""}</span><i><b style="width:${pc}%"></b></i></div>`;
+}
+const ownLinks = list => `<div class="own-links">${list.map(([t, u]) => `<a class="btn" href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join("")}</div>`;
+const ownNote = t => t ? `<p class="own-note">${esc(t)}</p>` : "";
+const ownCard = (title, open, body, ok = true, err = "") => `<section class="own-card"><h3><span>${esc(title)}</span>${open ? `<a href="${open}" target="_blank" rel="noopener">Open ↗</a>` : ""}</h3>${ok ? body : `<p class="no">${esc(err || "Couldn't load this part.")}</p>` + body}</section>`;
+const stateIcon = (st, c) => st !== "completed" && st !== "READY" && st !== "ERROR" && st !== "CANCELED" ? `<span class="run">● ${esc(String(st).toLowerCase())}</span>` : (c === "success" || st === "READY") ? `<span class="ok">✓ ok</span>` : `<span class="no">✕ ${esc(String(c || st).toLowerCase())}</span>`;
+async function ownerStats() {
+  $("ownAt").textContent = "Loading…";
+  let d; try { d = await ownerCall("stats"); } catch (e) { $("ownAt").textContent = e.message; return; }
+  OWNER.last = d;
+  const sb = d.supabase || {}, gh = d.github || {}, vc = d.vercel || {}, pl = d.play || {}, inst = pl.installs || {};
+  const html = [];
+  html.push(ownCard("People using it", "", big([[fmtN(inst.active_devices), "Android devices with the app"], [fmtN(inst.total_users), "Play installs, ever"], [fmtN(sb.linked_browsers), "linked web browsers"], [fmtN(sb.web_networks_week), "web visitors' networks this week"]])
+    + ownNote(pl.installs_note) + ownNote("Web visitors are counted by scrambled network, not by person.")));
+  html.push(ownCard("Google Play", "https://play.google.com/console", (pl.ok === false ? "" : big([[fmtN(inst.installs_month), "installs this month"], [fmtN(inst.uninstalls_month), "uninstalls this month"], [pl.rating ? pl.rating.average.toFixed(2) + "★" : "–", "average rating"], [fmtN(pl.reviews_week), "reviews this week"]])
+    + (pl.sales ? big([[fmtN(pl.sales.orders), "purchases (" + pl.sales.report + ")"], [Object.entries(pl.sales.by_currency).map(([c, v]) => v.toFixed(2) + " " + c).join(", ") || "–", "sales"]])
+      + `<ul class="own-list">${pl.sales.top.map(([id, n]) => `<li><span>${esc(id)}</span><span>${n}</span></li>`).join("")}</ul>` : ownNote(pl.sales_note))
+    + (pl.crashes ? `<p class="own-note">This month: ${fmtN(pl.crashes.month_crashes)} crashes, ${fmtN(pl.crashes.month_anrs)} freezes (ANRs).</p>` : "")
+    + (pl.reviews && pl.reviews.length ? `<ul class="own-list">${pl.reviews.map(r => `<li><span>${"★".repeat(r.stars)} ${esc(r.text)}</span><span>${ago(r.at)}</span></li>`).join("")}</ul>` : ownNote(pl.reviews_note))
+    + ownNote(pl.note)) + ownLinks([["Play Console", "https://play.google.com/console"], ["Google Cloud", "https://console.cloud.google.com/home/dashboard?project=arachnotes"], ["YouTube Studio", "https://studio.youtube.com"]]), pl.ok !== false, pl.error));
+  html.push(ownCard("Problems", "https://supabase.com/dashboard/project/" + REF_ID + "/editor", big([[fmtN(sb.errors_day), "errors today"], [fmtN(sb.errors_week), "errors this week"], [fmtN(sb.reports_week), "issue reports this week"], [fmtN(sb.deletions_open), "deletion requests open"]])
+    + (sb.top_errors && sb.top_errors.length ? `<ul class="own-list">${sb.top_errors.map(e => `<li><span title="${esc(e.message)}">${esc(e.message)} <span class="own-note">(${esc(e.place || "")}, ${esc(e.version || "")})</span></span><span>×${e.count}</span></li>`).join("")}</ul>` : ownNote("No errors this week."))
+    + ownLinks([["Issues forum", WEBSITE + "issues"], ["Ideas forum", WEBSITE + "ideas"]])));
+  html.push(ownCard("Supabase", "https://supabase.com/dashboard/project/" + REF_ID, (sb.ok === false ? "" : bar("Database", sb.db_bytes, sb.db_limit, fmtB)
+    + big([[fmtN(sb.requests_week), "requests this week"], [fmtN(sb.forum_posts), "forum posts"], [fmtN(sb.link_codes_week), "link codes this week"], [fmtN(sb.transfers_waiting), "transfers waiting"]])
+    + ownNote(sb.status ? `Project ${String(sb.status).toLowerCase().replace(/_/g, " ")}${sb.region ? " · " + sb.region : ""}` : "") + ownNote(sb.usage_note))
+    + ownLinks([["Usage", "https://supabase.com/dashboard/org/_/usage"], ["Tables", "https://supabase.com/dashboard/project/" + REF_ID + "/editor"], ["Functions", "https://supabase.com/dashboard/project/" + REF_ID + "/functions"], ["Secrets", "https://supabase.com/dashboard/project/" + REF_ID + "/functions/secrets"]]), sb.ok !== false, sb.error));
+  html.push(ownCard("GitHub builds", "https://github.com/real-CAK3D/CAK3D-Crawler/actions", (gh.ok === false ? "" : `<ul class="own-list">${(gh.workflows || []).map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.name)}</a><span>${stateIcon(w.status, w.conclusion)} ${ago(w.at)}</span></li>`).join("")}</ul>`
+    + big([[fmtN(gh.apk_total), "APK downloads from GitHub"], [gh.releases && gh.releases[0] ? esc(gh.releases[0].tag) : "–", "latest release"]])
+    + (gh.actions_minutes != null ? bar("Actions minutes this month", gh.actions_minutes, gh.actions_limit) : "") + ownNote(gh.private === false ? "The repository is public: Actions minutes are free and unlimited." : "") + ownNote(gh.usage_note))
+    + ownLinks([["Releases", "https://github.com/real-CAK3D/CAK3D-Crawler/releases"], ["Billing", "https://github.com/settings/billing"], ["Wiki", "https://github.com/real-CAK3D/CAK3D-Crawler/wiki"]]), gh.ok !== false, gh.error));
+  html.push(ownCard("Vercel", "https://vercel.com/dashboard", (vc.ok === false ? "" : vc.projects ? `<ul class="own-list">${vc.projects.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.project)}</a><span>${stateIcon(x.state)} ${ago(x.at)}</span></li>`).join("")}</ul>` : ownNote(vc.note))
+    + ownNote("Vercel doesn't share free-plan usage through its API: tap Usage to see how close you are.")
+    + ownLinks([["Usage", "https://vercel.com/dashboard/usage"], ["Web app", WEB_APP], ["Website", WEBSITE]]), vc.ok !== false, vc.error));
+  $("ownGrid").innerHTML = html.join("");
+  $("ownAt").textContent = "Updated " + new Date(d.at).toLocaleTimeString();
+}
+const REF_ID = SUPPORT ? (new URL(SUPPORT.url).hostname.split(".")[0]) : "";
 
 // ---- the code reader's engine: reads source files, finds every function, class, variable and import,
 // where each is defined and used (read, changed or called), what calls what, and explains it in plain words.
@@ -10353,7 +10549,8 @@ function webGate(n = 1) {
   return false;
 }
 wqIdb().then(n => { WEBQ.used = Math.max(WEBQ.used, n); syncWebQuota(); });
-linkRefresh();
+linkRefresh(); notifyUI();
+if (!SUPPORT || IN_CLAUDE) { document.querySelector('#setTabs [data-g="devices"]').hidden = true; $("limLink").hidden = true; }
 syncWebQuota();
 $("limGet").href = WEBSITE + "#download";
 $("limLink").onclick = () => { $("dLimit").close(); openSettingsAt("devices"); };
@@ -10739,10 +10936,10 @@ function frame(now) {
 // second (Android may slow or stop it after a while to save battery); the steps it missed are caught up in small slices.
 const BG = { at: 0 };
 setInterval(() => {
-  if (!document.hidden || paused || !DOC || S.mode === "done" || S.mode === "gone") { BG.at = 0; return; }
+  if (!document.hidden || paused || !DOC || S.mode === "done" || S.mode === "gone" || (crawled && S.doneAt === crawled)) { BG.at = 0; return; }
   const now = performance.now();
   if (!BG.at) { BG.at = now; return; }
-  let left = Math.min(5, (now - BG.at) / 1000); BG.at = now;
+  let left = Math.min(90, (now - BG.at) / 1000); BG.at = now; // a hidden tab may only get this once a minute
   try { while (left > 0) { const d = Math.min(0.05, left); update(d, now); left -= d; } }
   catch (e) { if (frameErrors++ < 3) reportError(e, "background"); }
 }, 250);

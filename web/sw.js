@@ -23,6 +23,17 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   const put = res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res; };
+  // background sounds and music: kept whole in their own cache (it survives app updates). Music asks for parts of the
+  // file, which can't be cached, so the whole file is fetched once and served from then on.
+  if (url.origin === location.origin && //sounds/[w-]+.mp3$/.test(url.pathname)) {
+    e.respondWith(caches.open("arachnotes-sounds").then(async c => {
+      const hit = await c.match(url.pathname); if (hit) return hit;
+      const res = await fetch(url.pathname);
+      if (res.ok && res.status === 200) await c.put(url.pathname, res.clone());
+      return res;
+    }));
+    return;
+  }
   if (url.origin === location.origin) {
     e.respondWith(fetch(e.request).then(put).catch(() => caches.match(e.request).then(r => r || caches.match("index.html"))));
   } else if (/(^|\.)fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
