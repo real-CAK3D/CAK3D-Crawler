@@ -63,7 +63,21 @@ if (!m.includes("android.intent.action.SEND")) {
   if (at < "</intent-filter>".length) throw new Error("couldn't find the main activity's launcher filter");
   m = m.slice(0, at) + filters + m.slice(at);
 }
+// LocalNotifications only posts "Crawl complete" right away, so its alarm and restart permissions aren't needed
+if (!m.includes("xmlns:tools")) m = m.replace("<manifest ", '<manifest xmlns:tools="http://schemas.android.com/tools" ');
+for (const p of ["SCHEDULE_EXACT_ALARM", "RECEIVE_BOOT_COMPLETED"])
+  if (!m.includes(`android.permission.${p}"`)) m = m.replace("<application", `<uses-permission android:name="android.permission.${p}" tools:node="remove" />\n    <application`);
 writeFileSync(manifest, m);
+
+// the status bar icon for notifications: a small white spider
+mkdirSync("android/app/src/main/res/drawable", { recursive: true });
+writeFileSync("android/app/src/main/res/drawable/ic_stat_spider.xml", `<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M12,8.5a2.2,2.2 0,1 1,0 -4.4a2.2,2.2 0,1 1,0 4.4zM12,19.8c-2.1,0 -3.3,-2 -3.3,-4.6c0,-2.6 1.4,-5.4 3.3,-5.4s3.3,2.8 3.3,5.4c0,2.6 -1.2,4.6 -3.3,4.6z"/>
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="1.3" android:strokeLineCap="round"
+        android:pathData="M9.2,11.5L5,8.2L3,4.5M14.8,11.5L19,8.2L21,4.5M8.9,13.6L4.2,13L2,10.8M15.1,13.6L19.8,13L22,10.8M9,15.6L4.6,17.8L3.2,21M15,15.6L19.4,17.8L20.8,21M9.6,17.8L7,21.2M14.4,17.8L17,21.2"/>
+</vector>
+`);
 
 // the ShareIn plugin hands what was shared to the app's JavaScript (see crawlShared in src/arachnotes.html)
 const pkgDir = "android/app/src/main/java/com/arachnotes/web";

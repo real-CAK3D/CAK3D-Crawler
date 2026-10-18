@@ -272,7 +272,6 @@ body.store-open { overflow: hidden; }
 .st-card b { font-size: 1rem; line-height: 1.25; font-weight: 600; }
 .st-price { align-self: flex-start; font: 600 12px var(--mono); padding: 4px 10px; border-radius: 999px; background: var(--ink); color: var(--paper); }
 .st-price.owned { background: transparent; color: var(--muted); border: 1px solid var(--rule); }
-.st-worth { font: 12px var(--mono); color: var(--muted); }
 .st-sheet { position: fixed; inset: 0; z-index: 46; background: rgba(0,0,0,.5); display: grid; place-items: end center; }
 .st-sheet-box { box-sizing: border-box; width: min(560px, 100%); max-height: 92vh; overflow-y: auto; background: var(--paper); color: var(--ink); border-radius: 20px 20px 0 0;
   padding: 14px 18px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -10px 40px rgba(0,0,0,.3); }
@@ -1630,6 +1629,18 @@ body.bar-off .bar { display: none; }
               <option value="silk">Plain silk</option>
               <option value="rainbow">Rainbow</option>
               <option value="importance">Thicker for stronger links</option>
+              <optgroup label="One color">
+                <option value="gold">Golden silk</option>
+                <option value="crimson">Crimson</option>
+                <option value="ember">Ember orange</option>
+                <option value="moss">Moss green</option>
+                <option value="teal">Teal</option>
+                <option value="ocean">Ocean blue</option>
+                <option value="violet">Violet</option>
+                <option value="rose">Rose pink</option>
+                <option value="frost">Frost white</option>
+                <option value="ink">Ink black</option>
+              </optgroup>
             </select></label>
           <label class="field"><span>Keyword colors on the page</span>
             <select id="cfgWordColor">
@@ -1727,6 +1738,7 @@ body.bar-off .bar { display: none; }
         <label class="field"><span>Look up keywords online</span>
           <select id="cfgLookup"><option value="open">When I open a keyword</option><option value="catch">As the spider catches each keyword</option><option value="off">Off</option></select>
           <small>Shows a short summary from Wikipedia, or a dictionary definition, with each keyword when you're online. Only the keyword (and the text's title, to pick the right article) is sent.</small></label>
+        <label class="chk"><input type="checkbox" id="cfgNotify"> Notify me when a crawl finishes while the app is in the background</label>
         <div class="row2">
           <label class="field"><span>Citation style</span>
             <select id="cfgCiteStyle"><option value="apa">APA (7th)</option><option value="mla">MLA (9th)</option><option value="chicago">Chicago (author-date)</option></select></label>
@@ -1975,7 +1987,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", lookup: "open", errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", lookup: "open", notifyDone: false, errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -2931,6 +2943,33 @@ const AUDIO = (() => {
 document.addEventListener("visibilitychange", () => { if (!AC) return; if (document.hidden) AC.suspend(); else if (wantsAudio()) AC.resume(); });
 addEventListener("pointerdown", () => { if (AC) AUDIO.sync(); }, { capture: true });
 
+// ---- "Crawl complete" notifications (Settings → Research): only when the crawl ends while the app is in the background.
+// Made on the device; nothing is sent anywhere.
+const LN = () => NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+async function askNotify() {
+  try {
+    const P = LN();
+    if (P) { let s = await P.checkPermissions(); if (s.display !== "granted") s = await P.requestPermissions(); return s.display === "granted"; }
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
+    return (await Notification.requestPermission()) === "granted";
+  } catch (e) { return false; }
+}
+async function notifyDone() {
+  if (!cfg.notifyDone || !document.hidden || !crawled) return;
+  const topics = new Set(nodes.filter(n => n.caught).map(n => kwOf(n).cat)).size;
+  const title = `${spiderName()} finished crawling`, body = `“${DOC.title}”: ${plural(crawled, "keyword")} in ${plural(topics, "topic")}. Tap to explore them.`;
+  try {
+    const P = LN();
+    if (P) { await P.schedule({ notifications: [{ id: 1, title, body, smallIcon: "ic_stat_spider", iconColor: "#6b4fd8" }] }); return; }
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    const opts = { body, icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "crawl-done" };
+    if (reg && reg.showNotification) await reg.showNotification(title, opts);
+    else { const n = new Notification(title, opts); n.onclick = () => { focus(); n.close(); }; }
+  } catch (e) { /* notifications are optional */ }
+}
+
 // ---------------- crawl actions ----------------
 function catchNode(n, silent, by) {
   n.caught = true; n.el.classList.add("caught"); n.el.classList.remove("seed");
@@ -3015,6 +3054,7 @@ function finish() {
   // it stays and keeps busy; what it does when it's done waits until you've left the app alone (see the screensaver below)
   S.wanderT = 2; S.away = false; IDLE.at = performance.now(); // the time alone counts from when it finished
   updateStatus();
+  notifyDone();
 }
 
 function hatch(sac) {
@@ -4930,7 +4970,7 @@ function draw(now) {
   ctx.globalAlpha = 1;
   if (cfg.knots) for (const list of webs.values()) for (const a of list) {
     const p = anchorPos(a); if (p.y < top || p.y > bot) continue;
-    ctx.fillStyle = cfg.threadColor === "topic" ? catColor(kwOf(a.node).cat) : cfg.threadColor === "bucket" && a.bucket !== "all" ? bucketColor(a.bucket) : C.silk;
+    ctx.fillStyle = cfg.threadColor === "topic" ? catColor(kwOf(a.node).cat) : cfg.threadColor === "bucket" && a.bucket !== "all" ? bucketColor(a.bucket) : solidSilk() || C.silk;
     ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 7); ctx.fill();
   }
   if (prints.length) {
@@ -4991,8 +5031,13 @@ function draw(now) {
     ctx.save(); ctx.beginPath(); ctx.rect(-1e5, -1e5, 2e5, 2e5); for (let i = 0; i < sh.N; i++) { const [x, y] = sh.pt(i, 1); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.closePath(); ctx.clip("evenodd"); drawSpider(now); ctx.restore();
   } else drawSpider(now);
 }
+// one color for every thread: [on a light theme, on a dark theme]
+const SOLID_SILK = { gold: ["#a8780a", "#f2c14e"], crimson: ["#b3202f", "#ff6b7a"], ember: ["#c2540a", "#ff9a4d"], moss: ["#4f7a1f", "#9fd16a"],
+  teal: ["#0f7f7a", "#4fd6cc"], ocean: ["#1f5fa8", "#6aaeff"], violet: ["#6b3fb8", "#b89aff"], rose: ["#b8326e", "#ff8fc0"], frost: ["#7d8fa3", "#e8f1ff"], ink: ["#1d2229", "#5a6470"] };
+const solidSilk = () => { const c = SOLID_SILK[cfg.threadColor]; return c ? c[C.dark ? 1 : 0] : null; };
 function threadStyle(t, i, A, B) {
   const m = cfg.threadColor;
+  if (SOLID_SILK[m]) return solidSilk();
   if (m === "silk" || m === "importance") return C.silk;
   if (m === "rainbow") return `hsl(${(i * 47) % 360} 75% ${C.dark ? 65 : 42}%)`;
   if (m === "topic") {
@@ -9036,11 +9081,6 @@ const productById = id => PRODUCTS.find(p => p.id === id) || null;
 const STORE_TABS = () => [["featured", "Featured"], ["bundles", "Bundles"], ["presets", "Presets"], ...CATALOG.groups.map(g => [g.key, g.name])];
 function tabOf(id) { const it = ITEMS.find(x => x.id === id); return it ? it.group : id.startsWith("preset_") ? "presets" : id.startsWith("bundle_") ? "bundles" : "featured"; }
 // what a bundle or preset would cost bought item by item
-function worth(p) {
-  if (p.all) return ITEMS.reduce((t, it) => t + +it.price, 0) + CATALOG.presets.reduce((t, pr) => t + +pr.price, 0);
-  const ids = p.groups ? ITEMS.filter(it => p.groups.includes(it.group)).map(it => it.id) : p.preset ? presetItems(p) : [];
-  return ITEMS.filter(it => ids.includes(it.id)).reduce((t, it) => t + +it.price, 0);
-}
 const ownedText = p => DEV_UNLOCK && !OWNED.has(p.id) ? "Unlocked" : "Owned ✓";
 const priceTag = p => unlocked(p.id) ? `<span class="st-price owned">${ownedText(p)}</span>` : `<span class="st-price">${esc(money(p))}</span>`;
 const storeCard = p => `<button type="button" class="st-card" data-open="${p.id}" aria-label="${esc(p.name)}, ${unlocked(p.id) ? "owned" : esc(money(p))}"><canvas data-thumb="${p.id}" aria-hidden="true"></canvas><b>${esc(p.name)}</b>${priceTag(p)}</button>`;
@@ -9056,7 +9096,7 @@ function renderStore() {
   if (storeTab === "featured") {
     const all = CATALOG.bundles.find(b => b.all);
     if (all) h += `<button type="button" class="st-hero" data-open="${all.id}"><canvas data-thumb="${all.id}" aria-hidden="true"></canvas>
-      <div><span class="st-badge">Best value</span><h3>${esc(all.name)}</h3><p>${esc(all.desc)}</p><p class="st-worth">$${worth(all).toFixed(2)} if bought one by one</p>${priceTag(all)}</div></button>`;
+      <div><span class="st-badge">Best value</span><h3>${esc(all.name)}</h3><p>${esc(all.desc)}</p>${priceTag(all)}</div></button>`;
     h += sec("Bundles", CATALOG.bundles.filter(b => !b.all), true, "Each bundle includes the one before it.");
     h += sec("Presets", CATALOG.presets, true, "A whole style in one tap.");
     h += sec("Premium looks", ITEMS.filter(it => it.group === "premium"), true);
@@ -9075,12 +9115,11 @@ function openSheet(id) {
   if (p.all) inc = `<p>Everything in the store, now and later:</p><ul class="st-inc">${CATALOG.groups.map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}<li>Presets (${CATALOG.presets.length})</li></ul>`;
   else if (p.groups) inc = `<p>Includes everything in these sections, and anything added to them later:</p><ul class="st-inc">${CATALOG.groups.filter(g => p.groups.includes(g.key)).map(g => `<li>${esc(g.name)} (${g.items.length})</li>`).join("")}</ul>`;
   else if (p.preset) inc = `<p>Also unlocks:</p><ul class="st-inc">${presetItems(p).map(i => `<li>${esc(productById(i).name)}</li>`).join("")}</ul>`;
-  const value = p.all || p.groups || p.preset ? `<p class="st-worth">$${worth(p).toFixed(2)} if bought one by one</p>` : "";
   const action = have ? `<span class="st-price owned">${ownedText(p)}</span>`
     : native ? `<button class="btn primary" type="button" data-buy="${id}">Buy · ${esc(money(p))}</button>`
     : play ? `<a class="btn primary" href="${esc(play)}" target="_blank" rel="noopener">Get it in the Android app · ${esc(money(p))}</a>`
     : `<span class="st-price">${esc(money(p))}</span><span class="meta">in the Android app on Google Play</span>`;
-  $("stSheetBody").innerHTML = `<canvas data-thumb="${id}" aria-hidden="true"></canvas><h3 id="stSheetH">${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${inc}${value}<div class="st-buy">${action}</div>`;
+  $("stSheetBody").innerHTML = `<canvas data-thumb="${id}" aria-hidden="true"></canvas><h3 id="stSheetH">${esc(p.name)}</h3>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}${inc}<div class="st-buy">${action}</div>`;
   $("stSheet").hidden = false;
   const cv = $("stSheetBody").querySelector("canvas"), it = ITEMS.find(x => x.id === id);
   // spiders move in the big preview: capes wave, rainbows shift, the peacock fans out
@@ -9295,7 +9334,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
-  ["cfgCiteStyle", "citeStyle", String], ["cfgLookup", "lookup", String], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
+  ["cfgCiteStyle", "citeStyle", String], ["cfgLookup", "lookup", String], ["cfgNotify", "notifyDone", Boolean], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
   ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgPurpose", "purpose", String], ["cfgBored", "bored", String], ["cfgDetach", "detach", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
@@ -9312,6 +9351,7 @@ function cycleTheme() {
 }
 function applyWordColor() { document.body.classList.toggle("wc-highlight", cfg.wordColor === "highlight"); document.body.classList.toggle("wc-off", cfg.wordColor === "off"); }
 function settingChanged(key) {
+  if (key === "notifyDone" && cfg.notifyDone) askNotify().then(ok => { if (ok) return; cfg.notifyDone = false; saveCfg(); syncSettings(); flash("Notifications are turned off for Arachnotes. Allow them in your device or browser settings, then switch this on again."); });
   if (["sound", "steps", "ambience", "music", "volume"].includes(key)) { audioOn(); AUDIO.sync(); }
   if (key === "bugLook") resetFlies();
   if (key === "webStyle" && CW) { CW = null; webCatch = []; if (["build", "sit", "toWeb"].includes(S.mode)) S.mode = "walk"; if (S.mode === "zip" && S.zip && ["build", "toWeb", "sit"].includes(S.zip.next)) { S.zip = null; S.mode = "walk"; } }
@@ -10341,6 +10381,7 @@ let frameErrors = 0;
 const lowPower = () => (S.mode === "gone" || (S.away && S.mode === "done")) && !babies.length && !fluff.length && !confetti.length && !WV.open && !codeOpen() && !TR.open && !S.hole;
 function frame(now) {
   requestAnimationFrame(frame); // scheduled first, so a problem below can't stop the animation
+  if (document.hidden) { prev = now; return; } // the background tick below carries the crawl on instead
   const slow = lowPower();
   if (slow !== frame.slow) { // resting: the guide's examples stop too
     frame.slow = slow; document.body.classList.toggle("resting", slow);
@@ -10360,6 +10401,17 @@ function frame(now) {
     try { if (S.mode !== "gone") { S.zip = null; S.pounce = S.lasso = null; S.hopZ = 0; S.hop = null; if (!["walk", "done"].includes(S.mode)) S.mode = "walk"; } ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.shadowBlur = 0; } catch (e2) {}
   }
 }
+// in the background nothing is drawn, but the crawl carries on at its usual pace. The browser runs this about once a
+// second (Android may slow or stop it after a while to save battery); the steps it missed are caught up in small slices.
+const BG = { at: 0 };
+setInterval(() => {
+  if (!document.hidden || paused || !DOC || S.mode === "done" || S.mode === "gone") { BG.at = 0; return; }
+  const now = performance.now();
+  if (!BG.at) { BG.at = now; return; }
+  let left = Math.min(5, (now - BG.at) / 1000); BG.at = now;
+  try { while (left > 0) { const d = Math.min(0.05, left); update(d, now); left -= d; } }
+  catch (e) { if (frameErrors++ < 3) reportError(e, "background"); }
+}, 250);
 setFollow(follow);
 resize();
 // what the app opens with (Settings → Research): where you left off, the guide, or a blank page

@@ -20,10 +20,17 @@ async function tool(page, id) {
   await page.locator("#" + id).click();
 }
 async function crawlDone(page) {
-  for (let i = 0; i < 300; i++) {
+  for (let i = 0; i < 900; i++) {
     const [a, b] = await Promise.all([page.locator("#sCrawled").textContent(), page.locator("#sTotal").textContent()]);
     if (+a > 0 && a === b) return; await page.waitForTimeout(500);
   }
+}
+// a spider keyword shows best: its paragraph, and what Wikipedia says about it
+async function openKeyword(page) {
+  const keys = page.locator("#wvSide [data-key]");
+  const texts = await keys.allTextContents();
+  const i = Math.max(0, texts.findIndex(t => /orb.weaver|silk|tarantula|spider/i.test(t)));
+  await keys.nth(i).click();
 }
 const still = page => page.mouse.wheel(0, 1); // scrolling yourself stops the page following the spider
 
@@ -31,18 +38,31 @@ async function shoot(browser, { name, viewport, scale, list }) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: scale, colorScheme: "light" });
   const page = await ctx.newPage();
   page.on("pageerror", e => console.log("page error:", e.message));
-  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 2, flies: 2, tourDone: true })));
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 2, flies: 2, tourDone: true, lookup: "catch" })));
   await page.goto(URL);
   let n = 0;
-  const snap = async label => { n++; if (!list || list.includes(label)) await page.screenshot({ path: `${OUT}/${name}-${String(n).padStart(2, "0")}-${label}.png` }); };
+  // Play shows up to 8 phone screenshots; only the ones in the list are saved, numbered in order
+  const snap = async label => { if (!list.includes(label)) return; n++; await page.screenshot({ path: `${OUT}/${name}-${String(n).padStart(2, "0")}-${label}.png` }); };
   await page.waitForTimeout(14000); await snap("guide");
   await page.keyboard.press("s"); await page.waitForTimeout(2500); await snap("live-stats"); await page.keyboard.press("Escape");
   await page.evaluate(() => { const c = JSON.parse(localStorage.getItem("cak3d-cfg")); }); // keep going at the same speed
   await crawlDone(page); await page.waitForTimeout(1500);
+  await page.evaluate(() => scrollTo(0, 0)); await page.waitForTimeout(500); // on a phone the toolbar scrolls away with the page
   await page.locator("#bWeb").click(); await page.waitForTimeout(2500); await snap("web");
+  // a keyword: its topic, where it appears with the paragraph around it, and what the web says about it
+  await openKeyword(page);
+  await page.locator("#wvSide .webinfo b").waitFor({ timeout: 20000 }).catch(() => console.log("no web info for the keyword shot"));
+  await page.waitForTimeout(1500); // its picture
+  await page.evaluate(() => { const w = document.querySelector("#wvSide .webinfo"); if (w) (w.previousElementSibling || w).scrollIntoView({ block: "start" }); });
+  await page.waitForTimeout(500); await snap("keyword");
+  await page.locator('#orbTrail [data-orb-to="0"]').click().catch(() => {}); await page.waitForTimeout(800); // back to the whole web
   await page.locator('#wvTabs [data-tab="graph"]').click(); await page.waitForTimeout(3500); await snap("nest");
   await page.locator('#wvTabs [data-tab="chart"]').click(); await page.waitForTimeout(1500); await snap("graph");
   await page.locator('#wvTabs [data-tab="cards"]').click(); await page.waitForTimeout(1000); await page.locator('#pCards [data-fc="flip"]').click().catch(() => {}); await page.waitForTimeout(800); await snap("flashcards");
+  await page.locator('#wvTabs [data-tab="media"]').click(); await page.waitForTimeout(3000);
+  // start at a spider picture rather than whatever comes first
+  await page.evaluate(() => { const c = [...document.querySelectorAll("#pMedia .md-card")].find(e => /spider|silk|orb/i.test(e.textContent) && e.querySelector("img")); if (c) c.scrollIntoView({ block: "start" }); });
+  await page.waitForTimeout(2000); await snap("media");
   await page.locator("#wvClose").click();
   await tool(page, "bGuide"); await page.waitForTimeout(1500); await snap("study-guide"); await page.keyboard.press("Escape");
   await tool(page, "bCode"); await page.waitForTimeout(2500); await snap("code-reader");
@@ -55,15 +75,19 @@ async function video(browser) {
   const dir = `${OUT}/_video`;
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir, size: { width: 1280, height: 720 } } });
   const page = await ctx.newPage();
-  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 1.6, flies: 2, tourDone: true })));
+  await page.addInitScript(() => localStorage.setItem("cak3d-cfg", JSON.stringify({ speed: 1.6, flies: 2, tourDone: true, lookup: "catch" })));
   await page.goto(URL);
   await page.waitForTimeout(12000);
   await page.keyboard.press("s"); await page.waitForTimeout(5000); await page.keyboard.press("Escape");
   await page.waitForTimeout(4000);
-  await page.locator("#bWeb").click(); await page.waitForTimeout(4000);
+  await page.evaluate(() => scrollTo(0, 0)); await page.locator("#bWeb").click(); await page.waitForTimeout(4000);
+  await openKeyword(page); await page.waitForTimeout(3000);
+  await page.locator("#wvSide [data-para]").first().click().catch(() => {}); await page.waitForTimeout(3000);
+  await page.locator('#orbTrail [data-orb-to="0"]').click().catch(() => {}); await page.waitForTimeout(800);
   await page.locator('#wvTabs [data-tab="graph"]').click(); await page.waitForTimeout(4000);
   await page.locator('#wvTabs [data-tab="cards"]').click(); await page.waitForTimeout(1500);
   await page.locator('#pCards [data-fc="flip"]').click().catch(() => {}); await page.waitForTimeout(2500);
+  await page.locator('#wvTabs [data-tab="media"]').click(); await page.waitForTimeout(3000);
   await page.locator("#wvClose").click(); await page.waitForTimeout(800);
   await tool(page, "bCode"); await page.waitForTimeout(4500);
   await ctx.close();
@@ -74,8 +98,8 @@ async function video(browser) {
 await mkdir(OUT, { recursive: true });
 for (const f of await readdir(OUT)) if (/^(phone|tablet)-/.test(f)) await rm(join(OUT, f));
 const browser = await chromium.launch();
-await shoot(browser, { name: "phone", viewport: { width: 360, height: 640 }, scale: 3 });
-await shoot(browser, { name: "tablet", viewport: { width: 1280, height: 720 }, scale: 1.5, list: ["guide", "web", "nest", "study-guide", "code-reader"] });
+await shoot(browser, { name: "phone", viewport: { width: 360, height: 640 }, scale: 3, list: ["guide", "live-stats", "web", "keyword", "flashcards", "media", "study-guide", "code-reader"] });
+await shoot(browser, { name: "tablet", viewport: { width: 1280, height: 720 }, scale: 1.5, list: ["guide", "web", "keyword", "nest", "media", "study-guide", "code-reader"] });
 await video(browser);
 await browser.close(); srv.close();
 console.log("done");

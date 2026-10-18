@@ -451,3 +451,37 @@ test("outside facts reach flashcards, the study guide, related reading and the M
   await expect(page.locator("#guideBody .g-web").first()).toContainText("Wikipedia: ", { timeout: 15_000 });
   expect(errs).toEqual([]);
 });
+
+test("in the background the crawl carries on, and a notification says when it's done", async ({ page }) => {
+  const errs = watch(page);
+  await page.addInitScript(() => {
+    window.__notes = []; window.__hide = false;
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => window.__hide });
+    class N { static permission = "default"; static async requestPermission() { N.permission = "granted"; return "granted"; } constructor(t, o) { window.__notes.push({ t, ...o }); } }
+    window.Notification = N;
+    if (navigator.serviceWorker) navigator.serviceWorker.getRegistration = async () => ({ showNotification: async (t, o) => { window.__notes.push({ t, ...o }); } });
+  });
+  await openApp(page, { startWith: "blank" });
+  // switching it on asks for permission
+  await page.locator("#bSettings").click(); await page.locator('#setTabs [data-g="research"]').click();
+  await page.locator("#cfgNotify").check();
+  await expect.poll(() => page.evaluate(() => Notification.permission)).toBe("granted");
+  await expect(page.locator("#cfgNotify")).toBeChecked();
+  await page.keyboard.press("Escape");
+  await loadText(page, TEXT, "Bee notes");
+  await expect.poll(async () => +(await page.locator("#sCrawled").textContent())).toBeGreaterThan(0);
+  // the app goes to the background: nothing is drawn, but keywords keep coming
+  const before = +(await page.locator("#sCrawled").textContent());
+  await page.evaluate(() => { window.__hide = true; document.dispatchEvent(new Event("visibilitychange")); });
+  await expect.poll(async () => +(await page.locator("#sCrawled").textContent()), { timeout: 60_000 }).toBeGreaterThan(before);
+  await expect.poll(() => page.evaluate(() => window.__notes.length), { timeout: 120_000 }).toBe(1);
+  const note = await page.evaluate(() => window.__notes[0]);
+  expect(note.t).toMatch(/finished crawling/);
+  expect(note.body).toMatch(/“Bee notes”: \d+ keywords? in \d+ topics?/);
+  // finishing while you're looking doesn't notify
+  await page.evaluate(() => { window.__hide = false; document.dispatchEvent(new Event("visibilitychange")); });
+  await loadText(page, TEXT, "Second look");
+  await crawlDone(page);
+  expect(await page.evaluate(() => window.__notes.length)).toBe(1);
+  expect(errs).toEqual([]);
+});

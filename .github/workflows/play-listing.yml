@@ -1,0 +1,28 @@
+# Sends store-listing/ (text, and optionally the pictures) to the Google Play listing. Run it from the Actions tab.
+name: Play listing
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: "Also replace the icon, feature graphic and screenshots"
+        type: boolean
+        default: false
+      video:
+        description: "YouTube link for the promo video (leave empty to keep the current one)"
+        type: string
+        default: ""
+permissions:
+  contents: read
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Send the listing to Google Play
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_VIDEO: ${{ inputs.video }}
+        run: node scripts/play-listing.mjs ${{ inputs.images && '--images' || '' }}
