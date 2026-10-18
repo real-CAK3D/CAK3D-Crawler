@@ -3,6 +3,10 @@ name: Play listing
 on:
   workflow_dispatch:
     inputs:
+      to_closed:
+        description: "Copy the newest internal testing build to closed testing, as a draft"
+        type: boolean
+        default: false
       rollout:
         description: "Publish the internal testing draft to testers"
         type: boolean
@@ -37,4 +41,4 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_VIDEO: ${{ inputs.video }}
-        run: node scripts/play-listing.mjs ${{ inputs.rollout && '--rollout' || '' }} ${{ inputs.release_name && format('--name-release {0}', inputs.release_name) || '' }} ${{ inputs.check && '--check' || '' }} ${{ inputs.images && '--images' || '' }}
+        run: node scripts/play-listing.mjs ${{ inputs.to_closed && '--to-closed' || '' }} ${{ inputs.rollout && '--rollout' || '' }} ${{ inputs.release_name && format('--name-release {0}', inputs.release_name) || '' }} ${{ inputs.check && '--check' || '' }} ${{ inputs.images && '--images' || '' }}

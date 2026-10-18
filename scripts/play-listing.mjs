@@ -56,6 +56,15 @@ async function call(method, url, body, type = "application/json") {
 // everything goes into one edit, which Google applies all at once when it's committed
 const edit = await call("POST", API);
 const E = `${API}/${edit.id}`;
+// --to-closed: puts the newest internal testing build on closed testing (the "alpha" track) as a draft, named after it
+if (process.argv.includes("--to-closed")) {
+  const inside = await call("GET", `${E}/tracks/internal`);
+  const rel = (inside.releases || []).find(r => r.versionCodes && r.versionCodes.length); if (!rel) { console.log("Nothing on internal testing to copy."); process.exit(0); }
+  await call("PUT", `${E}/tracks/alpha`, { track: "alpha", releases: [{ name: rel.name, versionCodes: rel.versionCodes, status: "draft" }] });
+  await call("POST", `${E}:commit`);
+  console.log(`Closed testing now has a draft: ${rel.name} (versions ${rel.versionCodes.join(", ")}).`);
+  process.exit(0);
+}
 // --rollout: publishes the internal testing draft to testers (Google allows this once the app has been published once)
 if (process.argv.includes("--rollout")) {
   const t = await call("GET", `${E}/tracks/internal`);
