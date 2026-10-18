@@ -56,7 +56,9 @@ async function call(method, url, body, type = "application/json") {
 // everything goes into one edit, which Google applies all at once when it's committed
 const edit = await call("POST", API);
 const E = `${API}/${edit.id}`;
-if (check) { // only looks: reads the live listing, then throws the edit away
+if (check) { // only looks: reads the live listing and the testing tracks, then throws the edit away
+  const tr = await call("GET", `${E}/tracks`);
+  for (const t of tr.tracks || []) for (const r of t.releases || []) console.log(`Track ${t.track}: ${r.name || "(no name)"} · versions ${(r.versionCodes || []).join(", ")} · ${r.status}`);
   const now = await call("GET", `${E}/listings/${LANG}`);
   await call("DELETE", E);
   console.log(`Connected to Google Play. The live listing is "${now.title}" (${(now.fullDescription || "").length} characters). Nothing was changed.`);
