@@ -56,6 +56,16 @@ async function call(method, url, body, type = "application/json") {
 // everything goes into one edit, which Google applies all at once when it's committed
 const edit = await call("POST", API);
 const E = `${API}/${edit.id}`;
+// --rollout: publishes the internal testing draft to testers (Google allows this once the app has been published once)
+if (process.argv.includes("--rollout")) {
+  const t = await call("GET", `${E}/tracks/internal`);
+  const d = (t.releases || []).find(r => r.status === "draft"); if (!d) { console.log("No draft on internal testing."); process.exit(0); }
+  t.releases = [{ ...d, status: "completed" }];
+  await call("PUT", `${E}/tracks/internal`, t);
+  await call("POST", `${E}:commit`);
+  console.log(`Rolled out ${d.name} (versions ${d.versionCodes.join(", ")}) to internal testers.`);
+  process.exit(0);
+}
 // --name-release v1.2.3: gives the internal testing draft that name (it otherwise keeps the first name it was given)
 const nameAt = process.argv.indexOf("--name-release");
 if (nameAt > 0) {
