@@ -71,6 +71,7 @@ test("the full dashboard: charts, support, forum, users, fixes, switches and rel
   await expect.poll(() => calls.some(c => c.action === "unlink")).toBe(true);
   // fixes: send one to everyone; switch link codes off; show an announcement
   await tab("fixes").click();
+  await pane("fixes").locator("[data-ftarget]").fill("everyone");
   await pane("fixes").locator("[data-fmsg]").fill("Update to get the fix");
   await pane("fixes").locator("[data-fsend]").click(); await pane("fixes").locator("[data-fsend]").click();
   await expect.poll(() => calls.find(c => c.action === "fix_send")).toMatchObject({ target: "everyone", actions: { message: "Update to get the fix" } });
@@ -108,5 +109,35 @@ test("every app honors the owner's switches and shows the announcement", async (
   await page.reload();
   await page.waitForTimeout(3500);
   await expect(page.locator("#annBar")).toBeHidden();
+  expect(errs).toEqual([]);
+});
+
+test("the developer console: a warning, the logo, a boot check, and commands that work", async ({ page }) => {
+  const errs = watch(page), logs = [];
+  page.on("console", m => logs.push(m.text()));
+  await openApp(page);
+  await expect.poll(() => logs.some(l => l.includes("all spun up")), { timeout: 15_000 }).toBe(true);
+  expect(logs[0]).toContain("STOP");
+  expect(logs.some(l => l.includes("█████"))).toBe(true);
+  for (const c of ["help()", "status()", "keywords(3)", "topics()", "web()", "find('spider')", "spider()", "theme()", "speed(2)", "fact()", "about()", "watch()", "pause()", "resume()", "party()"])
+    await page.evaluate(c2 => (0, eval)("arachnotes." + c2), c);
+  await page.evaluate(() => arachnotes.spider("nope")); // a bad command says so, it doesn't throw
+  expect(logs.some(l => l.includes("No spider called nope"))).toBe(true);
+  expect(await page.evaluate(() => typeof arachnotes.exportCrawl().state)).toBe("object");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cak3d-cfg")).speed)).toBe(2);
+  expect(errs).toEqual([]);
+});
+
+test("the offline service worker loads (the web app keeps working without internet)", async ({ page }) => {
+  const errs = watch(page);
+  await openApp(page);
+  const ok = await page.evaluate(async () => {
+    if (!navigator.serviceWorker) return "no service worker support";
+    // the app only registers it on https; the test server is http, so register the same file here
+    try { await navigator.serviceWorker.register("sw.js"); } catch (e) { return "failed: " + e.message; }
+    const r = await Promise.race([navigator.serviceWorker.ready, new Promise(res => setTimeout(() => res(null), 15000))]);
+    return r && r.active ? "active" : "not active";
+  });
+  expect(ok).toBe("active");
   expect(errs).toEqual([]);
 });

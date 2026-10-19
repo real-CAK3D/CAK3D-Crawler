@@ -125,7 +125,10 @@ for (const name of readdirSync("web/connect")) {
 
 copyFileSync("web/manifest.webmanifest", `${OUT}/manifest.webmanifest`);
 copyFileSync("web/privacy.html", `${OUT}/privacy.html`);
-writeFileSync(`${OUT}/sw.js`, readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`));
+const swCode = readFileSync("web/sw.js", "utf8").replace("__VERSION__", `${pkg.version}-${Date.now()}`);
+// a service worker that doesn't parse silently turns off offline use for everyone, so a broken one stops the build
+try { new Function(swCode); } catch (e) { throw new Error(`web/sw.js has a syntax error: ${e.message}`); }
+writeFileSync(`${OUT}/sw.js`, swCode);
 for (const f of readdirSync("web/icons")) copyFileSync(`web/icons/${f}`, `${OUT}/icons/${f}`);
 mkdirSync(`${OUT}/sounds`, { recursive: true });
 for (const f of readdirSync("web/sounds")) copyFileSync(`web/sounds/${f}`, `${OUT}/sounds/${f}`); // background sounds and music

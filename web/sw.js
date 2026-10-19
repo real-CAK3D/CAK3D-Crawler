@@ -25,7 +25,7 @@ self.addEventListener("fetch", e => {
   const put = res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res; };
   // background sounds and music: kept whole in their own cache (it survives app updates). Music asks for parts of the
   // file, which can't be cached, so the whole file is fetched once and served from then on.
-  if (url.origin === location.origin && //sounds/[w-]+.mp3$/.test(url.pathname)) {
+  if (url.origin === location.origin && /\/sounds\/[\w-]+\.mp3$/.test(url.pathname)) {
     e.respondWith(caches.open("arachnotes-sounds").then(async c => {
       const hit = await c.match(url.pathname); if (hit) return hit;
       const res = await fetch(url.pathname);

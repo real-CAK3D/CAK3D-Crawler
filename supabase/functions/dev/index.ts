@@ -1,6 +1,6 @@
 // The owner's dashboard. Only the owner can use it: the passphrase in the OWNER_PASSPHRASE secret, from a device whose
 // support ID is in OWNER_DEVICES. Five wrong tries from one place lock it for an hour. A sign-in gives a 30-day token
-// that only works on that device. Everything else (stats from Supabase, GitHub, Vercel and Google Play, and messages
+// tied to that device's support ID. Everything else (stats from Supabase, GitHub, Vercel and Google Play, and messages
 // with Claude) needs that token. Other secrets, all optional: GITHUB_TOKEN, VERCEL_TOKEN, SUPABASE_ACCESS_TOKEN,
 // PLAY_REPORTS_BUCKET, PLAY_SA_JSON (shared with the "link" function), and GITHUB_ACTIONS_TOKEN (to run release workflows).
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -198,16 +198,22 @@ Deno.serve(async req => {
   let body: { action?: string; passphrase?: string; device?: string; token?: string; text?: string };
   try { body = await req.json(); } catch { return json({ error: "Bad request" }, 400); }
   const device = String(body.device || "").toUpperCase().trim();
-  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+  const xff = (req.headers.get("x-forwarded-for") || "").split(",").map(x => x.trim()).filter(Boolean);
+  const ip = req.headers.get("cf-connecting-ip") || xff[xff.length - 1] || "unknown";
   const who = await sha(ip + env("SUPABASE_SERVICE_ROLE_KEY").slice(-24));
 
   if (body.action === "signin") {
     const pass = env("OWNER_PASSPHRASE"), devices = env("OWNER_DEVICES").toUpperCase().split(/[\s,;]+/).filter(Boolean);
     if (!pass || !devices.length) return json({ error: "The dashboard isn't set up yet." }, 503);
-    const { count } = await db.from("dev_tries").select("*", { count: "exact", head: true }).eq("who", who).gt("at", new Date(Date.now() - 3600e3).toISOString());
-    if ((count || 0) >= 5) return json({ error: "Too many tries. Wait an hour." }, 429);
+    const hourAgo = new Date(Date.now() - 3600e3).toISOString();
+    await db.from("dev_tries").insert({ who }); // counted first, so many tries at once can't slip past the limit
+    const [mine, all] = await Promise.all([
+      db.from("dev_tries").select("*", { count: "exact", head: true }).eq("who", who).gt("at", hourAgo),
+      db.from("dev_tries").select("*", { count: "exact", head: true }).gt("at", hourAgo)]);
+    if ((mine.count || 0) > 5 || (all.count || 0) > 30) return json({ error: "Too many tries. Wait an hour." }, 429);
     const ok = (await same(String(body.passphrase || ""), pass)) && devices.includes(device);
-    if (!ok) { await db.from("dev_tries").insert({ who }); return json({ error: "That didn't work." }, 401); }
+    if (!ok) return json({ error: "That didn't work." }, 401);
+    await db.from("dev_tries").delete().eq("who", who); // the right passphrase clears this place's tries
     const token = hex(32);
     await db.from("dev_sessions").insert({ token_hash: await sha(token), device, expires_at: new Date(Date.now() + 30 * 86400e3).toISOString() });
     return json({ token });
@@ -270,13 +276,16 @@ Deno.serve(async req => {
     if (body.action === "reply_hide") { must((await db.from("forum_replies").update({ hidden: !!a.hidden }).eq("id", id)).error); return ok(); }
     // fixes for one app or for everyone, and whether they were picked up
     if (body.action === "fixes") {
-      const [f, seen] = await Promise.all([db.from("fixes").select("user_id, actions, note, updated_at").order("updated_at", { ascending: false }).limit(100), db.from("fix_seen").select("user_id, at, fix_at")]);
-      must(f.error); must(seen.error); return ok({ fixes: f.data, seen: seen.data });
+      const f = await db.from("fixes").select("user_id, actions, note, updated_at").order("updated_at", { ascending: false }).limit(100); must(f.error);
+      const ids = (f.data || []).map(x => x.user_id).filter(x => x !== "*");
+      const seen = ids.length ? await db.from("fix_seen").select("user_id, at, fix_at").in("user_id", ids) : { data: [], error: null }; must(seen.error);
+      return ok({ fixes: f.data, seen: seen.data });
     }
     if (body.action === "fix_send") {
       const target = str("target", 20).toUpperCase() === "*" || str("target", 20).toLowerCase() === "everyone" ? "*" : str("target", 20).toUpperCase();
       if (target !== "*" && !/^AN-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(target)) return json({ error: "That support ID doesn't look right. It looks like AN-7K3Q-9XWD-2M4P." }, 400);
-      const actions = (a.actions && typeof a.actions === "object") ? a.actions : {};
+      const actions = (a.actions && typeof a.actions === "object") ? { ...(a.actions as Record<string, unknown>) } : {} as Record<string, unknown>;
+      if (actions.cfg && typeof actions.cfg === "object") { const c = { ...(actions.cfg as Record<string, unknown>) }; delete c.checkin; delete c.errReports; delete c.notifyDone; actions.cfg = c; }
       must((await db.from("fixes").upsert({ user_id: target, actions, note: str("note", 500), updated_at: new Date().toISOString() })).error);
       return ok();
     }

@@ -46,6 +46,9 @@ Deno.serve(async req => {
   if (!/^[A-Za-z0-9_-]{22,200}$/.test(nonce) || !integrity) return fail("Bad request");
 
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+  // the owner can pause link codes for everyone (the dashboard's switches)
+  const { data: on } = await db.rpc("switch_on", { p_name: "links" });
+  if (on === false) return fail("Linking is paused for a little while. Please try again later.", 503);
   const inst = /^AN-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(install) ? install : null;
   // ten codes a day per phone is plenty
   if (inst) {
