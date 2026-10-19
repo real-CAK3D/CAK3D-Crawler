@@ -1487,6 +1487,7 @@ body.bar-off .bar { display: none; }
         <button type="button" role="tab" id="otab-overview" aria-controls="opane-overview" data-otab="overview" aria-selected="true">Overview</button>
         <button type="button" role="tab" id="otab-charts" aria-controls="opane-charts" data-otab="charts" aria-selected="false">Charts</button>
         <button type="button" role="tab" id="otab-support" aria-controls="opane-support" data-otab="support" aria-selected="false">Support</button>
+        <button type="button" role="tab" id="otab-inbox" aria-controls="opane-inbox" data-otab="inbox" aria-selected="false">Inbox</button>
         <button type="button" role="tab" id="otab-forum" aria-controls="opane-forum" data-otab="forum" aria-selected="false">Forum</button>
         <button type="button" role="tab" id="otab-users" aria-controls="opane-users" data-otab="users" aria-selected="false">Users</button>
         <button type="button" role="tab" id="otab-fixes" aria-controls="opane-fixes" data-otab="fixes" aria-selected="false">Fixes &amp; switches</button>
@@ -1496,6 +1497,7 @@ body.bar-off .bar { display: none; }
       <div data-opane="overview" id="opane-overview" role="tabpanel" aria-labelledby="otab-overview"><div class="own-grid" id="ownGrid"></div></div>
       <div data-opane="charts" id="opane-charts" role="tabpanel" aria-labelledby="otab-charts" hidden></div>
       <div data-opane="support" id="opane-support" role="tabpanel" aria-labelledby="otab-support" hidden></div>
+      <div data-opane="inbox" id="opane-inbox" role="tabpanel" aria-labelledby="otab-inbox" hidden></div>
       <div data-opane="forum" id="opane-forum" role="tabpanel" aria-labelledby="otab-forum" hidden></div>
       <div data-opane="users" id="opane-users" role="tabpanel" aria-labelledby="otab-users" hidden></div>
       <div data-opane="fixes" id="opane-fixes" role="tabpanel" aria-labelledby="otab-fixes" hidden></div>
@@ -2006,6 +2008,9 @@ body.bar-off .bar { display: none; }
         <div class="field"><span>Website and community</span>
           <div class="rowi site-links"><a class="btn" data-site="" target="_blank" rel="noopener">Website</a><a class="btn" data-site="issues" target="_blank" rel="noopener">Issues</a><a class="btn" data-site="ideas" target="_blank" rel="noopener">Ideas</a><a class="btn" data-site="privacy" target="_blank" rel="noopener">Privacy</a><a class="btn" data-site="terms" target="_blank" rel="noopener">Terms</a><a class="btn" data-site="data" target="_blank" rel="noopener">Delete my data</a></div>
           <small>Issues and Ideas are public: see what other people found, vote for what matters to you, and suggest features. For anything about your own app or purchases, use Report an issue above.</small></div>
+        <div class="field"><span>Email us</span>
+          <div class="rowi" id="mailUs"><a class="btn" data-mailkind="Issue">A problem</a><a class="btn" data-mailkind="Idea">An idea</a><a class="btn" data-mailkind="Question">A question</a><a class="btn" data-mailkind="Purchase">A purchase</a><a class="btn" data-mailkind="Data">My data</a></div>
+          <small>Opens your email app to arachnotes-app@yahoo.com with the subject filled in, so your message lands in the right pile. Your support ID is added so we can find your app.</small></div>
         <p class="meta" id="supLegal"></p>
         <p class="meta" id="supCredits"></p>
       </section>
@@ -8192,7 +8197,9 @@ async function checkUpdate(manual) {
   } catch (e) { say("Couldn't check for updates right now."); }
 }
 $("updCheck").onclick = () => checkUpdate(true);
-function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; $("supCredits").textContent = "Sounds and music (CC0, from OpenGameArt): rain by Ylmir, crickets by Wolfgang_, fire by PagDev, Contemplation and Little piano loop by Joth, Calm piano and Another August by cynicmusic."; }
+function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId();
+  // tagged subjects, so the owner's Yahoo filters and dashboard sort each email by what it's about
+  document.querySelectorAll("#mailUs [data-mailkind]").forEach(a => a.href = `mailto:arachnotes-app@yahoo.com?subject=${encodeURIComponent(`[Arachnotes ${a.dataset.mailkind}] `)}&body=${encodeURIComponent(`\n\n\n(Support ID: ${supportId()} · ${APP.name} ${APP.version}${NATIVE ? " on Android" : " on the web"})`)}`); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; $("supCredits").textContent = "Sounds and music (CC0, from OpenGameArt): rain by Ylmir, crickets by Wolfgang_, fire by PagDev, Contemplation and Little piano loop by Joth, Calm piano and Another August by cynicmusic."; }
 setTimeout(() => { checkFixes(); checkin(); if (NATIVE) checkUpdate(false); }, 2500);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkin(); });
 // ---- help: one list of what everything is, used by the "What's what" tab and by "point at anything"
@@ -8839,7 +8846,7 @@ function ownerTab(t) {
   OWNER.tab = t;
   for (const b of document.querySelectorAll("#ownTabs [data-otab]")) b.setAttribute("aria-selected", String(b.dataset.otab === t));
   for (const d of document.querySelectorAll("#dOwner [data-opane]")) d.hidden = d.dataset.opane !== t;
-  ({ overview: ownerStats, charts: ownerCharts, support: ownerSupport, forum: ownerForum, users: ownerUsers, fixes: ownerFixes, releases: ownerReleases, messages: ownerChat })[t]();
+  ({ overview: ownerStats, charts: ownerCharts, support: ownerSupport, inbox: ownerInbox, forum: ownerForum, users: ownerUsers, fixes: ownerFixes, releases: ownerReleases, messages: ownerChat })[t]();
 }
 const opane = t => document.querySelector(`#dOwner [data-opane="${t}"]`);
 // a button that needs a second tap to do anything that changes something
@@ -8918,6 +8925,30 @@ async function ownerSupport() {
   el.querySelectorAll("[data-del]").forEach(x => { const b = x.querySelector("[data-deldone]"); if (b) armed(b, async () => { await ownerCall("deletion_set", { id: +x.dataset.del, status: "done" }); ownerSupport(); }); });
   el.querySelectorAll("[data-rev]").forEach(x => armed(x.querySelector("[data-revsend]"), async () => { await ownerCall("review_reply", { review: x.dataset.rev, text: x.querySelector("[data-revtext]").value }); flash("Reply posted on Google Play."); }));
   el.querySelectorAll("[data-user]").forEach(b => b.onclick = () => { if (b.dataset.user) { OWNER.user = b.dataset.user; ownerTab("users"); } });
+}
+// ---- the support inbox (arachnotes-app@yahoo.com), copied every 15 minutes
+async function ownerInbox() {
+  const el = opane("inbox"); el.innerHTML = `<p class="own-note">Loading…</p>`;
+  let d; try { d = await ownerCall("mail"); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+  const addr = f => (/<([^>]+)>/.exec(f || "") || [, f || ""])[1].trim();
+  // what each email is about: the [Arachnotes Issue] style tag in its subject, or the server's guess
+  const KINDS = { issue: ["Issue", "red"], idea: ["Idea", "green"], question: ["Question", ""], purchase: ["Purchase", ""], data: ["My data", "red"], other: ["Other", ""] };
+  const all = d.mail || [], only = OWNER.mailKind || "";
+  const shown = all.filter(m => !only || (m.kind || "other") === only);
+  const chips = `<div class="own-row" role="group" aria-label="Show">${[["", "All"], ...Object.entries(KINDS).map(([k, v]) => [k, v[0]])].map(([k, label]) => {
+    const n = all.filter(m => !k || (m.kind || "other") === k).length;
+    return n || !k ? `<button type="button" class="btn${k === only ? " on" : ""}" aria-pressed="${k === only}" data-mkind="${k}">${label} ${n}</button>` : "";
+  }).join("")}</div>`;
+  const item = m => `<div class="own-item" data-uid="${m.uid}" data-folder="${esc(m.folder || "INBOX")}"><div class="own-row">${m.handled ? tag("done", "green") : tag("to do", "red")}${tag(...(KINDS[m.kind] || KINDS.other))}<span class="own-note">${esc(m.from_addr || "")} · ${when(m.sent_at)}${m.folder && m.folder !== "INBOX" ? " · " + esc(m.folder) : ""}</span></div>
+    <p><b>${esc(m.subject || "(no subject)")}</b></p>
+    <details><summary class="own-note">${esc(trunc((m.snippet || "").replace(/\s+/g, " "), 140))}</summary><pre>${esc(m.snippet || "")}</pre></details>
+    <div class="own-row">${/^[^\s@?&=]+@[^\s@?&=]+\.[^\s@?&=]+$/.test(addr(m.from_addr)) ? `<a class="btn" href="mailto:${encodeURIComponent(addr(m.from_addr))}?subject=${encodeURIComponent("Re: " + (m.subject || ""))}">Reply</a>` : ""}
+    <button type="button" class="btn" data-mdone="${m.handled ? 0 : 1}">${m.handled ? "Mark to do" : "Mark done"}</button></div></div>`;
+  el.innerHTML = ownCard(`Support email (${all.filter(m => !m.handled).length} to do)`, "https://mail.yahoo.com/",
+    all.length ? chips + shown.map(item).join("") : ownNote(d.set_up ? "Nothing yet. New mail shows up within 15 minutes." : "Not set up yet: add YAHOO_EMAIL and YAHOO_APP_PASSWORD in Supabase (see the Owner-Dashboard wiki page)."))
+    + ownNote("Copied from arachnotes-app@yahoo.com every 15 minutes, read-only: nothing is marked read or deleted in Yahoo. Reply opens your own email app.");
+  el.querySelectorAll("[data-mkind]").forEach(b => b.onclick = () => { OWNER.mailKind = b.dataset.mkind; ownerInbox(); });
+  el.querySelectorAll("[data-uid]").forEach(x => x.querySelector("[data-mdone]").onclick = async () => { try { await ownerCall("mail_set", { folder: x.dataset.folder, id: +x.dataset.uid, handled: x.querySelector("[data-mdone]").dataset.mdone === "1" }); ownerInbox(); } catch (e) { flash(e.message); } });
 }
 // ---- forum moderation
 const FSTATUS = { open: "Open", planned: "Planned", working: "Being worked on", fixed: "Fixed", done: "Added", declined: "Not planned", duplicate: "Duplicate", closed: "Closed", hidden: "Hidden" };

@@ -103,10 +103,16 @@ async function githubPart() {
 }
 async function vercelPart() {
   const t = env("VERCEL_TOKEN"); if (!t) return { note: "Add VERCEL_TOKEN to see deploys." };
-  const d = await getJson("https://api.vercel.com/v6/deployments?limit=30", { authorization: `Bearer ${t}` });
-  const latest: Record<string, unknown> = {};
-  for (const x of d.deployments || []) if (!latest[x.name]) latest[x.name] = { project: x.name, state: x.state || x.readyState, target: x.target, url: "https://" + x.url, at: new Date(x.created).toISOString(), commit: x.meta && x.meta.githubCommitMessage };
-  return { projects: Object.values(latest) };
+  // each site by name, so one busy site can't push the other out of the list
+  const h = { authorization: `Bearer ${t}` };
+  const projects = await Promise.all(["arachnotes", "arachnotes-web"].map(async name => {
+    try {
+      const d = await getJson(`https://api.vercel.com/v6/deployments?app=${name}&limit=1&target=production`, h);
+      const x = (d.deployments || [])[0];
+      return x ? { project: name, state: x.state || x.readyState, target: x.target, url: "https://" + x.url, at: new Date(x.created).toISOString(), commit: x.meta && x.meta.githubCommitMessage } : { project: name, state: "none", url: "", at: null };
+    } catch (e) { return { project: name, state: "ERROR", url: "", at: null, error: (e as Error).message }; }
+  }));
+  return { projects };
 }
 async function playPart() {
   const out: Record<string, unknown> = {};
@@ -334,6 +340,12 @@ Deno.serve(async req => {
       if (!r.ok) return json({ error: `GitHub answered ${r.status}: ${(await r.text()).slice(0, 200)}` }, 502);
       return ok({ started: kind });
     }
+    // the support inbox, copied from Yahoo every 15 minutes by the "mail" function
+    if (body.action === "mail") {
+      const { data, error } = await db.from("dev_mail").select("folder, uid, from_addr, subject, sent_at, snippet, seen, handled, kind").order("sent_at", { ascending: false }).limit(80); must(error);
+      return ok({ mail: data, set_up: !!env("YAHOO_APP_PASSWORD") });
+    }
+    if (body.action === "mail_set") { must((await db.from("dev_mail").update({ handled: !!a.handled }).eq("folder", String(a.folder || "INBOX")).eq("uid", id)).error); return ok(); }
     if (body.action === "messages") {
       const { data } = await db.from("dev_messages").select("id, at, sender, body, read_at").order("id", { ascending: false }).limit(100);
       await db.from("dev_messages").update({ read_at: new Date().toISOString() }).eq("sender", "claude").is("read_at", null);

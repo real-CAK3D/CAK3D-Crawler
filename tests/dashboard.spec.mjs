@@ -28,6 +28,7 @@ test("the full dashboard: charts, support, forum, users, fixes, switches and rel
     if (b.action === "fixes") return ok({ fixes: [], seen: [] });
     if (b.action === "config") return ok({ config: { switches: { lookups: true, links: true, transfers: true, deviceAI: true, errorReports: true }, announcement: null } });
     if (b.action === "messages") return ok({ messages: [] });
+    if (b.action === "mail") return ok({ set_up: true, mail: [{ folder: "Arachnotes/Ideas", uid: 41, from_addr: "Sam <sam@example.com>", subject: "[Arachnotes Idea] Love the app", sent_at: now, snippet: "Can you add a dark spider?", handled: false, kind: "idea" }, { folder: "INBOX", uid: 42, from_addr: "Jo <jo@example.com>", subject: "It crashed", sent_at: now, snippet: "Crashed on import", handled: false, kind: "issue" }] });
     return ok({ ok: true, removed: 1 });
   });
   await page.addInitScript(() => localStorage.setItem("cak3d-owner", JSON.stringify("t".repeat(64))));
@@ -57,6 +58,14 @@ test("the full dashboard: charts, support, forum, users, fixes, switches and rel
   expect(calls.some(c => c.action === "review_reply")).toBe(false);
   await pane("support").locator('[data-rev="rev1"] [data-revsend]').click();
   await expect.poll(() => calls.some(c => c.action === "review_reply" && c.text === "Thank you!")).toBe(true);
+  // inbox: the support email, with a reply link and done
+  await tab("inbox").click();
+  await expect(pane("inbox")).toContainText("Love the app");
+  await expect(pane("inbox").locator('a[href^="mailto:sam%40example.com"]')).toBeVisible();
+  await pane("inbox").locator('[data-mkind="idea"]').click();
+  await expect(pane("inbox")).not.toContainText("It crashed");
+  await pane("inbox").locator("[data-mdone]").click();
+  await expect.poll(() => calls.some(c => c.action === "mail_set" && c.id === 41 && c.folder === "Arachnotes/Ideas" && c.handled)).toBe(true);
   // forum: open a post, change its status
   await tab("forum").click();
   await pane("forum").locator('[data-post="5"]').click();
