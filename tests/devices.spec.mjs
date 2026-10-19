@@ -159,6 +159,7 @@ test("the owner's dashboard: hidden behind 7 taps, needs the passphrase, shows e
   await expect(grid.locator(".own-bar.bad, .own-bar.warn").first()).toContainText("Database"); // 84%: getting close
   await expect(grid).toContainText("vercel answered 403"); // a part that fails says why, the rest still shows
   await expect(grid.locator('a[href="https://play.google.com/console"]').first()).toBeVisible();
+  await page.locator('#ownTabs [data-otab="messages"]').click();
   await page.locator("#ownText").fill("The crawl froze on my phone");
   await page.locator("#ownSend").click();
   await expect(page.locator("#ownThread")).toContainText("The crawl froze on my phone");

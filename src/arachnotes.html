@@ -67,6 +67,23 @@
 [hidden] { display: none !important; }
 .link-code { display: inline-block; font: 600 1.3rem var(--mono); letter-spacing: .08em; padding: 6px 12px; border: 1px dashed var(--silk); border-radius: 8px; user-select: all; overflow-wrap: anywhere; }
 .code-out { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+#dOwner .own-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 10px 0 4px; padding-bottom: 2px; }
+#dOwner .own-tabs::-webkit-scrollbar { display: none; }
+#dOwner .own-tabs button { flex: none; font: 600 12px var(--mono); padding: 6px 11px; border: 1px solid var(--rule); border-radius: 999px; background: none; color: var(--ink); cursor: pointer; position: relative; }
+#dOwner .own-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+#dOwner .own-tabs b { margin-left: 5px; padding: 0 6px; border-radius: 999px; background: #c0392b; color: #fff; font-size: 11px; }
+#dOwner .own-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#dOwner .own-item { border-top: 1px solid var(--rule); padding: 10px 0; display: grid; gap: 6px; min-width: 0; }
+#dOwner .own-item:first-of-type { border-top: 0; }
+#dOwner .own-item p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+#dOwner .own-item pre { margin: 0; max-height: 14rem; overflow: auto; font-size: 11px; background: color-mix(in srgb, var(--ink) 6%, transparent); padding: 8px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+#dOwner .own-tag { font: 600 11px var(--mono); padding: 1px 8px; border-radius: 999px; border: 1px solid var(--rule); }
+#dOwner .own-tag.red { color: #c0392b; border-color: currentColor; } #dOwner .own-tag.green { color: #2e8b57; border-color: currentColor; }
+#dOwner .own-chart { width: 100%; height: auto; display: block; }
+#dOwner .own-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; }
+#dOwner .own-legend i { display: inline-block; width: 10px; height: 3px; margin-right: 5px; vertical-align: middle; }
+#dOwner .own-form { display: grid; gap: 8px; }
+#dOwner .own-form .inp, #dOwner .own-form select, #dOwner .own-form textarea { width: 100%; box-sizing: border-box; }
 #dOwner .own-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 12px; margin: 12px 0; }
 #dOwner .own-card { border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 #dOwner .own-card h3 { margin: 0; font: 600 13px var(--mono); letter-spacing: .06em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -90,6 +107,10 @@
 #dOwner .own-msg.owner { align-self: flex-end; background: var(--ink); color: var(--paper); }
 #dOwner .own-msg.claude { align-self: flex-start; border: 1px solid var(--rule); }
 #dOwner .own-msg small { display: block; opacity: .7; font-size: 11px; margin-top: 3px; }
+.ann { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: 560px; margin: 0 auto; z-index: 65; display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 12px; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); box-shadow: 0 8px 26px rgba(0,0,0,.2); font-size: 14px; }
+.ann.warn { border-color: #c98a12; } .ann p { margin: 0; flex: 1; overflow-wrap: anywhere; }
+.ann button { flex: none; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 4px; }
 .xfer-pick { max-height: 14rem; overflow: auto; border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px; margin: 6px 0; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .skip { position: absolute; left: 8px; top: -80px; z-index: 100; background: var(--ink); color: var(--paper); padding: 8px 12px; border-radius: 4px; font-family: var(--mono); font-size: 13px; }
@@ -1461,14 +1482,32 @@ body.bar-off .bar { display: none; }
     </div>
     <div id="ownBody" hidden>
       <div class="rowi"><button class="btn primary" type="button" id="ownRefresh">Refresh</button><span class="meta" id="ownAt" aria-live="polite"></span><button class="btn" type="button" id="ownOut">Sign out</button></div>
-      <div class="own-grid" id="ownGrid"></div>
-      <section class="own-card" aria-labelledby="ownChatH">
-        <h3 id="ownChatH">Messages with Claude</h3>
-        <p class="own-note">While Claude's session is open on your computer, it sees your message within about a minute and answers here. Otherwise it reads them next time.</p>
-        <div class="own-thread" id="ownThread" aria-live="polite"></div>
-        <textarea class="inp" id="ownText" rows="3" maxlength="4000" placeholder="Something's wrong, or something to change…" aria-label="Message to Claude"></textarea>
-        <div class="rowi"><button class="btn primary" type="button" id="ownSend">Send</button></div>
-      </section>
+      <div class="own-tabs" role="tablist" aria-label="Dashboard sections" id="ownTabs">
+        <button type="button" role="tab" data-otab="overview" aria-selected="true">Overview</button>
+        <button type="button" role="tab" data-otab="charts" aria-selected="false">Charts</button>
+        <button type="button" role="tab" data-otab="support" aria-selected="false">Support</button>
+        <button type="button" role="tab" data-otab="forum" aria-selected="false">Forum</button>
+        <button type="button" role="tab" data-otab="users" aria-selected="false">Users</button>
+        <button type="button" role="tab" data-otab="fixes" aria-selected="false">Fixes &amp; switches</button>
+        <button type="button" role="tab" data-otab="releases" aria-selected="false">Releases</button>
+        <button type="button" role="tab" data-otab="messages" aria-selected="false">Messages</button>
+      </div>
+      <div data-opane="overview"><div class="own-grid" id="ownGrid"></div></div>
+      <div data-opane="charts" hidden></div>
+      <div data-opane="support" hidden></div>
+      <div data-opane="forum" hidden></div>
+      <div data-opane="users" hidden></div>
+      <div data-opane="fixes" hidden></div>
+      <div data-opane="releases" hidden></div>
+      <div data-opane="messages" hidden>
+        <section class="own-card" aria-labelledby="ownChatH">
+          <h3 id="ownChatH">Messages with Claude</h3>
+          <p class="own-note">While Claude's session is open on your computer, it sees your message within about a minute and answers here. Otherwise it reads them next time.</p>
+          <div class="own-thread" id="ownThread" aria-live="polite"></div>
+          <textarea class="inp" id="ownText" rows="3" maxlength="4000" placeholder="Something's wrong, or something to change…" aria-label="Message to Claude"></textarea>
+          <div class="rowi"><button class="btn primary" type="button" id="ownSend">Send</button></div>
+        </section>
+      </div>
     </div>
     <p class="meta" id="ownMsg" aria-live="polite"></p>
     <div class="actions"><button class="btn" value="close">Close</button></div>
@@ -1957,6 +1996,7 @@ body.bar-off .bar { display: none; }
           <label class="chk"><input type="checkbox" id="repCfg" checked> Include my app settings (no texts, notes or API keys)</label>
           <div class="rowi"><button class="btn primary" type="button" id="repSend">Send report</button><span class="meta" id="repNote" aria-live="polite"></span></div>
         </fieldset>
+        <label class="chk"><input type="checkbox" id="cfgCheckin"> Count this app in the number of people using Arachnotes (once a day it sends only your support ID, the app version, and whether it's Android or web)</label>
         <label class="chk"><input type="checkbox" id="cfgErrReports"> Send error reports automatically when something goes wrong (the error, the app version and your support ID; never your texts, notes or keys)</label>
         <div class="field"><span>Updates</span>
           <div class="rowi"><button class="btn" type="button" id="updCheck">Check for updates</button><span class="meta" id="updNote" aria-live="polite"></span></div>
@@ -1966,6 +2006,7 @@ body.bar-off .bar { display: none; }
           <div class="rowi site-links"><a class="btn" data-site="" target="_blank" rel="noopener">Website</a><a class="btn" data-site="issues" target="_blank" rel="noopener">Issues</a><a class="btn" data-site="ideas" target="_blank" rel="noopener">Ideas</a><a class="btn" data-site="privacy" target="_blank" rel="noopener">Privacy</a><a class="btn" data-site="terms" target="_blank" rel="noopener">Terms</a><a class="btn" data-site="data" target="_blank" rel="noopener">Delete my data</a></div>
           <small>Issues and Ideas are public: see what other people found, vote for what matters to you, and suggest features. For anything about your own app or purchases, use Report an issue above.</small></div>
         <p class="meta" id="supLegal"></p>
+        <p class="meta" id="supCredits"></p>
       </section>
     </div>
     <div class="actions"><button class="btn" type="button" id="bRestart">Restart crawl</button><button class="btn primary" type="submit">Done</button></div>
@@ -1973,6 +2014,7 @@ body.bar-off .bar { display: none; }
 </dialog>
 
 <!-- asks before sending an error report -->
+<div id="annBar" class="ann" role="status" hidden><p id="annText"></p><button type="button" id="annClose" aria-label="Dismiss this message">✕</button></div>
 <div id="errAsk" class="err-ask" role="alertdialog" aria-labelledby="errAskH" hidden>
   <p id="errAskH"><b>Something went wrong.</b> Send a report so it can be fixed? It has the error, the app version and your support ID; never your texts, notes or keys.</p>
   <div class="rowi"><button class="btn primary" type="button" id="errSend">Send</button><button class="btn" type="button" id="errAlways">Always send</button><button class="btn" type="button" id="errNo">Don't ask</button></div>
@@ -2140,7 +2182,7 @@ const cfg = Object.assign({ speed: 1, entrance: "left", type: "cobweb", dew: fal
   look: "classic", tint: "auto", size: 1, name: "", exit: "stay", layout: "auto", links: 2, threadColor: "bucket", wordColor: "underline",
   breeze: false, fade: 0, catchFx: "ripple", notice: true, footprints: false, sound: false,
   babyLook: "spiderlings", babyMode: "mixed", babyColor: "topic", babySize: 1, hatchFx: "burst", skin: "auto", ambient: "none",
-  citeStyle: "apa", lookup: "open", notifyDone: false, errReports: "ask", tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
+  citeStyle: "apa", lookup: "open", notifyDone: false, errReports: "ask", checkin: true, tourDone: false, idleWait: 60, startWith: "last", ttsRate: 1, ttsVoice: "", learn: true, spiders: "one", season: "off", follow: 0, depth: 1, sameSite: true, myName: "", flies: 0, statsOpen: false, purpose: "keywords", barOff: false, bored: "rest", detach: "detach", steps: false, ambience: "none", music: "off", volume: 0.6, hunt: "chase", webStyle: "orb", bugLook: "fly" }, store.get("cak3d-cfg") || {});
 const saveCfg = () => store.set("cak3d-cfg", cfg);
 // settings saved before knots existed had dew on by default; start those clean
 { const old = store.get("cak3d-cfg"); if (old && !("knots" in old)) { cfg.dew = false; saveCfg(); } }
@@ -6101,7 +6143,7 @@ const wantsLookup = key => cfg.lookup !== "off" && canLookUp() && !(DOC.web && D
 // a page that isn't there is an answer; anything else (rate limits, server trouble) is a failure to try again later
 const wikiFail = r => { if (r.status === 404 || r.status === 400) return null; throw new Error("lookup " + r.status); };
 const wikiHost = () => `https://${/^(en|es|fr|de|it|pt|nl)$/.test(DOC.lang || "en") ? DOC.lang || "en" : "en"}.wikipedia.org`;
-const canLookUp = () => cfg.lookup !== "off" && navigator.onLine !== false && !IN_CLAUDE && DOC && DOC.mode !== "blank";
+const canLookUp = () => cfg.lookup !== "off" && SWITCH.lookups !== false && navigator.onLine !== false && !IN_CLAUDE && DOC && DOC.mode !== "blank";
 async function wikiSummary(title) {
   const r = await fetch(`${wikiHost()}/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}?redirect=true`);
   if (!r.ok) return wikiFail(r);
@@ -8054,7 +8096,7 @@ async function rpc(fn, body) {
 // version and your support ID, so it can be fixed. Never your texts, notes, library or keys. Reports are kept 90 days.
 const ERR = { seen: new Set(), sent: 0, queue: [], asking: false };
 function reportError(err, place) {
-  if (!SUPPORT || IN_CLAUDE || cfg.errReports === "off") return;
+  if (!SUPPORT || IN_CLAUDE || cfg.errReports === "off" || SWITCH.errorReports === false) return;
   const message = String((err && (err.message || (err.reason && err.reason.message))) || err || "Unknown error").slice(0, 500);
   if (/ResizeObserver loop|^Script error\.?$|NetworkError|Failed to fetch|Load failed|AbortError|aborted/i.test(message)) return; // not bugs
   const key = message + "|" + place; if (ERR.seen.has(key) || ERR.sent + ERR.queue.length >= 5) return; ERR.seen.add(key);
@@ -8087,9 +8129,27 @@ $("repSend").onclick = async () => {
   finally { $("repSend").disabled = false; }
 };
 // fixes: on launch, ask whether we've left a fix for this app (or for everyone) and apply anything new
+// switches and the announcement, sent with get_fix (the owner sets them in the dashboard)
+const SWITCH = Object.assign({ lookups: true, links: true, transfers: true, deviceAI: true, errorReports: true }, store.get("cak3d-switches") || {});
+function applyConfig(c) {
+  if (!c) return;
+  if (c.switches && typeof c.switches === "object") { Object.assign(SWITCH, c.switches); store.set("cak3d-switches", SWITCH); }
+  const a = c.announcement;
+  if (a && a.text && !(a.until && Date.parse(a.until) < Date.now()) && store.get("cak3d-ann-seen") !== a.id) {
+    $("annText").textContent = String(a.text).slice(0, 400); $("annBar").classList.toggle("warn", a.level === "warn"); $("annBar").hidden = false; $("annBar").dataset.id = a.id || "";
+  } else $("annBar").hidden = true;
+}
+$("annClose").onclick = () => { store.set("cak3d-ann-seen", $("annBar").dataset.id || ""); $("annBar").hidden = true; };
+// one check-in a day: support ID, version and platform, so the owner can count users and see versions. Off in Help & support.
+async function checkin() {
+  if (!SUPPORT || IN_CLAUDE || cfg.checkin === false || navigator.webdriver) return; // automated test browsers don't count
+  const day = new Date().toISOString().slice(0, 10); if (store.get("cak3d-checkin") === day) return;
+  try { await rpc("checkin", { p_user: supportId(), p_version: APP.version, p_platform: platformName() }); store.set("cak3d-checkin", day); } catch (e) { /* tomorrow, then */ }
+}
 async function checkFixes() {
   if (!SUPPORT || IN_CLAUDE) return;
   let res; try { res = await rpc("get_fix", { p_user: supportId() }); } catch { return; }
+  applyConfig(res && res.config);
   const done = store.get("cak3d-fix") || {};
   for (const who of ["all", "mine"]) {
     const fx = res && res[who]; if (!fx || !fx.actions || done[who] === fx.at) continue;
@@ -8122,8 +8182,8 @@ async function checkUpdate(manual) {
   } catch (e) { say("Couldn't check for updates right now."); }
 }
 $("updCheck").onclick = () => checkUpdate(true);
-function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal} · Sounds and music (CC0, from OpenGameArt): rain by Ylmir, crickets by Wolfgang_, fire by PagDev, Contemplation and Little piano loop by Joth, Calm piano and Another August by cynicmusic.`; }
-setTimeout(() => { checkFixes(); if (NATIVE) checkUpdate(false); }, 2500);
+function syncSupport() { $("cfgErrReports").checked = cfg.errReports === "on"; $("supId").textContent = supportId(); $("supLegal").textContent = `${APP.name} ${APP.version} · ${APP.legal}`; $("supCredits").textContent = "Sounds and music (CC0, from OpenGameArt): rain by Ylmir, crickets by Wolfgang_, fire by PagDev, Contemplation and Little piano loop by Joth, Calm piano and Another August by cynicmusic."; }
+setTimeout(() => { checkFixes(); checkin(); if (NATIVE) checkUpdate(false); }, 2500);
 // ---- help: one list of what everything is, used by the "What's what" tab and by "point at anything"
 const HELP = [
   ["Toolbar", "#docTitle", "Page title", "The name of the text the spider is crawling. Open a different one from Pages."],
@@ -8541,8 +8601,10 @@ async function linkRefresh() {
     syncWebQuota(); linkUI();
   } catch (e) { /* offline: the browser's own count still applies */ }
 }
+const PAUSED = "This is paused for a little while. Please try again later.";
 $("linkGo").onclick = async () => {
   const code = $("linkIn").value, msg = $("linkMsg");
+  if (SWITCH.links === false) { msg.textContent = PAUSED; return; }
   if (normCode(code).length !== 12) { msg.textContent = "Link codes have 12 letters and numbers, like 7K4M-Q2XD-9HPA."; return; }
   $("linkGo").disabled = true; msg.textContent = "Checking the code…";
   try {
@@ -8558,6 +8620,7 @@ $("linkIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preven
 $("linkOff").onclick = () => { linkDrop(); $("linkMsg").textContent = "Unlinked. Purchases from the app are locked in this browser again."; };
 $("linkMake").onclick = async () => {
   const msg = $("linkMsg"), P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Integrity;
+  if (SWITCH.links === false) { msg.textContent = PAUSED; return; }
   if (!P || !SUPPORT) { msg.textContent = "Update Arachnotes from Google Play to make link codes."; return; }
   $("linkMake").disabled = true; msg.textContent = "Asking Google Play…";
   try {
@@ -8620,6 +8683,7 @@ async function xferGather() {
 }
 $("xferMake").onclick = async () => {
   const msg = $("xferMsg");
+  if (SWITCH.transfers === false) { msg.textContent = PAUSED; return; }
   if (!SUPPORT || typeof CompressionStream !== "function") { msg.textContent = "This browser can't make transfer codes. Use a backup file instead."; return; }
   $("xferMake").disabled = true; msg.textContent = "Packing and locking your data…";
   try {
@@ -8663,6 +8727,7 @@ async function xferApply(d) {
 }
 $("xferGo").onclick = async () => {
   const code = $("xferIn").value, msg = $("xferMsg");
+  if (SWITCH.transfers === false) { msg.textContent = PAUSED; return; }
   if (normCode(code).length !== 16) { msg.textContent = "Transfer codes have 16 letters and numbers, like 4F7K-29QX-MB3D-8HNA."; return; }
   if (!SUPPORT || typeof DecompressionStream !== "function") { msg.textContent = "This browser can't open transfer codes. Use a backup file instead."; return; }
   if (!webGate()) return; // the free web version counts it as one upload; the app and linked browsers have no limit
@@ -8715,7 +8780,7 @@ function ownerShow() {
   clearInterval(OWNER.timer); clearInterval(OWNER.chat);
   if (!signed || !$("dOwner").open) return;
   ownerStats(); ownerChat();
-  OWNER.timer = setInterval(() => { if (!document.hidden) ownerStats(); }, 60000);
+  OWNER.timer = setInterval(() => { if (!document.hidden && OWNER.tab === "overview") ownerStats(); }, 60000);
   OWNER.chat = setInterval(() => { if (!document.hidden) ownerChat(); }, 15000);
 }
 $("dOwner").addEventListener("close", () => { clearInterval(OWNER.timer); clearInterval(OWNER.chat); $("ownPass").value = ""; });
@@ -8727,7 +8792,7 @@ $("ownGo").onclick = async () => {
 };
 $("ownPass").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("ownGo").click(); } });
 $("ownOut").onclick = async () => { try { await ownerCall("signout"); } catch (e) { /* signed out here anyway */ } OWNER.token = null; store.set("cak3d-owner", null); ownerShow(); };
-$("ownRefresh").onclick = () => ownerStats();
+$("ownRefresh").onclick = () => ownerTab(OWNER.tab || "overview");
 $("ownSend").onclick = async () => {
   const t = $("ownText").value.trim(); if (!t) return;
   $("ownSend").disabled = true;
@@ -8756,6 +8821,210 @@ const ownLinks = list => `<div class="own-links">${list.map(([t, u]) => `<a clas
 const ownNote = t => t ? `<p class="own-note">${esc(t)}</p>` : "";
 const ownCard = (title, open, body, ok = true, err = "") => `<section class="own-card"><h3><span>${esc(title)}</span>${open ? `<a href="${open}" target="_blank" rel="noopener">Open ↗</a>` : ""}</h3>${ok ? body : `<p class="no">${esc(err || "Couldn't load this part.")}</p>` + body}</section>`;
 const stateIcon = (st, c) => st !== "completed" && st !== "READY" && st !== "ERROR" && st !== "CANCELED" ? `<span class="run">● ${esc(String(st).toLowerCase())}</span>` : (c === "success" || st === "READY") ? `<span class="ok">✓ ok</span>` : `<span class="no">✕ ${esc(String(c || st).toLowerCase())}</span>`;
+// tabs: each loads when it's opened (and again on Refresh)
+OWNER.tab = "overview";
+$("ownTabs").addEventListener("click", e => { const b = e.target.closest("[data-otab]"); if (b) ownerTab(b.dataset.otab); });
+function ownerTab(t) {
+  OWNER.tab = t;
+  for (const b of document.querySelectorAll("#ownTabs [data-otab]")) b.setAttribute("aria-selected", String(b.dataset.otab === t));
+  for (const d of document.querySelectorAll("#dOwner [data-opane]")) d.hidden = d.dataset.opane !== t;
+  ({ overview: ownerStats, charts: ownerCharts, support: ownerSupport, forum: ownerForum, users: ownerUsers, fixes: ownerFixes, releases: ownerReleases, messages: ownerChat })[t]();
+}
+const opane = t => document.querySelector(`#dOwner [data-opane="${t}"]`);
+// a button that needs a second tap to do anything that changes something
+function armed(btn, fn) {
+  btn.addEventListener("click", async () => {
+    if (btn.dataset.armed !== "1") { btn.dataset.armed = "1"; btn.dataset.label = btn.textContent; btn.textContent = "Tap again to confirm"; setTimeout(() => { if (btn.dataset.armed === "1") { btn.dataset.armed = ""; btn.textContent = btn.dataset.label; } }, 4000); return; }
+    btn.dataset.armed = ""; btn.textContent = btn.dataset.label; btn.disabled = true;
+    try { await fn(); } catch (e) { $("ownMsg").textContent = e.message; } finally { btn.disabled = false; }
+  });
+}
+const when = t => t ? new Date(t).toLocaleString() : "–";
+const tag = (t, c = "") => `<span class="own-tag ${c}">${esc(t)}</span>`;
+// tab badges: what needs you
+function ownerBadges(life) {
+  if (!life) return;
+  const n = { support: (life.reports_open || 0) + (life.errors_open || 0) + (life.deletions_open || 0), forum: life.forum_flagged || 0 };
+  for (const b of document.querySelectorAll("#ownTabs [data-otab]")) { const old = b.querySelector("b"); if (old) old.remove(); const k = n[b.dataset.otab]; if (k) b.insertAdjacentHTML("beforeend", `<b>${k}</b>`); }
+}
+// ---- charts: lines over 30, 90 or 365 days, and lifetime totals
+function lineChart(rows, lines, label) {
+  const W = 600, H = 170, L = 34, B = 22, T = 10, max = Math.max(1, ...rows.flatMap(r => lines.map(l => +r[l.k] || 0)));
+  const x = i => L + (W - L - 8) * (rows.length < 2 ? 0 : i / (rows.length - 1)), y = v => T + (H - T - B) * (1 - v / max);
+  const paths = lines.map(l => `<polyline fill="none" stroke="${l.c}" stroke-width="2" stroke-linejoin="round" points="${rows.map((r, i) => `${x(i).toFixed(1)},${y(+r[l.k] || 0).toFixed(1)}`).join(" ")}"/>`).join("");
+  const grid = [0, 0.5, 1].map(f => `<line x1="${L}" x2="${W - 8}" y1="${y(max * f)}" y2="${y(max * f)}" stroke="currentColor" stroke-opacity=".12"/><text x="${L - 5}" y="${y(max * f) + 4}" text-anchor="end" font-size="10" fill="currentColor" opacity=".6">${Math.round(max * f)}</text>`).join("");
+  const d0 = rows[0] ? String(rows[0].day).slice(5) : "", d1 = rows.length ? String(rows[rows.length - 1].day).slice(5) : "";
+  return `<figure style="margin:0"><figcaption class="own-note">${esc(label)}</figcaption><svg class="own-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${grid}${paths}<text x="${L}" y="${H - 6}" font-size="10" fill="currentColor" opacity=".6">${d0}</text><text x="${W - 8}" y="${H - 6}" font-size="10" text-anchor="end" fill="currentColor" opacity=".6">${d1}</text></svg>
+    <div class="own-legend">${lines.map(l => `<span><i style="background:${l.c}"></i>${esc(l.label)}: ${fmtN(rows.reduce((s, r) => s + (+r[l.k] || 0), 0))}</span>`).join("")}</div></figure>`;
+}
+OWNER.days = 30;
+async function ownerCharts() {
+  const el = opane("charts"); el.innerHTML = `<p class="own-note">Loading…</p>`;
+  let d; try { d = await ownerCall("series", { days: OWNER.days }); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+  const L = d.lifetime || {}, c = L.counters || {}, rows = d.series || [], play = OWNER.last && OWNER.last.play, inst = play && play.installs_daily;
+  ownerBadges(L);
+  el.innerHTML = `<div class="own-row" role="group" aria-label="Period">${[30, 90, 365].map(n => `<button type="button" class="btn${OWNER.days === n ? " primary" : ""}" data-days="${n}">${n} days</button>`).join("")}</div>
+    ${ownCard("Since the start", "", big([[fmtN(L.users), "people ever (" + fmtN(L.users_android) + " Android, " + fmtN(L.users_web) + " web)"], [fmtN(L.active_7), "used it this week"], [fmtN(L.active_30), "used it this month"],
+      [fmtN(L.reports), "issue reports"], [fmtN(L.errors), "errors"], [fmtN(L.forum_posts), "forum posts"], [fmtN(c.link_codes), "link codes"], [fmtN(c.linked_browsers), "browsers linked"], [fmtN(c.transfers), "transfers"], [fmtN(L.web_networks), "web networks tried it"],
+      [play && play.installs ? fmtN(play.installs.total_users) : "–", "Play installs, ever"], [fmtN(L.deletions), "deletion requests"]])
+      + ownNote(L.first_user ? "First check-in: " + when(L.first_user) : "Counts start with v1.20, when apps began checking in once a day."))}
+    ${ownCard("People", "", lineChart(rows, [{ k: "active_android", label: "Android", c: "#2e8b57" }, { k: "active_web", label: "Web", c: "#4a7bd0" }, { k: "new_users", label: "New", c: "#c98a12" }], "People using it each day"))}
+    ${inst && inst.length ? ownCard("Google Play installs", "https://play.google.com/console", lineChart(inst.map(r => ({ ...r, day: r.day })), [{ k: "installs", label: "Installs", c: "#2e8b57" }, { k: "uninstalls", label: "Uninstalls", c: "#c0392b" }], "Installs and uninstalls this month (Google's report)")) : ""}
+    ${ownCard("Problems", "", lineChart(rows, [{ k: "errors", label: "New errors", c: "#c0392b" }, { k: "reports", label: "Issue reports", c: "#c98a12" }], "Errors and reports each day"))}
+    ${ownCard("Activity", "", lineChart(rows, [{ k: "forum", label: "Forum posts", c: "#8e44ad" }, { k: "link_codes", label: "Link codes", c: "#16a085" }, { k: "web_networks", label: "Web visitors", c: "#4a7bd0" }], "Forum, link codes and web visitors each day"))}
+    ${ownCard("Versions this week", "", (L.versions_week || []).length ? `<ul class="own-list">${L.versions_week.map(v => `<li><span>${esc(v.version || "?")}</span><span>${fmtN(v.n)}</span></li>`).join("")}</ul>` : ownNote("No check-ins yet."))}`;
+  el.querySelectorAll("[data-days]").forEach(b => b.onclick = () => { OWNER.days = +b.dataset.days; ownerCharts(); });
+}
+// ---- support: issue reports, errors, data-deletion requests, and Play reviews
+async function ownerSupport() {
+  const el = opane("support"); el.innerHTML = `<p class="own-note">Loading…</p>`;
+  let d; try { d = await ownerCall("inbox"); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+  const reviews = (OWNER.last && OWNER.last.play && OWNER.last.play.reviews) || [];
+  const rep = r => `<div class="own-item" data-rep="${r.id}"><div class="own-row">${tag("#" + r.id)}${tag(r.status || "new", (r.status || "new") === "done" ? "green" : "red")}<span class="own-note">${when(r.created_at)} · ${esc(r.app_version || "")} ${esc(r.platform || "")}</span></div>
+    <p>${esc(r.message)}</p>
+    <div class="own-row"><button type="button" class="linkish" data-user="${esc(r.user_id || "")}">${esc(r.user_id || "no support ID")}</button>${r.contact ? ` · <a href="mailto:${esc(r.contact)}?subject=${encodeURIComponent("Your Arachnotes report #" + r.id)}">Reply to ${esc(r.contact)}</a>` : ""}</div>
+    ${r.settings ? `<details><summary class="own-note">Their settings</summary><pre>${esc(JSON.stringify(r.settings, null, 1))}</pre></details>` : ""}
+    <div class="own-form"><textarea class="inp" rows="2" data-notes placeholder="Your notes">${esc(r.notes || "")}</textarea>
+    <div class="own-row"><select data-status aria-label="Status">${["new", "working", "waiting", "done"].map(x => `<option${(r.status || "new") === x ? " selected" : ""}>${x}</option>`).join("")}</select><button type="button" class="btn" data-save>Save</button></div></div></div>`;
+  const err = e => `<div class="own-item" data-err="${e.id}"><div class="own-row">${e.fixed_at ? tag("fixed", "green") : tag("open", "red")}${tag("×" + e.count)}<span class="own-note">${esc(e.version || "")} · ${esc(e.platform || "")} · ${esc(e.place || "")} · last ${ago(e.last_at)}</span></div>
+    <p>${esc(e.message)}</p>${e.stack ? `<details><summary class="own-note">Where in the code</summary><pre>${esc(e.stack)}</pre></details>` : ""}
+    <div class="own-row"><button type="button" class="btn" data-fix="${e.fixed_at ? 0 : 1}">${e.fixed_at ? "Reopen" : "Mark fixed"}</button>${e.fixed_at ? "" : `<button type="button" class="btn" data-fixall>Mark all like this fixed</button>`}${e.user_id ? `<button type="button" class="linkish" data-user="${esc(e.user_id)}">${esc(e.user_id)}</button>` : ""}</div></div>`;
+  const del = r => `<div class="own-item" data-del="${r.id}"><div class="own-row">${tag(r.status, r.status === "done" ? "green" : "red")}<span class="own-note">${when(r.created_at)}</span></div>
+    <p>${esc(r.support_id || "no support ID")} · deleted ${fmtN(r.reports_deleted)} reports${r.posts ? "\nForum posts to remove: " + esc(r.posts) : ""}${r.note ? "\nNote: " + esc(r.note) : ""}</p>${r.status === "done" ? "" : `<div class="own-row"><button type="button" class="btn" data-deldone>Mark done</button></div>`}</div>`;
+  const rev = r => `<div class="own-item" data-rev="${esc(r.id)}"><div class="own-row">${tag("★".repeat(r.stars))}<span class="own-note">${esc(r.author)} · ${ago(r.at)}</span></div><p>${esc(r.text)}</p>
+    ${r.reply ? `<p class="own-note">Your reply: ${esc(r.reply)}</p>` : ""}<div class="own-form"><textarea class="inp" rows="2" maxlength="350" data-revtext placeholder="${r.reply ? "Change your reply" : "Reply on the Play Store (up to 350 characters)"}"></textarea><div class="own-row"><button type="button" class="btn" data-revsend>Reply on Google Play</button></div></div></div>`;
+  el.innerHTML = ownCard(`Issue reports (${d.reports.length})`, "", d.reports.length ? d.reports.map(rep).join("") : ownNote("No issue reports."))
+    + ownCard(`Errors (${d.errors.filter(e => !e.fixed_at).length} open)`, "", d.errors.length ? d.errors.map(err).join("") : ownNote("No errors."))
+    + ownCard("Play Store reviews", "https://play.google.com/console", reviews.length ? reviews.map(rev).join("") : ownNote("No reviews in the last week (Google only shares a week of them)."))
+    + ownCard("Data deletion requests", WEBSITE + "data", d.deletions.length ? d.deletions.map(del).join("") : ownNote("None."));
+  el.querySelectorAll("[data-rep]").forEach(x => x.querySelector("[data-save]").onclick = async () => {
+    try { await ownerCall("report_set", { id: +x.dataset.rep, status: x.querySelector("[data-status]").value, notes: x.querySelector("[data-notes]").value }); flash("Saved."); ownerSupport(); } catch (e) { $("ownMsg").textContent = e.message; } });
+  el.querySelectorAll("[data-err]").forEach(x => {
+    x.querySelector("[data-fix]").onclick = async b => { await ownerCall("error_set", { id: +x.dataset.err, fixed: x.querySelector("[data-fix]").dataset.fix === "1" }).catch(e => $("ownMsg").textContent = e.message); ownerSupport(); };
+    const all = x.querySelector("[data-fixall]"); if (all) armed(all, async () => { await ownerCall("error_fix_all", { message: d.errors.find(e => e.id === +x.dataset.err).message }); ownerSupport(); });
+  });
+  el.querySelectorAll("[data-del]").forEach(x => { const b = x.querySelector("[data-deldone]"); if (b) armed(b, async () => { await ownerCall("deletion_set", { id: +x.dataset.del, status: "done" }); ownerSupport(); }); });
+  el.querySelectorAll("[data-rev]").forEach(x => armed(x.querySelector("[data-revsend]"), async () => { await ownerCall("review_reply", { review: x.dataset.rev, text: x.querySelector("[data-revtext]").value }); flash("Reply posted on Google Play."); }));
+  el.querySelectorAll("[data-user]").forEach(b => b.onclick = () => { if (b.dataset.user) { OWNER.user = b.dataset.user; ownerTab("users"); } });
+}
+// ---- forum moderation
+const FSTATUS = { open: "Open", planned: "Planned", working: "Being worked on", fixed: "Fixed", done: "Added", declined: "Not planned", duplicate: "Duplicate", closed: "Closed", hidden: "Hidden" };
+async function ownerForum(postId) {
+  const el = opane("forum"); el.innerHTML = `<p class="own-note">Loading…</p>`;
+  if (postId) {
+    let d; try { d = await ownerCall("forum_post", { id: postId }); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+    const p = d.post || {};
+    el.innerHTML = `<button type="button" class="btn" data-back>← All posts</button>` + ownCard(`#${p.id} ${p.kind === "idea" ? "Idea" : "Issue"}`, WEBSITE + (p.kind === "idea" ? "ideas" : "issues") + "#" + p.id,
+      `<h3 style="text-transform:none;letter-spacing:0;font:600 1.05rem var(--serif, serif)">${esc(p.title)}</h3><p>${esc(p.body)}</p><p class="own-note">${esc(p.author)} · ${when(p.created_at)} · ${fmtN(p.votes)} votes · reported ${fmtN(p.reports)} times${p.app_version ? " · " + esc(p.app_version) : ""}</p>
+      <div class="own-form"><label class="field"><span>Status</span><select data-fstatus>${Object.entries(FSTATUS).map(([k, v]) => `<option value="${k}"${p.status === k ? " selected" : ""}>${v}</option>`).join("")}</select></label>
+      <label class="field"><span>Developer note (shown on the post)</span><textarea class="inp" rows="2" data-fnote>${esc(p.dev_note || "")}</textarea></label>
+      <label class="chk"><input type="checkbox" data-fpin${p.pinned ? " checked" : ""}> Pinned to the top</label>
+      <div class="own-row"><button type="button" class="btn primary" data-fsave>Save</button>${p.reports ? `<button type="button" class="btn" data-fclear>Clear the reports</button>` : ""}</div></div>`)
+      + ownCard(`Replies (${(d.replies || []).length})`, "", (d.replies || []).map(r => `<div class="own-item" data-rid="${r.id}"><div class="own-row">${r.is_dev ? tag("you", "green") : ""}${r.hidden ? tag("hidden", "red") : ""}<span class="own-note">${esc(r.author)} · ${when(r.created_at)}${r.reports ? " · reported " + r.reports + "×" : ""}</span></div><p>${esc(r.body)}</p><div class="own-row"><button type="button" class="btn" data-rhide="${r.hidden ? 0 : 1}">${r.hidden ? "Show" : "Hide"}</button></div></div>`).join("") || ownNote("No replies yet.")
+        + `<div class="own-form"><textarea class="inp" rows="3" data-rtext placeholder="Reply as CAK3D_Creations (shown as the developer)"></textarea><div class="own-row"><button type="button" class="btn primary" data-rsend>Post reply</button></div></div>`);
+    el.querySelector("[data-back]").onclick = () => ownerForum();
+    el.querySelector("[data-fsave]").onclick = async () => { try { await ownerCall("forum_set", { id: p.id, status: el.querySelector("[data-fstatus]").value, dev_note: el.querySelector("[data-fnote]").value, pinned: el.querySelector("[data-fpin]").checked }); flash("Saved."); ownerForum(p.id); } catch (e) { $("ownMsg").textContent = e.message; } };
+    const cl = el.querySelector("[data-fclear]"); if (cl) cl.onclick = async () => { await ownerCall("forum_set", { id: p.id, clear_reports: true }); ownerForum(p.id); };
+    el.querySelectorAll("[data-rid]").forEach(x => x.querySelector("[data-rhide]").onclick = async () => { await ownerCall("reply_hide", { id: +x.dataset.rid, hidden: x.querySelector("[data-rhide]").dataset.rhide === "1" }); ownerForum(p.id); });
+    armed(el.querySelector("[data-rsend]"), async () => { await ownerCall("forum_reply", { id: p.id, text: el.querySelector("[data-rtext]").value }); flash("Reply posted."); ownerForum(p.id); });
+    return;
+  }
+  let d; try { d = await ownerCall("forum", { status: OWNER.fstatus || "" }); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+  el.innerHTML = `<div class="own-row"><label class="field" style="flex:1"><span>Show</span><select data-ffilter><option value="">Everything</option>${Object.entries(FSTATUS).map(([k, v]) => `<option value="${k}"${OWNER.fstatus === k ? " selected" : ""}>${v}</option>`).join("")}</select></label></div>`
+    + ownCard(`Posts (${d.posts.length})`, WEBSITE + "issues", d.posts.length ? `<ul class="own-list">${d.posts.map(p => `<li><button type="button" class="linkish" data-post="${p.id}" style="text-align:left">#${p.id} ${esc(p.title)}</button><span>${p.reports ? tag("⚑" + p.reports, "red") : ""} ${tag(FSTATUS[p.status] || p.status)} ${fmtN(p.votes)}▲</span></li>`).join("")}</ul>` : ownNote("No posts."));
+  el.querySelector("[data-ffilter]").onchange = e => { OWNER.fstatus = e.target.value; ownerForum(); };
+  el.querySelectorAll("[data-post]").forEach(b => b.onclick = () => ownerForum(+b.dataset.post));
+}
+// ---- one user, by support ID
+async function ownerUsers() {
+  const el = opane("users");
+  el.innerHTML = ownCard("Look up a user", "", `<div class="own-form"><input class="inp" data-uid placeholder="Support ID, like AN-7K3Q-9XWD-2M4P" value="${esc(OWNER.user || "")}" autocomplete="off" spellcheck="false" aria-label="Support ID"><div class="own-row"><button type="button" class="btn primary" data-ugo>Look up</button></div></div><div data-uout></div>`)
+    + ownCard("Free web uses", "", ownNote("If you've used up the 2 free uploads while testing the web version, this resets the count for the network you're on now.") + `<div class="own-row"><button type="button" class="btn" data-net>Reset my network's free uses</button></div>`);
+  armed(el.querySelector("[data-net]"), async () => { const r = await ownerCall("reset_network"); flash(r.removed ? "Reset." : "Nothing to reset on this network."); });
+  const go = async () => {
+    const id = el.querySelector("[data-uid]").value.trim().toUpperCase(), out = el.querySelector("[data-uout]"); OWNER.user = id; if (!id) return;
+    out.innerHTML = `<p class="own-note">Loading…</p>`;
+    let d; try { d = await ownerCall("user", { user: id }); } catch (e) { out.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+    const u = d.user;
+    out.innerHTML = (u ? big([[esc(u.platform || "?"), "platform"], [esc(u.version || "?"), "version"], [ago(u.last_at), "last seen"], [ago(u.first_at), "first seen"], [fmtN((d.checkins || []).length), "days used (last 60)"]]) : ownNote("No check-ins from this ID (older versions don't check in, or it's switched off)."))
+      + `<p class="own-note"><b>Reports:</b> ${(d.reports || []).map(r => `#${r.id} ${esc(trunc(r.message, 60))} (${esc(r.status || "new")})`).join(" · ") || "none"}</p>
+      <p class="own-note"><b>Errors:</b> ${(d.errors || []).map(e => `${esc(trunc(e.message, 50))} ×${e.count}${e.fixed_at ? " (fixed)" : ""}`).join(" · ") || "none"}</p>
+      <p class="own-note"><b>Linked browsers:</b> ${(d.passes || []).length ? d.passes.map(p => `since ${when(p.created_at)}, last ${ago(p.last_seen)}, unlocks ${(p.owned || []).join(", ") || "nothing"}`).join(" · ") : "none"}</p>
+      <p class="own-note"><b>Link codes:</b> ${(d.links || []).length} made${(d.links || []).length ? ", last " + ago(d.links[0].created_at) : ""}</p>
+      <p class="own-note"><b>Fix waiting for them:</b> ${d.fix ? esc(JSON.stringify(d.fix.actions)) + (d.fix_seen && d.fix_seen.fix_at && Date.parse(d.fix_seen.fix_at) >= Date.parse(d.fix.updated_at) ? " · picked up " + ago(d.fix_seen.at) : " · not picked up yet") : "none"}</p>
+      <div class="own-row"><button type="button" class="btn" data-ufix>Send them a fix</button>${(d.passes || []).length ? `<button type="button" class="btn" data-unlink>Unlink their browsers</button>` : ""}</div>`;
+    out.querySelector("[data-ufix]").onclick = () => { OWNER.fixTarget = id; ownerTab("fixes"); };
+    const ul = out.querySelector("[data-unlink]"); if (ul) armed(ul, async () => { const r = await ownerCall("unlink", { user: id }); flash(`Unlinked ${plural(r.removed, "browser")}.`); go(); });
+  };
+  el.querySelector("[data-ugo]").onclick = go;
+  el.querySelector("[data-uid]").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+  if (OWNER.user) go();
+}
+// ---- fixes, switches and the announcement
+async function ownerFixes() {
+  const el = opane("fixes"); el.innerHTML = `<p class="own-note">Loading…</p>`;
+  let f, c; try { [f, c] = await Promise.all([ownerCall("fixes"), ownerCall("config")]); } catch (e) { el.innerHTML = `<p class="no">${esc(e.message)}</p>`; return; }
+  const sw = Object.assign({ lookups: true, links: true, transfers: true, deviceAI: true, errorReports: true }, c.config.switches || {}), ann = c.config.announcement || {};
+  const SWN = { lookups: "Keyword lookups on Wikipedia", links: "Link codes (phone ↔ web)", transfers: "Transfer codes", deviceAI: "Downloading the on-device AI", errorReports: "Error reports" };
+  const seen = new Map((f.seen || []).map(x => [x.user_id, x]));
+  el.innerHTML = ownCard("Send a fix", "", `<div class="own-form">
+      <label class="field"><span>Who</span><input class="inp" data-ftarget value="${esc(OWNER.fixTarget || "everyone")}" placeholder="everyone, or a support ID" autocomplete="off" spellcheck="false"></label>
+      <label class="chk"><input type="checkbox" data-freset> Reset their settings to the defaults</label>
+      <label class="field"><span>Change settings (optional, as JSON, e.g. {"lookup":"off"})</span><input class="inp" data-fcfg autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span>Unlock purchases (product IDs, comma-separated)</span><input class="inp" data-fgrant autocomplete="off" spellcheck="false" placeholder="bundle_everything"></label>
+      <label class="field"><span>Remove purchases</span><input class="inp" data-frevoke autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span>Message to show them (optional)</span><input class="inp" data-fmsg maxlength="300"></label>
+      <label class="field"><span>Note for yourself</span><input class="inp" data-fnote maxlength="500"></label>
+      <div class="own-row"><button type="button" class="btn primary" data-fsend>Send fix</button></div>
+      <p class="own-note">It's applied the next time their app opens (everyone's, for "everyone"), once per fix.</p></div>`)
+    + ownCard(`Fixes sent (${(f.fixes || []).length})`, "", (f.fixes || []).length ? (f.fixes || []).map(x => { const sn = seen.get(x.user_id), picked = x.user_id !== "*" && sn && sn.fix_at && Date.parse(sn.fix_at) >= Date.parse(x.updated_at);
+        return `<div class="own-item" data-fx="${esc(x.user_id)}"><div class="own-row">${tag(x.user_id === "*" ? "everyone" : x.user_id)}${x.user_id === "*" ? "" : picked ? tag("picked up " + ago(sn.at), "green") : tag("waiting", "red")}<span class="own-note">${when(x.updated_at)}</span></div><pre>${esc(JSON.stringify(x.actions))}</pre>${x.note ? `<p class="own-note">${esc(x.note)}</p>` : ""}<div class="own-row"><button type="button" class="btn" data-fxclear>Remove</button></div></div>`; }).join("") : ownNote("None."))
+    + ownCard("Switches (for everyone)", "", `<div class="own-form">${Object.entries(SWN).map(([k, v]) => `<label class="chk"><input type="checkbox" data-sw="${k}"${sw[k] !== false ? " checked" : ""}> ${v}</label>`).join("")}
+      <div class="own-row"><button type="button" class="btn primary" data-swsave>Save switches</button></div><p class="own-note">Turning one off pauses that feature in every app at its next launch, with a "try again later" message. Use it if something breaks.</p></div>`)
+    + ownCard("Announcement (for everyone)", "", `<div class="own-form"><textarea class="inp" rows="2" maxlength="400" data-atext placeholder="e.g. Link codes are paused while we fix something. Back soon!">${esc(ann.text || "")}</textarea>
+      <div class="own-row"><select data-alevel aria-label="Kind"><option value="info"${ann.level !== "warn" ? " selected" : ""}>Information</option><option value="warn"${ann.level === "warn" ? " selected" : ""}>Warning</option></select><label class="field" style="flex:1"><span>Until (optional)</span><input class="inp" type="date" data-auntil value="${esc(ann.until ? String(ann.until).slice(0, 10) : "")}"></label></div>
+      <div class="own-row"><button type="button" class="btn primary" data-asave>Show it</button><button type="button" class="btn" data-aclear>Remove it</button></div><p class="own-note">${ann.text ? "Showing now." : "Nothing showing."} People can dismiss it; a new one shows again.</p></div>`);
+  armed(el.querySelector("[data-fsend]"), async () => {
+    const actions = {}, q = sel => el.querySelector(sel);
+    if (q("[data-freset]").checked) actions.resetSettings = true;
+    if (q("[data-fcfg]").value.trim()) { try { actions.cfg = JSON.parse(q("[data-fcfg]").value); } catch (e) { throw new Error("The settings aren't valid JSON."); } }
+    const list = v => v.split(/[\s,]+/).map(x => x.trim()).filter(Boolean);
+    if (list(q("[data-fgrant]").value).length) actions.grant = list(q("[data-fgrant]").value);
+    if (list(q("[data-frevoke]").value).length) actions.revoke = list(q("[data-frevoke]").value);
+    if (q("[data-fmsg]").value.trim()) actions.message = q("[data-fmsg]").value.trim();
+    if (!Object.keys(actions).length) throw new Error("Choose something for the fix to do.");
+    await ownerCall("fix_send", { target: q("[data-ftarget]").value.trim(), actions, note: q("[data-fnote]").value });
+    OWNER.fixTarget = ""; flash("Fix sent."); ownerFixes();
+  });
+  el.querySelectorAll("[data-fx]").forEach(x => armed(x.querySelector("[data-fxclear]"), async () => { await ownerCall("fix_clear", { target: x.dataset.fx === "*" ? "everyone" : x.dataset.fx }); ownerFixes(); }));
+  armed(el.querySelector("[data-swsave]"), async () => {
+    const v = {}; el.querySelectorAll("[data-sw]").forEach(i => { v[i.dataset.sw] = i.checked; });
+    await ownerCall("config_set", { key: "switches", value: v }); flash("Switches saved."); ownerFixes();
+  });
+  armed(el.querySelector("[data-asave]"), async () => {
+    const text = el.querySelector("[data-atext]").value.trim(); if (!text) throw new Error("Write the announcement first.");
+    const until = el.querySelector("[data-auntil]").value;
+    await ownerCall("config_set", { key: "announcement", value: { id: "a" + Date.now().toString(36), text, level: el.querySelector("[data-alevel]").value, until: until ? until + "T23:59:59" : null } });
+    flash("Announcement is showing."); ownerFixes();
+  });
+  armed(el.querySelector("[data-aclear]"), async () => { await ownerCall("config_set", { key: "announcement", value: null }); flash("Announcement removed."); ownerFixes(); });
+}
+// ---- releases: builds, and the buttons that run the GitHub workflows
+async function ownerReleases() {
+  const el = opane("releases"), gh = (OWNER.last && OWNER.last.github) || {};
+  const failed = (gh.workflows || []).filter(w => w.conclusion === "failure");
+  el.innerHTML = ownCard("Google Play", "https://play.google.com/console", `<div class="own-row">
+      <button type="button" class="btn" data-rel="check">Check the Play connection</button>
+      <button type="button" class="btn" data-rel="rollout">Roll out the internal testing draft</button>
+      <button type="button" class="btn" data-rel="to_closed">Copy internal testing to closed testing</button>
+      <button type="button" class="btn" data-rel="listing">Send the store listing and pictures</button></div>
+      <p class="own-note">Each runs a workflow on GitHub; its result shows under Builds after a minute or two.</p>`)
+    + ownCard("Builds", "https://github.com/real-CAK3D/CAK3D-Crawler/actions", ((gh.workflows || []).length ? `<ul class="own-list">${gh.workflows.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.name)}</a><span>${stateIcon(w.status, w.conclusion)} ${ago(w.at)}</span></li>`).join("")}</ul>` : ownNote("Open Overview first to load the builds."))
+      + (failed.length ? `<div class="own-row">${failed.map(w => `<button type="button" class="btn" data-rerun="${w.id}">Re-run ${esc(w.name)}</button>`).join("")}</div>` : ""))
+    + ownCard("Releases", "https://github.com/real-CAK3D/CAK3D-Crawler/releases", (gh.releases || []).length ? `<ul class="own-list">${gh.releases.map(r => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.tag)}</a><span>${fmtN(r.apk)} APK downloads · ${ago(r.at)}</span></li>`).join("")}</ul>` : ownNote("No releases loaded."));
+  el.querySelectorAll("[data-rel]").forEach(b => armed(b, async () => { await ownerCall("release", { kind: b.dataset.rel }); flash("Started. Check Builds in a minute."); }));
+  el.querySelectorAll("[data-rerun]").forEach(b => armed(b, async () => { await ownerCall("release", { kind: "rerun", run: +b.dataset.rerun }); flash("Re-running."); }));
+}
 async function ownerStats() {
   $("ownAt").textContent = "Loading…";
   let d; try { d = await ownerCall("stats"); } catch (e) { $("ownAt").textContent = e.message; return; }
@@ -8784,8 +9053,11 @@ async function ownerStats() {
   html.push(ownCard("Vercel", "https://vercel.com/dashboard", (vc.ok === false ? "" : vc.projects ? `<ul class="own-list">${vc.projects.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.project)}</a><span>${stateIcon(x.state)} ${ago(x.at)}</span></li>`).join("")}</ul>` : ownNote(vc.note))
     + ownNote("Vercel doesn't share free-plan usage through its API: tap Usage to see how close you are.")
     + ownLinks([["Usage", "https://vercel.com/dashboard/usage"], ["Web app", WEB_APP], ["Website", WEBSITE]]), vc.ok !== false, vc.error));
+  const hl = d.health || {};
+  html.unshift(ownCard("Health", "", (hl.checks || []).length ? `<ul class="own-list">${hl.checks.map(c => `<li><span>${esc(c.name)}</span><span>${c.ok ? `<span class="ok">✓ ${c.ms} ms</span>` : `<span class="no">✕ ${c.status || esc(c.error || "down")}</span>`}</span></li>`).join("")}</ul>` : ownNote(hl.error || "No health check.")));
   $("ownGrid").innerHTML = html.join("");
   $("ownAt").textContent = "Updated " + new Date(d.at).toLocaleTimeString();
+  ownerCall("series", { days: 7 }).then(x => ownerBadges(x.lifetime)).catch(() => {});
 }
 const REF_ID = SUPPORT ? (new URL(SUPPORT.url).hostname.split(".")[0]) : "";
 
@@ -9899,7 +10171,7 @@ const BIND = [["cfgSpeed", "speed", Number], ["cfgEntrance", "entrance", String]
   ["cfgBreeze", "breeze", Boolean], ["cfgKnots", "knots", Boolean], ["cfgFade", "fade", Number, "oFade"], ["cfgCatchFx", "catchFx", String], ["cfgNotice", "notice", Boolean],
   ["cfgFootprints", "footprints", Boolean], ["cfgSound", "sound", Boolean], ["cfgBabyLook", "babyLook", String], ["cfgBabyMode", "babyMode", String],
   ["cfgBabyColor", "babyColor", String], ["cfgBabySize", "babySize", Number, "oBabySize"], ["cfgHatchFx", "hatchFx", String], ["cfgSkin", "skin", String], ["cfgAmbient", "ambient", String],
-  ["cfgCiteStyle", "citeStyle", String], ["cfgLookup", "lookup", String], ["cfgNotify", "notifyDone", Boolean], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
+  ["cfgCiteStyle", "citeStyle", String], ["cfgLookup", "lookup", String], ["cfgNotify", "notifyDone", Boolean], ["cfgCheckin", "checkin", Boolean], ["cfgStart", "startWith", String], ["cfgTtsRate", "ttsRate", Number, "oTtsRate"], ["ttsVoice", "ttsVoice", String], ["cfgLearn", "learn", Boolean],
   ["cfgSpiders", "spiders", String], ["cfgSeason", "season", String], ["cfgFollow", "follow", Number, "oFollow"], ["cfgDepth", "depth", Number, "oDepth"], ["cfgSameSite", "sameSite", Boolean], ["cfgMyName", "myName", String], ["cfgFlies", "flies", Number, "oFlies"], ["cfgPurpose", "purpose", String], ["cfgBored", "bored", String], ["cfgDetach", "detach", String]];
 function syncSettings() {
   for (const [id, key, , out] of BIND) { const el = $(id); if (el.type === "checkbox") el.checked = !!cfg[key]; else el.value = cfg[key]; if (out) $(out).textContent = fmt[key](cfg[key]); }
@@ -10095,6 +10367,7 @@ $("aiTest").onclick = async () => {
 $("aiDevModel").addEventListener("change", syncDeviceBox);
 $("aiDevGet").onclick = async () => {
   const which = $("aiDevModel").value, m = DEVICE_MODELS[which], prog = $("aiDevProg"), st = $("aiDevStatus");
+  if (SWITCH.deviceAI === false) { st.textContent = "Downloading the on-device AI is paused for a little while. Please try again later."; return; }
   $("aiDevGet").disabled = true; prog.hidden = false; prog.value = 0;
   st.textContent = `Downloading ${m.name} (${m.size})… You can keep using the app.`;
   try {
@@ -11022,6 +11295,74 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) saveR
 setInterval(saveResume, 20000);
 capsReady();
 requestAnimationFrame(frame);
+
+// ---- the browser tab's icon: a little spider that walks round its web while it's crawling, and rests when it's done.
+// Only in the web version, only while the tab is showing, and not at all with reduced motion.
+const TABSPIDER = (() => {
+  if (NATIVE || IN_CLAUDE) return null;
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+  link.type = "image/png";
+  const cv = document.createElement("canvas"); cv.width = cv.height = 32;
+  const g = cv.getContext("2d");
+  let a = -Math.PI / 2, step = 0, timer = 0;
+  function draw(moving) {
+    g.clearRect(0, 0, 32, 32);
+    g.fillStyle = "#111413"; g.beginPath(); g.roundRect(0, 0, 32, 32, 7); g.fill();
+    // the web: spokes and two rings of silk
+    g.strokeStyle = "rgba(230,235,231,.45)"; g.lineWidth = 0.8;
+    for (let i = 0; i < 8; i++) { const t = i * Math.PI / 4; g.beginPath(); g.moveTo(16, 16); g.lineTo(16 + Math.cos(t) * 15, 16 + Math.sin(t) * 15); g.stroke(); }
+    for (const r of [5.5, 10.5]) { g.beginPath(); for (let i = 0; i <= 8; i++) { const t = i * Math.PI / 4, x = 16 + Math.cos(t) * r, y = 16 + Math.sin(t) * r; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+    // the spider, on the outer ring, facing the way it walks
+    const x = 16 + Math.cos(a) * 10.5, y = 16 + Math.sin(a) * 10.5, head = a + Math.PI / 2;
+    g.save(); g.translate(x, y); g.rotate(head);
+    g.strokeStyle = "#f2c14e"; g.lineWidth = 1.2; g.lineCap = "round";
+    for (let i = 0; i < 4; i++) for (const side of [-1, 1]) {
+      const wig = moving ? Math.sin(step * 1.6 + i * 1.3 + (side > 0 ? Math.PI : 0)) * 0.35 : 0;
+      const base = (-0.9 + i * 0.6) + wig;
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(side * Math.cos(base) * 4.2, Math.sin(base) * 3.6 - 1); g.lineTo(side * Math.cos(base) * 6.4, Math.sin(base) * 5.4 + 0.6); g.stroke();
+    }
+    g.fillStyle = "#f2c14e"; g.beginPath(); g.ellipse(0, 1.6, 2.6, 3.2, 0, 0, 7); g.fill(); g.beginPath(); g.arc(0, -2.2, 1.8, 0, 7); g.fill();
+    g.restore();
+    link.href = cv.toDataURL("image/png");
+  }
+  const busy = () => DOC && !paused && !["done", "gone"].includes(S.mode) && !(crawled && S.doneAt === crawled);
+  function tick() {
+    const moving = busy();
+    if (moving) { a += 0.16; step++; }
+    draw(moving);
+  }
+  function run() {
+    clearInterval(timer); timer = 0;
+    if (document.hidden) return;
+    if (reduce || !g.roundRect || navigator.webdriver) { draw(false); return; } // test browsers get the still icon
+    timer = setInterval(tick, 220);
+  }
+  document.addEventListener("visibilitychange", run);
+  run();
+  return { run };
+})();
+
+// ---- for anyone who opens the developer tools: a spider-themed hello, and a warning about pasting things here
+if (!NATIVE && !IN_CLAUDE) {
+  const ink = "color:#e6ebe7;background:#111413", gold = "color:#f2c14e;background:#111413", silk = "color:#8aa39b;background:#111413", pad = "padding:2px 6px;font-family:ui-monospace,Consolas,monospace";
+  const art = [
+    "     ╲    ╲  ╱    ╱     ",
+    "      ╲    ╲╱    ╱      ",
+    "  ━━━━━(  ●  ●  )━━━━━  ",
+    "  ━━━━━(   ‿‿   )━━━━━  ",
+    "      ╱    ╱╲    ╲      ",
+    "     ╱    ╱  ╲    ╲     "
+  ].join("\n");
+  console.log("%c ✳ ARACHNOTES ✳ %c a spider that reads for you ", "font:700 22px Georgia,serif;letter-spacing:.08em;padding:8px 14px;border-radius:8px 0 0 8px;" + gold, "font:italic 15px Georgia,serif;padding:11px 14px;border-radius:0 8px 8px 0;" + ink);
+  console.log("%c" + art, "font:12px/1.15 ui-monospace,Consolas,monospace;padding:6px 10px;" + silk);
+  console.log(`%c v${APP.version} %c ${platformName()} %c by CAK3D_Creations `, pad + ";" + gold, pad + ";" + silk, pad + ";" + ink);
+  console.log("%c🕸  Website      %c" + WEBSITE + "\n%c🐞  Issues       %c" + WEBSITE + "issues\n%c💡  Ideas        %c" + WEBSITE + "ideas\n%c🔒  Privacy      %c" + WEBSITE + "privacy",
+    "color:#8aa39b", "color:#4a7bd0", "color:#8aa39b", "color:#4a7bd0", "color:#8aa39b", "color:#4a7bd0", "color:#8aa39b", "color:#4a7bd0");
+  console.log("%c⚠  Careful %c If someone told you to paste something here, it's a trick to get into your notes or purchases. Close this panel instead. ",
+    "font-weight:700;padding:4px 8px;border-radius:6px 0 0 6px;color:#fff;background:#c0392b", "padding:4px 8px;border-radius:0 6px 6px 0;color:#c0392b;background:#fdecea");
+  console.log("%cCurious how it works? Everything you read stays on your device. Found a bug? The Issues forum is the place. Happy crawling. 🕷", "color:#8aa39b;font-style:italic");
+}
 // shared from another app: Android hands it over through the ShareIn plugin; the installed web app gets it in the address
 {
   const SHARE = NATIVE && window.Capacitor.registerPlugin ? window.Capacitor.registerPlugin("ShareIn") : null;
