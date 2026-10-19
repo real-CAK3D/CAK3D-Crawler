@@ -3172,10 +3172,11 @@ async function notifyDone() {
 
 // ---------------- crawl actions ----------------
 // the developer console listens here when someone types arachnotes.watch()
-const ACON = { watching: false, caught() {} };
+const ACON = { watching: false, caught() {}, felt: [] };
 function catchNode(n, silent, by) {
   n.caught = true; n.el.classList.add("caught"); n.el.classList.remove("seed");
   const k = kwOf(n); k.crawled = true; crawled++;
+  if (!silent) { ACON.felt.push(k.key); if (ACON.felt.length > 8) ACON.felt.shift(); } // what silk.listen hears
   if (ACON.watching) try { ACON.caught(k, by); } catch (e) { /* the console is only for looking */ }
   if (!silent) queueLookup(k.key);
   const now = performance.now() - (silent ? 3000 : 0);
@@ -11436,10 +11437,16 @@ if (!NATIVE && !IN_CLAUDE) {
     T: ["████████", "   ██   ", "   ██   ", "   ██   ", "   ██   "], E: ["███████", "██     ", "█████  ", "██     ", "███████"], S: [" ██████", "██     ", " █████ ", "     ██", "██████ "] };
   const rows = [0, 1, 2, 3, 4].map(r => [..."ARACHNOTES"].map(ch => L[ch][r]).join(" "));
   const shades = ["#ffe39a", "#f9d370", "#f2c14e", "#e8aa3b", "#da902c"];
-  const thread = ["   │", "   │", "  ╲│╱", " ─(●)─", "  ╱ ╲"];
-  log(rows.map((r, n) => "%c " + r + "   %c" + thread[n] + "   ").join("\n"),
-    ...rows.flatMap((_, n) => [BG + MONO + "font-size:12px;line-height:1.1;color:" + shades[n] + ";padding:" + (n ? 0 : 10) + "px 0 " + (n === 4 ? 10 : 0) + "px 14px",
-      BG + MONO + "font-size:12px;line-height:1.1;color:" + SILK + ";padding:" + (n ? 0 : 10) + "px 14px " + (n === 4 ? 10 : 0) + "px 0"]));
+  const thread = ["   │   ", "   │   ", "  ╲│╱  ", " ─(●)─ ", "  ╱ ╲  "];
+  // spaces, not padding, keep the rows lined up: padding on a colored piece pushes along whatever line it ends on
+  const LOGO = BG + MONO + "font-size:12px;line-height:1.15;", blank = " ".repeat(rows[0].length + 13);
+  const fmt = [], sty = [];
+  [blank, ...rows, blank].forEach((r, n) => {
+    if (n) { fmt.push("%c\n"); sty.push(""); }
+    if (r === blank) { fmt.push("%c" + r); sty.push(LOGO); return; }
+    fmt.push("%c   " + r + "   ", "%c" + thread[n - 1]); sty.push(LOGO + "color:" + shades[n - 1], LOGO + "color:" + SILK);
+  });
+  log(fmt.join(""), ...sty);
   line([["  a spider that reads for you  ", BG + "font:italic 14px Georgia,serif;color:" + INK + ";padding:6px 4px 6px 14px"], [" v" + APP.version + " ", MONO + "color:#111;background:" + GOLD + ";padding:2px 6px;border-radius:4px"], [" " + platformName() + " ", MONO + "color:" + SILK + ";padding:2px 6px"], [" by CAK3D_Creations ", MONO + "color:" + DIM + ";padding:2px 6px"]]);
 
   // the boot check: each part of the app, in turn
@@ -11468,7 +11475,9 @@ if (!NATIVE && !IN_CLAUDE) {
     console.groupCollapsed("%c🕸  boot check  %c(" + checks.length + " parts)", MONO + "color:" + GOLD + ";font-weight:700", MONO + "color:" + DIM);
     for (const c of checks) { await report(c); await new Promise(r => setTimeout(r, 45)); }
     console.groupEnd();
-    line([["✓ all spun up. ", MONO + "color:" + GREEN + ";font-weight:700"], ["Type ", MONO + "color:" + SILK], ["arachnotes.help()", MONO + "color:#111;background:" + GOLD + ";padding:1px 5px;border-radius:3px"], [" to see what you can do here.", MONO + "color:" + SILK]]);
+    line([["✓ all spun up. ", MONO + "color:" + GREEN + ";font-weight:700"], ["Type ", MONO + "color:" + SILK], ["arachnotes.help()", MONO + "color:#111;background:" + GOLD + ";padding:1px 5px;border-radius:3px"], [" for the tools, or ", MONO + "color:" + SILK], ["silk.look", MONO + "color:#111;background:" + GOLD + ";padding:1px 5px;border-radius:3px"], [" to step onto the web. 🕸", MONO + "color:" + SILK]]);
+    const h = new Date().getHours();
+    if (h < 5) line([["  (it's late. the spider is up too. spiders are mostly night people.)", MONO + "color:" + DIM]]);
   }, 1500);
 
   // ---- the commands
@@ -11526,7 +11535,7 @@ if (!NATIVE && !IN_CLAUDE) {
       const t = DOC.cats.map((c, i) => { const ks = [...DOC.kw.values()].filter(k => k.cat === i); return { c, i, n: ks.length, done: ks.filter(k => k.crawled).length, top: ks.sort((a, b) => b.count - a.count).slice(0, 4).map(k => k.label).join(", ") }; });
       for (const x of t) line([["● ", "color:" + catColor(x.i) + ";font-size:16px"], [x.c.name.padEnd(24), MONO + "color:" + INK + ";font-weight:700"], [(x.done + "/" + x.n).padEnd(7), MONO + "color:" + GOLD], [x.top, MONO + "color:" + SILK]]);
     },
-    web() {
+    web(numbered) {
       need();
       // a character grid: characters are about twice as tall as wide, so the web is twice as wide as it is tall
       const W = 86, H = 23, cx = 43, cy = 11, rx = 22, ry = 9, g = Array.from({ length: H }, () => Array(W).fill(" "));
@@ -11542,7 +11551,7 @@ if (!NATIVE && !IN_CLAUDE) {
         const n = Math.max(Math.abs(ex), Math.abs(ey) * 2);
         for (let t = 0; t <= n; t++) { const f = 0.2 + 0.8 * t / n; put(cx + ex * f, cy + ey * f, ch, true); }
         // the topic's name just past the end of its spoke, kept inside the frame
-        const name = trunc(x.c.name, 18) + " (" + x.n + ")", lx = cx + Math.cos(a) * (rx + 2), ly = Math.round(cy + Math.sin(a) * (ry + 1.3));
+        const name = (numbered === true ? "[" + (k + 1) + "] " : "") + trunc(x.c.name, 18) + " (" + x.n + ")", lx = cx + Math.cos(a) * (rx + 2), ly = Math.round(cy + Math.sin(a) * (ry + 1.3));
         let start = Math.cos(a) > 0.2 ? lx : Math.cos(a) < -0.2 ? lx - name.length : lx - name.length / 2;
         start = Math.max(0, Math.min(W - name.length, Math.round(start)));
         [...name].forEach((c2, q) => { g[Math.max(0, Math.min(H - 1, ly))][start + q] = c2; });
@@ -11597,6 +11606,232 @@ if (!NATIVE && !IN_CLAUDE) {
   api.toString = () => "arachnotes: type arachnotes.help()";
   ACON.caught = (k, by) => line([["+ ", MONO + "color:" + GREEN + ";font-weight:700"], [k.label.padEnd(26), MONO + "color:" + INK], ["● ", "color:" + catColor(k.cat)], [((DOC.cats[k.cat] || {}).name || "").padEnd(22), MONO + "color:" + SILK], [crawled + "/" + DOC.kw.size, MONO + "color:" + DIM]]);
   try { Object.defineProperty(window, "arachnotes", { value: Object.freeze(api), configurable: true }); } catch (e) { /* already there */ }
+
+  // ---- silk: a little world inside the console to walk around in. silk.look steps onto the web: the hub is the page,
+  // each topic is a thread off it, each keyword a dewdrop on a thread, and neighbours are the strands between them.
+  // Most commands need no brackets (silk.look, silk.back) because they're getters, and a mistyped one gets a
+  // "did you mean". There are badges to earn and a few secrets. Progress is kept in this browser only.
+  const SAVE = "cak3d-silk-shell", fresh = () => ({ badges: [], fed: 0, seen: [] });
+  let mem = Object.assign(fresh(), store.get(SAVE) || {});
+  const keep = () => store.set(SAVE, mem);
+  const BADGES = {
+    first: ["First steps", "stepped onto the web"], walker: ["Thread walker", "walked three different threads"],
+    diver: ["Dew diver", "looked closely at a keyword"], hopper: ["Hopper", "crossed a strand to a neighbouring keyword"],
+    sender: ["Fetch!", "sent the spider after something"], feeder: ["Fly catcher", "fed the spider five flies"],
+    weaver: ["Weaver", "wove words out of silk"], listener: ["Light touch", "felt the web tremble"],
+    owl: ["Night owl", "came here between midnight and 5 am"], lost: ["Lost in the silk", "mistyped a command"],
+    xyzzy: ["Old magic", "said the old word"], sudo: ["Root access", "tried to take over the web"],
+    legs: ["Leg day", "counted the legs"], molt: ["Fresh skin", "molted"],
+  };
+  const RIDDLES = { xyzzy: "An old adventure's magic word still works here.", sudo: "Try being the boss of the web.", legs: "Count what every spider has eight of.", molt: "Spiders shed their skin to grow. So can you (it starts you over)." };
+  const G = MONO + "color:" + GOLD, T = MONO + "color:" + INK, SL = MONO + "color:" + SILK, D = MONO + "color:" + DIM;
+  const earn = id => {
+    if (mem.badges.includes(id)) return; mem.badges.push(id); keep();
+    line([[" ◆ BADGE ", MONO + "color:#111;background:" + GOLD + ";font-weight:700;border-radius:3px"], ["  " + BADGES[id][0], G + ";font-weight:700"], ["  " + BADGES[id][1], SL]]);
+  };
+  const rank = () => { const n = mem.badges.length; return n >= 11 ? "Orb master" : n >= 7 ? "Weaver" : n >= 3 ? "Spiderling" : "Hatchling"; };
+  const wrap = (s, w = 86) => { const out = []; let cur = ""; for (const word of String(s).split(/\s+/)) { if ((cur + " " + word).trim().length > w) { out.push(cur); cur = word; } else cur = (cur + " " + word).trim(); } if (cur) out.push(cur); return out; };
+  const bar = (done, n, w = 24) => { const f = n ? Math.round(done / n * w) : 0; return "█".repeat(f) + "░".repeat(w - f); };
+  // a panel: a gold rail down the left, numbered ways onward, and a hint at the bottom
+  const top = (title, sub = "") => line([["┏━━ ", G], [title, G + ";font-weight:700"], [" " + "━".repeat(Math.max(3, 50 - title.length)) + " ", G], [sub, D]]);
+  const row = (...parts) => line([["┃  ", G], ...parts]);
+  const gap = () => row(["", T]);
+  const bot = hint => line([["┗━━ ", G], [hint, D]]);
+  const opt = (n, label, note = "", css = T) => row([("[" + n + "]").padStart(4) + " ", G + ";font-weight:700"], [label, css], [note ? "  " + note : "", D]);
+
+  // where you are, and how you got there
+  let here = { kind: "hub" }, trail = [];
+  const kwList = i => [...DOC.kw.values()].filter(k => k.cat === i).sort((a, b) => b.count - a.count);
+  const threadsOf = () => DOC ? DOC.cats.map((c, i) => ({ c, i, ks: kwList(i) })).filter(x => x.ks.length) : [];
+  const hasDoc = () => !!(DOC && DOC.kw && DOC.kw.size);
+  // the ways on from a place: [label, note, where it leads (a place, or something to do), css]
+  function waysFrom(p) {
+    if (p.kind === "hub") return [
+      ...(hasDoc() ? threadsOf().map(x => [x.c.name, x.ks.filter(k => k.crawled).length + "/" + x.ks.length + " caught", { kind: "topic", cat: x.i }, MONO + "color:" + catColor(x.i)]) : []),
+      ["the nest", "your saved crawls", { kind: "nest" }, SL], ["the spider's den", "who's spinning, and how", { kind: "den" }, SL]];
+    if (p.kind === "topic") return kwList(p.cat).slice(0, 16).map(k => [k.label, k.count + "×" + (k.crawled ? "  ✓ caught" : ""), { kind: "kw", key: k.key }, k.crawled ? MONO + "color:" + GREEN : T]);
+    if (p.kind === "kw") { const k = DOC.kw.get(p.key); return k ? [...k.nb.entries()].sort((a, b) => b[1] - a[1]).map(([key, n]) => [DOC.kw.get(key), n]).filter(([x]) => x).slice(0, 6).map(([x, n]) => [x.label, "shares " + plural(n, "sentence") + " · " + ((DOC.cats[x.cat] || {}).name || ""), { kind: "kw", key: x.key, hop: true }, MONO + "color:" + catColor(x.cat)]) : []; }
+    if (p.kind === "den") return Object.entries(TYPES).map(([k, v]) => [v.name, cfg.type === k ? "◀ spinning now" : locked("type", k) ? "🔒 in the store" : "", () => api.spider(k), cfg.type === k ? G : T]);
+    return [];
+  }
+  async function look() {
+    const p = here;
+    if (p.kind !== "hub" && !hasDoc() && p.kind !== "nest" && p.kind !== "den") here = { kind: "hub" };
+    if (!mem.badges.includes("first")) { earn("first"); if (new Date().getHours() < 5) earn("owl"); }
+    const ways = waysFrom(here), path = pathText();
+    if (here.kind === "hub") {
+      if (hasDoc()) api.web(true);
+      top("THE HUB", path);
+      if (hasDoc()) { row(["“" + trunc(DOC.title || "", 60) + "”", "font:700 13px Georgia,serif;color:" + INK]); row([bar(crawled, DOC.kw.size) + " ", G], [crawled + " of " + DOC.kw.size + " keywords caught · " + (paused ? "paused" : S.mode === "done" ? "done" : "crawling"), SL]); }
+      else row(["The web is empty. Open a page, paste some text or drop a file, and the spider will start spinning.", SL]);
+      gap(); ways.forEach(([l, n, , css], i) => opt(i + 1, l, n, css));
+      bot("silk.go(1) walks a thread · silk.go(\"word\") finds any keyword · silk.help");
+    } else if (here.kind === "topic") {
+      const c = DOC.cats[here.cat], ks = kwList(here.cat), done = ks.filter(k => k.crawled).length;
+      top(c.name.toUpperCase(), path);
+      row(["● ", "font-size:15px;color:" + catColor(here.cat)], [bar(done, ks.length) + " ", G], [done + "/" + ks.length + " caught", SL]);
+      gap(); ways.forEach(([l, n, , css], i) => opt(i + 1, l, n, css));
+      if (ks.length > 16) row(["…and " + (ks.length - 16) + " more. silk.go(\"name\") reaches any of them.", D]);
+      bot("silk.go(n) steps onto a dewdrop · silk.show opens this in the web view · silk.back");
+    } else if (here.kind === "kw") {
+      const k = DOC.kw.get(here.key); if (!k) { here = { kind: "hub" }; return look(); }
+      const w = DOC.web && DOC.web[k.key];
+      top(k.label.toUpperCase(), path);
+      row(["● ", "font-size:15px;color:" + catColor(k.cat)], [((DOC.cats[k.cat] || {}).name || "") + " · ", SL], [plural(k.count, "mention"), T], [k.crawled ? "  ✓ caught" : "  not caught yet", k.crawled ? MONO + "color:" + GREEN : MONO + "color:" + AMBER]);
+      if (w && w.text) { gap(); wrap(trunc(w.text, 420)).forEach((t, i) => row([i ? "  " : "❝ ", G], [t, "font:italic 13px Georgia,serif;color:" + INK])); row(["  — " + (w.title || "") + (w.kind === "wiki" ? " (Wikipedia)" : " (Wiktionary)"), D]); }
+      const re = new RegExp("\\b" + k.label.replace(/[.*+?^$\{\}()|[\]\\]/g, "\\$&"), "i");
+      const quotes = k.si.slice(0, 3).map(i => DOC.sents[i]).filter(Boolean);
+      if (quotes.length) { gap(); for (const q of quotes) { const m = re.exec(q); if (!m) { row(["· " + trunc(q, 160), SL]); continue; } const a = Math.max(0, m.index - 70); row(["· " + (a ? "…" : "") + q.slice(a, m.index), SL], [m[0], "color:#111;background:" + GOLD + ";padding:0 2px;border-radius:2px"], [trunc(q.slice(m.index + m[0].length), 80), SL]); } }
+      if (ways.length) { gap(); row(["strands to its neighbours:", D]); ways.forEach(([l, n, , css], i) => opt(i + 1, l, n, css)); }
+      bot("silk.send fetches it · silk.show shows it in the web view · silk.back");
+      earn("diver");
+    } else if (here.kind === "nest") {
+      top("THE NEST", path);
+      const lib = await LIB.list().catch(() => []);
+      if (!lib.length) row(["Nothing saved yet. Library → Save keeps a crawl here.", SL]);
+      lib.slice(0, 12).forEach((x, i) => row([String(i + 1).padStart(3) + ". ", D], [trunc(x.title || "Untitled", 50), T], ["  " + (x.savedAt ? new Date(x.savedAt).toLocaleDateString() : ""), D]));
+      bot("silk.show opens the library · silk.back");
+    } else if (here.kind === "den") {
+      top("THE SPIDER'S DEN", path);
+      row([spiderName(), G + ";font-weight:700"], ["  a " + TYPES[cfg.type].name.toLowerCase() + " · speed ×" + cfg.speed + " · theme " + cfg.skin, SL]);
+      gap(); ways.forEach(([l, n, , css], i) => opt(i + 1, l, n, css));
+      bot("silk.go(n) swaps spiders · silk.feed · silk.pet · silk.dance · silk.back");
+    }
+  }
+  function pathText() {
+    const name = p => p.kind === "hub" ? "hub" : p.kind === "topic" ? (DOC.cats[p.cat] || {}).name : p.kind === "kw" ? (DOC.kw.get(p.key) || {}).label : p.kind === "nest" ? "nest" : "den";
+    return [...trail, here].slice(-4).map(name).join(" ▸ ");
+  }
+  function moveTo(p) {
+    trail.push(here); if (trail.length > 30) trail.shift(); here = p;
+    if (p.kind === "topic") { const n = DOC.cats[p.cat].name; if (!mem.seen.includes(n)) { mem.seen.push(n); mem.seen = mem.seen.slice(-50); keep(); } if (mem.seen.length >= 3) earn("walker"); }
+    if (p.hop) earn("hopper");
+    return look();
+  }
+  function go(where) {
+    const ways = waysFrom(here);
+    let w = typeof where === "number" ? ways[where - 1] : null;
+    if (!w && typeof where === "string" && where.trim()) {
+      const q = where.trim().toLowerCase();
+      w = ways.find(x => x[0].toLowerCase() === q) || ways.find(x => x[0].toLowerCase().startsWith(q));
+      if (!w && /^(hub|home|nest|den)$/.test(q)) w = [q, "", q === "hub" || q === "home" ? { kind: "hub" } : { kind: q === "den" ? "den" : "nest" }];
+      // any keyword anywhere: a long jump across the web
+      if (!w && hasDoc()) { const k = [...DOC.kw.values()].find(k => k.label.toLowerCase() === q) || [...DOC.kw.values()].find(k => k.label.toLowerCase().includes(q)); if (k) w = [k.label, "", { kind: "kw", key: k.key }]; }
+      if (!w && hasDoc()) { const t = threadsOf().find(x => x.c.name.toLowerCase().includes(q)); if (t) w = [t.c.name, "", { kind: "topic", cat: t.i }]; }
+    }
+    if (!w) return line([["✕ ", MONO + "color:" + RED + ";font-weight:700"], [where == null ? "Go where? silk.look shows the ways on." : "No strand leads to “" + where + "” from here. silk.look shows the ways on.", MONO + "color:" + RED]]);
+    if (typeof w[2] === "function") { w[2](); return look(); }
+    return moveTo(w[2]);
+  }
+
+  // a tiny 3×5 font for silk.weave
+  const FONT = { A: "010101111101101", B: "110101110101110", C: "011100100100011", D: "110101101101110", E: "111100110100111", F: "111100110100100", G: "011100101101011", H: "101101111101101", I: "111010010010111", J: "001001001101010", K: "101101110101101", L: "100100100100111", M: "101111111101101", N: "110101101101101", O: "010101101101010", P: "110101110100100", Q: "010101101110011", R: "110101110101101", S: "011100010001110", T: "111010010010010", U: "101101101101111", V: "101101101101010", W: "101101111111101", X: "101101010101101", Y: "101101010010010", Z: "111001010100111",
+    0: "111101101101111", 1: "010110010010111", 2: "110001010100111", 3: "110001010001110", 4: "101101111001001", 5: "111100110001110", 6: "011100111101111", 7: "111001010010010", 8: "111101111101111", 9: "111101111001110", " ": "000000000000000", "!": "010010010000010", "?": "110001010000010", ".": "000000000000010", "-": "000000111000000", "'": "010010000000000", "♥": "000101111111010" };
+  const shades5 = ["#ffe39a", "#f9d370", "#f2c14e", "#e8aa3b", "#da902c"];
+  const levenshtein = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+  let flies = [];
+  const HELP = [
+    ["getting around", [["look", "where you are, and the ways on"], ["go(n) · go(\"word\")", "follow a numbered strand, or leap to any keyword or topic"], ["back · home", "retrace a step, or return to the hub"], ["path", "the way you came"], ["map", "the whole web, drawn in silk"]]],
+    ["on a dewdrop", [["send", "send the spider in the app after this keyword"], ["show", "open this place in the app's web view"], ["listen", "feel which keywords the spider caught most recently"]]],
+    ["the spider", [["feed", "toss it a fly"], ["pet", "carefully"], ["dance", "it has moves"], ["say(\"text\")", "it says something"], ["weave(\"text\")", "spin words in big silk letters"]]],
+    ["you", [["badges", "what you've earned on the web"], ["whoami", "your rank"], ["hint", "a nudge towards a secret (there are " + Object.keys(RIDDLES).length + ")"]]],
+  ];
+  const cmds = {
+    get look() { look(); return undefined; },
+    get map() { api.web(true); return undefined; },
+    get back() { if (!trail.length) line([["You're already where you started. ", SL], ["silk.look", G]]); else { here = trail.pop(); look(); } return undefined; },
+    get home() { trail = []; here = { kind: "hub" }; look(); return undefined; },
+    get up() { return cmds.back; },
+    get path() { line([["⟡ ", G], [pathText() || "hub", T]]); return undefined; },
+    go,
+    get help() {
+      line([[" 🕸 SILK ", MONO + "color:#111;background:" + GOLD + ";font-weight:700;border-radius:3px"], ["  a walk around the web. Type silk. and then any of these (no brackets unless shown):", SL]]);
+      for (const [group, list] of HELP) { line([["  " + group, D + ";font-style:italic"]]); for (const [c, d] of list) line([["    silk." + c.padEnd(24), G], [d, SL]]); }
+      line([["  …and arachnotes.help() has the tools for crawls.", D]]);
+      return undefined;
+    },
+    get menu() { return cmds.help; },
+    get send() {
+      if (here.kind !== "kw") { line([["Step onto a keyword first (silk.go), then send the spider.", SL]]); return undefined; }
+      const node = nodes.find(x => x.key === here.key); if (!node) { line([["That keyword isn't on the page.", SL]]); return undefined; }
+      if (node.caught) S.goto = { x: node.cx, y: node.cy }; else { S.manual = S.manual.filter(n => n !== node); S.manual.unshift(node); S.target = null; }
+      wake(); if (paused) togglePause();
+      line([["🕷 ", "font-size:14px"], [node.caught ? "the spider ambles over to admire it again" : "the spider is on its way to “" + DOC.kw.get(here.key).label + "”", G]]); earn("sender");
+      return undefined;
+    },
+    get show() {
+      if (here.kind === "nest") openLib(); else if (hasDoc()) openWeb(here.kind === "kw" ? here.key : undefined); else { line([["Nothing to show yet.", SL]]); return undefined; }
+      line([["↗ opened in the app", G]]); return undefined;
+    },
+    get listen() {
+      const felt = ACON.felt.map(k => DOC && DOC.kw.get(k)).filter(Boolean).reverse();
+      if (!felt.length) line([["〰 ", G], ["quiet. nothing has touched the web lately.", SL]]);
+      else { line([["〰 the silk trembles… ", G], ["(newest first)", D]]); felt.forEach((k, i) => line([["  " + "∿".repeat(Math.max(1, 6 - i)).padEnd(7), MONO + "color:" + catColor(k.cat)], [k.label, T]])); earn("listener"); }
+      return undefined;
+    },
+    get feed() {
+      const now = Date.now(); flies = flies.filter(t => now - t < 20000); flies.push(now); mem.fed++; keep();
+      if (flies.length > 3) line([["🕷 ", "font-size:14px"], ["it's full. it wraps the fly in silk and saves it for later. ", SL], ["🎁", ""]]);
+      else line([["  ~ ✻ ~  →  ", D], ["🕸", ""], ["  →  ", D], ["*munch*", G + ";font-weight:700"], ["   (" + (mem.fed === 1 ? "1 fly" : mem.fed + " flies") + " so far)", D]]);
+      if (mem.fed >= 5) earn("feeder");
+      return undefined;
+    },
+    get pet() {
+      const r = ["The spider raises two front legs. It's a wave. Probably.", "It goes very still. That's spider for “thank you”.", "It taps your finger twice and returns to its web.", "Eight eyes look at you. All of them approve.", "It does a little shimmy. You didn't see that. Nobody saw that."];
+      line([["🕷 ", "font-size:14px"], [r[Math.floor(Math.random() * r.length)], "font:14px Georgia,serif;color:" + INK]]); return undefined;
+    },
+    get dance() {
+      const F = ["╱╲╱╲(o.o)╱╲╱╲", "╲╱╲╱(o.o)╲╱╲╱", "╱╲╱╲(-.o)╱╲╱╲", "╲╱╲╱(o.-)╲╱╲╱", "╱╲╱╲(°▽°)╱╲╱╲", "  ♪  ♫  ♪"];
+      F.forEach((f, i) => setTimeout(() => line([[" ".repeat([2, 6, 10, 6, 2, 4][i]) + f, G + ";font-weight:700"]]), i * 260));
+      return undefined;
+    },
+    say(text = "hello from the web") {
+      const lines = wrap(String(text), 38), w = Math.max(...lines.map(l => l.length));
+      log("%c" + [" " + "_".repeat(w + 2), ...lines.map((l, i) => (lines.length === 1 ? "< " : i === 0 ? "/ " : i === lines.length - 1 ? "\\ " : "| ") + l.padEnd(w) + (lines.length === 1 ? " >" : i === 0 ? " \\" : i === lines.length - 1 ? " /" : " |")), " " + "-".repeat(w + 2),
+        "      \\", "       \\    │", "        \\  ╲│╱", "          ─(●)─", "           ╱ ╲"].join("\n"), BG + MONO + "font-size:12px;line-height:1.2;color:" + INK + ";padding:8px 14px");
+    },
+    weave(text = "arachnotes") {
+      const s = [...String(text).toUpperCase()].slice(0, 14).map(c => FONT[c] || FONT["?"]);
+      const rowsW = [0, 1, 2, 3, 4].map(r => s.map(g => [...g.slice(r * 3, r * 3 + 3)].map(b => b === "1" ? "██" : "  ").join("")).join("  "));
+      const fmt = [], sty = [], L2 = BG + MONO + "font-size:11px;line-height:1.15;", pad = " ".repeat(rowsW[0].length + 6);
+      [pad, ...rowsW, pad].forEach((r, n) => { if (n) { fmt.push("%c\n"); sty.push(""); } fmt.push("%c" + (r === pad ? r : "   " + r + "   ")); sty.push(L2 + "color:" + (shades5[n - 1] || SILK)); });
+      log(fmt.join(""), ...sty); earn("weaver");
+    },
+    get badges() {
+      const ids = Object.keys(BADGES), got = ids.filter(i => mem.badges.includes(i));
+      top("BADGES", got.length + " of " + ids.length + " · " + rank());
+      for (const i of ids) { const has = mem.badges.includes(i), secret = RIDDLES[i]; row([has ? "◆ " : "◇ ", has ? G : D], [has || !secret ? BADGES[i][0].padEnd(18) : "??????".padEnd(18), has ? T : D], [has || !secret ? BADGES[i][1] : "a secret", has ? SL : D]); }
+      bot(got.length === ids.length ? "every badge. the spider bows (all eight knees)." : "silk.hint for a nudge");
+      return undefined;
+    },
+    get whoami() {
+      line([["you: ", D], ["a curious human", T], ["  ·  rank ", D], [rank(), G + ";font-weight:700"], ["  ·  " + mem.badges.length + " badges · " + mem.seen.length + " threads walked · " + (mem.fed === 1 ? "1 fly" : mem.fed + " flies") + " fed", D]]);
+      return undefined;
+    },
+    get hint() {
+      const left = Object.keys(RIDDLES).filter(k => !mem.badges.includes(k));
+      line([["✧ ", G], [left.length ? RIDDLES[left[Math.floor(Math.random() * left.length)]] : "You've found every secret. The spider is impressed (it's hard to tell).", "font:italic 14px Georgia,serif;color:" + INK]]);
+      return undefined;
+    },
+    get xyzzy() { line([["A hollow voice says “Fool.” ", "font:italic 14px Georgia,serif;color:" + INK], ["…then a strand of silk quivers, as if it remembers the old games.", SL]]); earn("xyzzy"); return undefined; },
+    get sudo() { line([["🕷 permission denied, politely. ", MONO + "color:" + AMBER], ["Spiders don't have root. Only the roots their webs hang from.", SL]]); earn("sudo"); return undefined; },
+    get legs() { [1, 2, 3, 4, 5, 6, 7, 8].forEach(n => setTimeout(() => line([["  leg " + n + " ", D], ["╱".repeat(n), G], [n === 8 ? "   all present. (insects: 6. you: hopefully 2.)" : "", SL]]), n * 120)); setTimeout(() => earn("legs"), 1100); return undefined; },
+    get molt() { mem = fresh(); keep(); trail = []; here = { kind: "hub" }; line([["🕷 ", "font-size:14px"], ["The spider slips out of its old skin. Your badges and trail are gone: a fresh start.", SL]]); earn("molt"); return undefined; },
+    toString: () => "silk: type silk.look to step onto the web, or silk.help",
+  };
+  const QUIET = new Set(["then", "toJSON", "$$typeof", "asymmetricMatch", "nodeType", "tagName", "inspect", "length", "prototype"]);
+  const silk = new Proxy(cmds, {
+    get(t, p, r) {
+      if (p in t) return Reflect.get(t, p, r);
+      if (typeof p !== "string" || QUIET.has(p) || /^[_@$]/.test(p)) return undefined;
+      const names = Object.keys(t).filter(n => n !== "toString"), best = names.map(n => [n, levenshtein(p.toLowerCase(), n)]).sort((a, b) => a[1] - b[1])[0];
+      line([["✕ ", MONO + "color:" + RED + ";font-weight:700"], ["no thread called “" + p + "”.", MONO + "color:" + RED], [best && best[1] <= 2 ? "  did you mean silk." + best[0] + "?" : "  silk.help lists them all.", SL]]);
+      earn("lost");
+      return undefined;
+    },
+    set() { line([["🕸 the silk is set. it won't take that.", SL]]); return true; },
+  });
+  try { Object.defineProperty(window, "silk", { value: silk, configurable: true }); } catch (e) { /* already there */ }
 }
 // shared from another app: Android hands it over through the ShareIn plugin; the installed web app gets it in the address
 {

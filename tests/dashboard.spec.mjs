@@ -134,6 +134,13 @@ test("the developer console: a warning, the logo, a boot check, and commands tha
   expect(logs.some(l => l.includes("No spider called nope"))).toBe(true);
   expect(await page.evaluate(() => typeof arachnotes.exportCrawl().state)).toBe("object");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cak3d-cfg")).speed)).toBe(2);
+  // silk: a world to walk around in
+  for (const c of ["look", "go(1)", "go(1)", "go(1)", "back", "path", "map", "home", "go('den')", "help", "listen", "feed", "pet", "dance", "say('hi there')", "weave('Hi!')", "badges", "whoami", "hint", "xyzzy", "sudo", "legs", "lok", "go('nowhere at all')"])
+    await page.evaluate(c2 => (0, eval)("silk." + c2), c);
+  await expect.poll(() => logs.some(l => l.includes("did you mean silk.look"))).toBe(true);
+  expect(logs.some(l => l.includes("THE HUB"))).toBe(true);
+  expect(logs.some(l => l.includes("No strand leads"))).toBe(true);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("cak3d-silk-shell")).badges.length)).toBeGreaterThan(6);
   expect(errs).toEqual([]);
 });
 
